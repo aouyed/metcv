@@ -19,14 +19,16 @@ import seaborn as sns
 
     
 def dataframe_builder(end_date,var,dtheta):  
-    dictionary_paths=glob.glob('../../data/interim/dictionaries/*')
-    dict_optical_paths=glob.glob('../../data/interim/dictionaries_optical_flow/*')
+    dictionary_paths=glob.glob('../data/interim/dictionaries/*')
+    dict_optical_paths=glob.glob('../data/interim/dictionaries_optical_flow/*')
     dictionary_dict={}
     dictionary_dict_optical={}
+    print(dictionary_paths)
     
     for path in dictionary_paths:
         var_name=os.path.basename(path).split('.')[0]
         dictionary_dict[var_name]=pickle.load(open(path,'rb'))
+        print(path)
         
     for path in dict_optical_paths:
         var_name=os.path.basename(path).split('.')[0]
@@ -47,7 +49,7 @@ def dataframe_builder(end_date,var,dtheta):
         df=pd.concat([df,df_quantum])
     
     df.set_index('datetime', inplace=True)
-    df_path='../../data/interim/dataframes'
+    df_path='../data/interim/dataframes'
     if not os.path.exists(df_path):
         os.makedirs(df_path)
     df.to_pickle(df_path+'/'+var+'.pkl')
@@ -81,7 +83,9 @@ def data_analysis(start_date,end_date,var,directory,cutoff):
    
     pd.set_option('display.max_colwidth', -1)
     pd.set_option('display.expand_frame_repr', False)
-    df = pd.read_pickle('dataframes/'+var+'.pkl')     
+    df_path='../data/interim/dataframes/'+var+'.pkl'
+    df_path=os.path.abspath(df_path)
+    df = pd.read_pickle(df_path)     
     df=df[start_date:end_date]
     df=absolute_df(df)
     if(cutoff>0):
@@ -90,12 +94,12 @@ def data_analysis(start_date,end_date,var,directory,cutoff):
     df_printer(df,directory)
     
     
-    scatter_directory='../../data/processed/scatter_'+directory
+    scatter_directory='../data/processed/scatter_'+directory
     dfc.plotter(df[['flow_v','v_scaled_approx','v','error_v']],scatter_directory,end_date)
     dfc.plotter(df[['flow_u','u_scaled_approx','u','error_u']],scatter_directory,end_date)
     dfc.plotter(df[['speed','speed_approx','speed_error']],scatter_directory,end_date)
 
-    heatmap_directory='../../data/processed/heatmaps_'+directory
+    heatmap_directory='../data/processed/heatmaps_'+directory
     dfc.heatmap_plotter(df,end_date,heatmap_directory)
     ax=df.loc[[end_date]].plot(kind="scatter",x='speed', y='speed_error')
     #plt.savefig(scatter_directory +'/'+'derek_speed.png',bbox_inches='tight')

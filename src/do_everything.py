@@ -22,7 +22,7 @@ def iterator(var, winsizes,levelses,poly_ns,iterationses,cutoffs):
                         size_path=(var+'_w'+str(winsize)+'_p'+str(poly_n)+'_l'
                                    +str(levels)+'_i'+str(iterations)+'_c'+str(cutoff))
                         print(size_path)
-                        mm.frame_maker(var, size_path)
+                        #mm.frame_maker(var, size_path)
                         of.optical_flow_calculator(d0,var, pyr_scale, levels, 
                                                    winsize, iterations, poly_n, poly_sigma)
                         aa.dataframe_builder(d1,var,dtheta)
@@ -41,21 +41,21 @@ dtheta=0.5
 #cutoffs=[0.3,0.1,-1]
 winsizes=[10]
 levelses=[5]
-poly_ns=[3]
+poly_ns=[2]
 iterationses=[3]
 cutoffs=[-1]
 poly_sigma=1.2
 pyr_scale=0.5
 
-gd.downloader(d0,d1,'QV','humidity')
-#gd.downloader(d0,d1,'U','zonal')
-#gd.downloader(d0,d1,'V','meridonial')
+#gd.downloader(d0,d1,'QV','qv')
+#gd.downloader(d0,d1,'U','u')
+#gd.downloader(d0,d1,'V','v')
 #gd.downloader(d0,d1,'AIRDENS','airdens')
 
 
 #iterator('AIRDENS',winsizes,levelses,poly_ns,iterationses,cutoffs)
 
-qvd.builder('qvdens')
+#qvd.builder('qvdens')
 iterator('QVDENS',winsizes,levelses,poly_ns,iterationses,cutoffs)
 
 print('Done_final')

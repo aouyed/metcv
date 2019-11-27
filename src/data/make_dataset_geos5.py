@@ -58,7 +58,7 @@ def downloader(start_date, end_date,opendap_var,directory):
                 file_paths.update({date:file_path})
             except Exception as e:
                 print(type(e).__name__, e)
-    dictionary_path='dictionaries'
+    dictionary_path='../data/interim/dictionaries'
     if not os.path.exists( dictionary_path):
         os.makedirs(dictionary_path)
     f = open(dictionary_path+'/'+ opendap_var+'.pkl',"wb")

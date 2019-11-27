@@ -15,8 +15,8 @@ import matplotlib.pyplot as plt
 def builder(directory):
     if not os.path.exists(directory):
         os.makedirs(directory)
-    file_paths_AIRDENS = pickle.load(open('dictionaries/AIRDENS.pkl', 'rb'))
-    file_paths_QV = pickle.load(open('dictionaries/QV.pkl', 'rb'))
+    file_paths_AIRDENS = pickle.load(open('../data/interim/dictionaries/AIRDENS.pkl', 'rb'))
+    file_paths_QV = pickle.load(open('../data/interim/dictionaries/QV.pkl', 'rb'))
     file_paths_QVDENS={}
     for date in file_paths_AIRDENS: 
         frame1 = np.load(file_paths_AIRDENS[date])
@@ -25,7 +25,7 @@ def builder(directory):
         file_path=str(directory+'/'+str(date)+".npy")
         np.save(file_path,frame3)
         file_paths_QVDENS[date]=file_path
-    dictionary_path='dictionaries'
+    dictionary_path='../data/interim/dictionaries'
     f = open(dictionary_path+'/QVDENS.pkl',"wb")
     pickle.dump(file_paths_QVDENS,f)
         
