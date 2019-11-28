@@ -21,13 +21,13 @@ def df_summary(df):
         df_d=df[column].describe()
         df_d=df_d.to_frame()
         df_unit=df_d.T
-        df_unit['var']=column
+        df_unit['quantity']=column
         #df_unit=df_unit.reset_index()
         #df_unit=df_unit.drop(columns=['index'])
         if df_total.empty:
             df_total = df_unit
         else:
-            df_total = df_total.merge(df_unit, how='left')
+            df_total = pd.concat([df_total,df_unit])
     df_total['corr_speed']= df['speed'].corr(df['speed_approx'])
     df_total['corr_u']= df['u'].corr(df['u_scaled_approx'])
     df_total['corr_v']= df['v'].corr(df['v_scaled_approx'])

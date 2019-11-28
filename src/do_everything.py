@@ -27,7 +27,7 @@ class Parameters:
         self.pyr_scale = pyr_scale
         self.levels = levels
         self.winsize = winsize
-        self.iterations = iterations,
+        self.iterations = iterations
         self.poly_n = poly_n
         self.poly_sigma = poly_sigma
         self.cutoff = cutoff
