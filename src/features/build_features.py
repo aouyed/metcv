@@ -13,8 +13,6 @@ import numpy as np
 
 def builder(directory):
     """create qvdens from qv and airdens"""
-    if not os.path.exists(directory):
-        os.makedirs(directory)
     file_paths_airdens = pickle.load(
         open('../data/interim/dictionaries/AIRDENS.pkl', 'rb'))
     file_paths_qv = pickle.load(

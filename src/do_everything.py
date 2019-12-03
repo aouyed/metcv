@@ -57,9 +57,9 @@ def iterator(var, winsizes, levelses, poly_ns, iterationses, cutoffs):
                                      + str(levels)+'_i'+str(iterations)+'_c'+str(cutoff))
                         print(size_path)
                         #mm.frame_maker(var, size_path)
-                        # of.optical_flow_calculator(d0, var, pyr_scale, levels,
-                        #                           winsize, iterations, poly_n, poly_sigma)
-                        #aa.dataframe_builder(d1, var, dtheta)
+                        #of.optical_flow_calculator(d0, var, pyr_scale, levels,
+                         #                         winsize, iterations, poly_n, poly_sigma)
+                        aa.dataframe_builder(d1, var, grid)
                         df_unit = aa.data_analysis(d0_sample, d1_sample,
                                                    var, size_path, cutoff)
 
@@ -76,20 +76,23 @@ d0 = datetime(2006, 7, 1, 0, 0, 0, 0)
 d1 = datetime(2006, 7, 1, 4, 0, 0, 0)
 d0_sample = datetime(2006, 7, 1, 0, 0, 0, 0)
 d1_sample = datetime(2006, 7, 1, 4, 0, 0, 0)
-dtheta = 0.5
+grid = 0.0625
 winsizes = [10]
 levelses = [5]
 poly_ns = [2]
 iterationses = [3]
-cutoffs = [-1, 0.025]
+cutoffs = [-1]
 poly_sigma = 1.2
 pyr_scale = 0.5
 
-# gd.downloader(d0,d1,'QV','qv')
-# gd.downloader(d0,d1,'U','u')
-# gd.downloader(d0,d1,'V','v')
-# gd.downloader(d0,d1,'AIRDENS','airdens')
-
+level=65
+coarse=False
+#gd.downloader(d0,d1,'QV','qv',level, coarse)
+#gd.downloader(d0,d1,'U','u',level, coarse)
+#gd.downloader(d0,d1,'V','v',level, coarse)
+#gd.downloader(d0,d1,'AIRDENS','airdens',level, coarse)
+#qvd.builder('qvdens')
+#gd.pressure_diagnostic('PL',d0)
 iterator('QVDENS', winsizes, levelses, poly_ns, iterationses, cutoffs)
 
 print('Done_final')

@@ -5,7 +5,7 @@ Created on Tue Nov 12 15:27:02 2019
 
 @author: amirouyed
 """
-
+from pathos.multiprocessing import ProcessingPool as Pool
 import glob
 import os
 import pickle
@@ -13,6 +13,16 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 from viz import dataframe_calculators as dfc
+
+
+
+def parallelize_dataframe(df, func, n_cores=7):
+    df_split = np.array_split(df, n_cores)
+    pool = Pool(n_cores)
+    df = pd.concat(pool.map(func, df_split))
+    pool.close()
+    pool.join()
+    return df
 
 
 def df_summary(df):
@@ -33,11 +43,11 @@ def df_summary(df):
     df_total['corr_v']= df['v'].corr(df['v_scaled_approx'])
     return df_total
 
- 
+
      
 
 
-def dataframe_builder(end_date, var, dtheta):
+def dataframe_builder(end_date, var, grid):
     """build dataframe that includes data from all relevant dates"""
     dictionary_paths = glob.glob('../data/interim/dictionaries/*')
     dict_optical_paths = glob.glob(
@@ -57,17 +67,18 @@ def dataframe_builder(end_date, var, dtheta):
 
     flow_files = dictionary_dict_optical[var]
     random_date = list(flow_files.keys())[0]
+    
+    df_loop_function= lambda x: dfc.df_loop(x,grid)
     df = dfc.dataframe_quantum(
         flow_files[random_date], random_date, dictionary_dict)
-    df = dfc.latlon_converter(df, dtheta)
-    df = dfc.scaling_df_approx(df)
+    df= parallelize_dataframe(df, df_loop_function)
     flow_files.pop(random_date)
 
     for date in flow_files:
-        file = flow_files[date]
+        print(date)
+        file = flow_files[date]        
         df_quantum = dfc.dataframe_quantum(file, date, dictionary_dict)
-        df_quantum = dfc.latlon_converter(df_quantum, dtheta)
-        df_quantum = dfc.scaling_df_approx(df_quantum)
+        df_quantum= parallelize_dataframe(df_quantum, df_loop_function)
         df = pd.concat([df, df_quantum])
 
     df.set_index('datetime', inplace=True)

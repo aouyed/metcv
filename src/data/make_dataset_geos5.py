@@ -14,37 +14,52 @@ import xarray as xr
 from datetime import datetime
 from datetime import timedelta
 
-def daterange(start_date, end_date):
+def daterange(start_date, end_date,dhour):
     date_list = []
-    delta = timedelta(hours=1)
+    delta = timedelta(hours=dhour)
     while start_date <= end_date:
         date_list.append(start_date)
         start_date += delta
     return date_list
 
 
-
-
-def downloader(start_date, end_date,opendap_var,directory):
-    if not os.path.exists(directory):
-        os.makedirs(directory)
-    url = u'https://opendap.nccs.nasa.gov/dods/OSSE/G5NR/Ganymed/7km/0.5000_deg/inst/inst01hr_3d_'+opendap_var+'_Cp'
+def pressure_diagnostic(var, start_date):
+    url = u'https://opendap.nccs.nasa.gov/dods/OSSE/G5NR/Ganymed/7km/0.0625_deg/inst/inst30mn_3d_PL_Nv'
     ds = xr.open_dataset(url,decode_times=True)
-    d0 = datetime(2006, 7, 1,0,0,0,0)
+    date=start_date
+    ds= ds.sel(time=date,method='nearest')
     
-    d1 = datetime(2006, 7, 2,0,0,0,0)
+    for level in range(60,73):
+        T = ds.sel(lev=level, lon=slice(-180,180),lat=slice(-90,90))
+        T=T.get([var.lower()])            #print(T)
+        T=T.to_array()
+        T=np.squeeze(T)
+        mean=np.mean(T.values)/100
+        stdev=np.std(T.values)/100
+        print(str(level)+' '+str(mean)+' '+str(stdev))
+    
+
+
+def downloader(start_date, end_date,opendap_var,directory,level,coarse):
     d0=start_date
     d1=end_date
+    if coarse:    
+        url = u'https://opendap.nccs.nasa.gov/dods/OSSE/G5NR/Ganymed/7km/0.5000_deg/inst/inst01hr_3d_'+opendap_var+'_Cp'
+        date_list= daterange(d0, d1,1)
+
+    else:
+        url = u'https://opendap.nccs.nasa.gov/dods/OSSE/G5NR/Ganymed/7km/0.0625_deg/inst/inst30mn_3d_'+opendap_var+'_Nv'
+        date_list= daterange(d0, d1,0.5)
+
+            
+    ds = xr.open_dataset(url,decode_times=True)
     file_paths={}
-    
-    delta = d1 - d0
-    date_list= daterange(d0, d1)
     for date in date_list:
             try:
                 print(opendap_var)
                 print(date)
                 T= ds.sel(time=date,method='nearest')
-                T = T.sel(lev=850, lon=slice(-180,180),lat=slice(-90,90))
+                T = T.sel(lev=level, lon=slice(-180,180),lat=slice(-90,90))
     
                 T=T.get([opendap_var.lower()])            #print(T)
                 T=T.to_array()

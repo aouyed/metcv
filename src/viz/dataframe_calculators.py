@@ -17,6 +17,7 @@ import pandas as pd
 import metpy.calc as mpcalc
 
 
+
 def daterange(start_date, end_date):
     """creates a list of dates to be iterated"""
     date_list = []
@@ -93,12 +94,12 @@ def scaling_df(df):
     return df
 
 
-def scaling_df_approx(df):
+def scaling_df_approx(df,grid):
     """coordinate transforms vels from angle/pixel to metric, approximately"""
     df['u_scaled_approx'] = df.apply(
-        lambda x: scaling_lon_approx(x.lon, x.lat, x.flow_u), axis=1)
+        lambda x: scaling_lon_approx(x.lon, x.lat, x.flow_u, grid), axis=1)
     df['v_scaled_approx'] = df.apply(
-        lambda x: scaling_lat_approx(x.lon, x.lat, x.flow_v), axis=1)
+        lambda x: scaling_lat_approx(x.lon, x.lat, x.flow_v, grid), axis=1)
     return df
 
 
@@ -126,10 +127,10 @@ def scaling_lon(lon, lat, dpixel):
     return scale
 
 
-def scaling_lon_approx(lon, lat, dpixel):
+def scaling_lon_approx(lon, lat, dpixel,grid):
     """coordinate transform for u from pixel/angular to metric, approximate"""
 
-    dtheta = 0.5*dpixel
+    dtheta = grid*dpixel
     drads = dtheta * np.pi / 180
     lat = lat*np.pi/90/2
     dt_hr = 1
@@ -141,9 +142,15 @@ def scaling_lon_approx(lon, lat, dpixel):
     return scale
 
 
-def scaling_lat_approx(lon, lat, dpixel):
+def df_loop(df,grid):
+    df = dfc.latlon_converter(df, grid)
+    df = dfc.scaling_df_approx(df,grid)
+    return df
+
+
+def scaling_lat_approx(lon, lat, dpixel,grid):
     """coordinate transform for v from pixel/angular to metric, approximate"""
-    dtheta = 0.5*dpixel
+    dtheta = grid*dpixel
     drads = dtheta * np.pi / 180
     dt_hr = 1
     dt_s = 3600
