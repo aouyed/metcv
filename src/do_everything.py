@@ -73,7 +73,7 @@ def iterator(var, winsizes, levelses, poly_ns, iterationses, cutoffs):
 
 
 d0 = datetime(2006, 7, 1, 0, 0, 0, 0)
-d1 = datetime(2006, 7, 1, 4, 0, 0, 0)
+d1 = datetime(2006, 7, 1, 1, 0, 0, 0)
 d0_sample = datetime(2006, 7, 1, 0, 0, 0, 0)
 d1_sample = datetime(2006, 7, 1, 4, 0, 0, 0)
 grid = 0.0625
@@ -92,7 +92,9 @@ coarse=False
 #gd.downloader(d0,d1,'V','v',level, coarse)
 #gd.downloader(d0,d1,'AIRDENS','airdens',level, coarse)
 #qvd.builder('qvdens')
-#gd.pressure_diagnostic('PL',d0)
+#gd.data_diagnostic('U',d0)
+gd.pressure_diagnostic('PL',d0)
+
 iterator('QVDENS', winsizes, levelses, poly_ns, iterationses, cutoffs)
 
 print('Done_final')

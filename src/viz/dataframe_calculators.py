@@ -142,10 +142,7 @@ def scaling_lon_approx(lon, lat, dpixel,grid):
     return scale
 
 
-def df_loop(df,grid):
-    df = dfc.latlon_converter(df, grid)
-    df = dfc.scaling_df_approx(df,grid)
-    return df
+
 
 
 def scaling_lat_approx(lon, lat, dpixel,grid):

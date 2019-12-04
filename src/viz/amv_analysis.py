@@ -5,7 +5,8 @@ Created on Tue Nov 12 15:27:02 2019
 
 @author: amirouyed
 """
-from pathos.multiprocessing import ProcessingPool as Pool
+#from pathos.multiprocessing import ProcessingPool as Pool
+from multiprocessing import Pool
 import glob
 import os
 import pickle
@@ -13,15 +14,25 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 from viz import dataframe_calculators as dfc
+from itertools import product 
+import time
 
+def df_loop(df,grid):
+    df = dfc.latlon_converter(df, grid)
+    df = dfc.scaling_df_approx(df,grid)
+    return df
 
-
-def parallelize_dataframe(df, func, n_cores=7):
+def parallelize_dataframe(df, func, grid, n_cores=5):
+    start_time = time.time()
+    print('start parallelization routine')
     df_split = np.array_split(df, n_cores)
+    grid=[grid]*len(df_split)
     pool = Pool(n_cores)
-    df = pd.concat(pool.map(func, df_split))
+    df = pd.concat(pool.starmap(func, zip(df_split,grid)))
     pool.close()
     pool.join()
+    print('cores: '+str(n_cores)+' seconds: ' + str(time.time() - start_time))
+
     return df
 
 
@@ -66,19 +77,17 @@ def dataframe_builder(end_date, var, grid):
         dictionary_dict_optical[var_name] = pickle.load(open(path, 'rb'))
 
     flow_files = dictionary_dict_optical[var]
-    random_date = list(flow_files.keys())[0]
-    
-    df_loop_function= lambda x: dfc.df_loop(x,grid)
+    random_date = list(flow_files.keys())[0]   
     df = dfc.dataframe_quantum(
         flow_files[random_date], random_date, dictionary_dict)
-    df= parallelize_dataframe(df, df_loop_function)
+    df= parallelize_dataframe(df, df_loop,grid)
     flow_files.pop(random_date)
 
     for date in flow_files:
         print(date)
         file = flow_files[date]        
         df_quantum = dfc.dataframe_quantum(file, date, dictionary_dict)
-        df_quantum= parallelize_dataframe(df_quantum, df_loop_function)
+        df_quantum= parallelize_dataframe(df_quantum, df_loop,grid)
         df = pd.concat([df, df_quantum])
 
     df.set_index('datetime', inplace=True)
