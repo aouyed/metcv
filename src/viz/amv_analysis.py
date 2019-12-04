@@ -17,18 +17,20 @@ from viz import dataframe_calculators as dfc
 from itertools import product 
 import time
 
-def df_loop(df,grid):
+def df_loop(df,grid,dt):
+    dt_inv=1/dt
     df = dfc.latlon_converter(df, grid)
-    df = dfc.scaling_df_approx(df,grid)
+    df = dfc.scaling_df_approx(df,grid,dt_inv)
     return df
 
-def parallelize_dataframe(df, func, grid, n_cores=5):
+def parallelize_dataframe(df, func, grid, dt, n_cores=5):
     start_time = time.time()
     print('start parallelization routine')
     df_split = np.array_split(df, n_cores)
     grid=[grid]*len(df_split)
+    dt=[dt]*len(df_split)
     pool = Pool(n_cores)
-    df = pd.concat(pool.starmap(func, zip(df_split,grid)))
+    df = pd.concat(pool.starmap(func, zip(df_split,grid,dt)))
     pool.close()
     pool.join()
     print('cores: '+str(n_cores)+' seconds: ' + str(time.time() - start_time))
@@ -58,7 +60,7 @@ def df_summary(df):
      
 
 
-def dataframe_builder(end_date, var, grid):
+def dataframe_builder(end_date, var, grid,dt):
     """build dataframe that includes data from all relevant dates"""
     dictionary_paths = glob.glob('../data/interim/dictionaries/*')
     dict_optical_paths = glob.glob(
@@ -80,14 +82,14 @@ def dataframe_builder(end_date, var, grid):
     random_date = list(flow_files.keys())[0]   
     df = dfc.dataframe_quantum(
         flow_files[random_date], random_date, dictionary_dict)
-    df= parallelize_dataframe(df, df_loop,grid)
+    df= parallelize_dataframe(df, df_loop,grid, dt)
     flow_files.pop(random_date)
 
     for date in flow_files:
         print(date)
         file = flow_files[date]        
         df_quantum = dfc.dataframe_quantum(file, date, dictionary_dict)
-        df_quantum= parallelize_dataframe(df_quantum, df_loop,grid)
+        df_quantum= parallelize_dataframe(df_quantum, df_loop,grid,dt)
         df = pd.concat([df, df_quantum])
 
     df.set_index('datetime', inplace=True)
@@ -99,7 +101,7 @@ def dataframe_builder(end_date, var, grid):
 
 def df_printer(df, directory):
     """prints dataframe summaries"""
-    df_prints_path = '../../data/processed/df_prints'
+    df_prints_path = '../data/processed/df_prints'
     if not os.path.exists(df_prints_path):
         os.makedirs(df_prints_path)
     with open(df_prints_path+'/'+directory+'.txt', 'w') as f:
@@ -125,7 +127,8 @@ def absolute_df(df):
     df['speed'] = np.sqrt(df['u']*df['u']+df['v']*df['v'])
     df['speed_approx'] = np.sqrt(
         df['u_scaled_approx']*df['u_scaled_approx']+df['v_scaled_approx']*df['v_scaled_approx'])
-    df['speed_error'] = abs(df["speed"]-df['speed_approx'])
+    df['speed_error'] = np.sqrt(
+    df['u_scaled_approx']*df['u_scaled_approx']+df['v_scaled_approx']*df['v_scaled_approx'])
 
     return df
 
@@ -139,24 +142,26 @@ def data_analysis(start_date, end_date, var, directory, cutoff):
     df_path = os.path.abspath(df_path)
     df = pd.read_pickle(df_path)
     df = df[start_date:end_date]
+    #import pdb; pdb.set_trace()
+
     df = absolute_df(df)
     if cutoff > 0:
         df = df[df.speed_error <= cutoff*df['speed'].max()]
 
     #import pdb; pdb.set_trace() # BREAKPOINT
 
-    df_printer(df, directory)
+    #df_printer(df, directory)
 
     scatter_directory = '../data/processed/scatter_'+directory
-    dfc.plotter(df[['flow_v', 'v_scaled_approx', 'v', 'error_v']],
-                scatter_directory, end_date)
-    dfc.plotter(df[['flow_u', 'u_scaled_approx', 'u', 'error_u']],
-                scatter_directory, end_date)
-    dfc.plotter(df[['speed', 'speed_approx', 'speed_error']],
-                scatter_directory, end_date)
+    #dfc.plotter(df[['speed', 'speed_approx']],scatter_directory, end_date)
+    #            scatter_directory, end_date)
+    #dfc.plotter(df[['flow_u', 'u_scaled_approx', 'u', 'error_u']],
+    #            scatter_directory, end_date)
+    #dfc.plotter(df[['speed', 'speed_approx', 'speed_error']],
+    #            scatter_directory, end_date)
 
     heatmap_directory = '../data/processed/heatmaps_'+directory
-    dfc.heatmap_plotter(df, end_date, heatmap_directory)
+    dfc.heatmap_plotter(df[['lat','lon','speed']], end_date, heatmap_directory)
 
     df_stats=df_summary(df)
     

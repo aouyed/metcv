@@ -13,6 +13,7 @@ import numpy as np
 import xarray as xr
 from datetime import datetime
 from datetime import timedelta
+import gc
 
 def daterange(start_date, end_date,dhour):
     date_list = []
@@ -88,10 +89,8 @@ def downloader(start_date, end_date,opendap_var,directory,level,coarse):
                 print(opendap_var)
                 print(date)
                 T= ds.sel(time=date,method='nearest')
+                print(T.time)
                 T = T.sel(lev=level, lon=slice(-180,180),lat=slice(-90,90))
-                print(T)
-                import pdb; pdb.set_trace()
-
                 T=T.get([opendap_var.lower()])            #print(T)
                 T=T.to_array()
                 T=np.squeeze(T)
@@ -101,7 +100,7 @@ def downloader(start_date, end_date,opendap_var,directory,level,coarse):
                 Y = np.arange(25.0, 50.01, .5) # 50 is the last element
                 file_path=str(directory+'/'+str(date)+".npy")
                 np.save(file_path,T.values)
-                file_paths.update({date:file_path})
+                file_paths[date]=file_path
             except Exception as e:
                 print(type(e).__name__, e)
     dictionary_path='../data/interim/dictionaries'
@@ -109,4 +108,5 @@ def downloader(start_date, end_date,opendap_var,directory,level,coarse):
         os.makedirs(dictionary_path)
     f = open(dictionary_path+'/'+ opendap_var+'.pkl',"wb")
     pickle.dump(file_paths,f)
+    gc.collect()
 

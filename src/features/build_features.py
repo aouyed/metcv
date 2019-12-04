@@ -18,6 +18,7 @@ def builder(directory):
     file_paths_qv = pickle.load(
         open('../data/interim/dictionaries/QV.pkl', 'rb'))
     file_paths_qvdens = {}
+
     for date in file_paths_airdens:
         frame1 = np.load(file_paths_airdens[date])
         frame2 = np.load(file_paths_qv[date])

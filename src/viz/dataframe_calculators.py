@@ -94,12 +94,12 @@ def scaling_df(df):
     return df
 
 
-def scaling_df_approx(df,grid):
+def scaling_df_approx(df,grid,dt_inv):
     """coordinate transforms vels from angle/pixel to metric, approximately"""
     df['u_scaled_approx'] = df.apply(
-        lambda x: scaling_lon_approx(x.lon, x.lat, x.flow_u, grid), axis=1)
+        lambda x: scaling_lon_approx(x.lon, x.lat, x.flow_u, grid,dt_inv), axis=1)
     df['v_scaled_approx'] = df.apply(
-        lambda x: scaling_lat_approx(x.lon, x.lat, x.flow_v, grid), axis=1)
+        lambda x: scaling_lat_approx(x.lon, x.lat, x.flow_v, grid,dt_inv), axis=1)
     return df
 
 
@@ -127,16 +127,16 @@ def scaling_lon(lon, lat, dpixel):
     return scale
 
 
-def scaling_lon_approx(lon, lat, dpixel,grid):
+def scaling_lon_approx(lon, lat, dpixel,grid,dt_inv):
     """coordinate transform for u from pixel/angular to metric, approximate"""
 
     dtheta = grid*dpixel
     drads = dtheta * np.pi / 180
     lat = lat*np.pi/90/2
-    dt_hr = 1
-    dt_s = 3600
+    #dt_hr = 1
+    #dt_s = 3600
     R = 6371000
-    scaleConstant = (dt_hr/dt_s)
+    scaleConstant = dt_inv
     dx = R*abs(np.cos(lat))*drads
     scale = dx*scaleConstant
     return scale
@@ -145,14 +145,14 @@ def scaling_lon_approx(lon, lat, dpixel,grid):
 
 
 
-def scaling_lat_approx(lon, lat, dpixel,grid):
+def scaling_lat_approx(lon, lat, dpixel,grid,dt_inv):
     """coordinate transform for v from pixel/angular to metric, approximate"""
     dtheta = grid*dpixel
     drads = dtheta * np.pi / 180
-    dt_hr = 1
-    dt_s = 3600
+    #dt_hr = 1
+    #dt_s = 3600
     R = 6371000
-    scaleConstant = (dt_hr/dt_s)
+    scaleConstant = dt_inv
     dx = R*drads
     scale = dx*scaleConstant
     return scale
