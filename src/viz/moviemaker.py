@@ -20,6 +20,7 @@ def frame_maker(var, path):
         os.makedirs(directory)
     for date in file_paths:
         frame1 = np.load(file_paths[date])
+        print(str(date)+' mean: '+str(np.mean(frame1)))
         frame1 = cv2.normalize(src=frame1, dst=None,
                                alpha=0, beta=255, norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_8UC1)
         plt.imsave(directory+'/'+str(date)+'.png',frame1)

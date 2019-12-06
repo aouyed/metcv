@@ -38,7 +38,7 @@ def parallelize_dataframe(df, func, grid, dt, n_cores=5):
     return df
 
 
-def df_summary(df):
+def df_summary(df,count):
     df_total=pd.DataFrame()
     for column in df:
         df_d=df[column].describe()
@@ -54,6 +54,9 @@ def df_summary(df):
     df_total['corr_speed']= df['speed'].corr(df['speed_approx'])
     df_total['corr_u']= df['u'].corr(df['u_scaled_approx'])
     df_total['corr_v']= df['v'].corr(df['v_scaled_approx'])
+    df_total['initial_count']=count
+    df_total['ratio_count']=df.shape[0]/count
+    df_total['mean_speed_error']=df['speed_error'].mean()
     return df_total
 
 
@@ -128,7 +131,7 @@ def absolute_df(df):
     df['speed_approx'] = np.sqrt(
         df['u_scaled_approx']*df['u_scaled_approx']+df['v_scaled_approx']*df['v_scaled_approx'])
     df['speed_error'] = np.sqrt(
-    df['u_scaled_approx']*df['u_scaled_approx']+df['v_scaled_approx']*df['v_scaled_approx'])
+    df['error_u']*df['error_u']+df['error_v']*df['error_v'])
 
     return df
 
@@ -142,17 +145,18 @@ def data_analysis(start_date, end_date, var, directory, cutoff):
     df_path = os.path.abspath(df_path)
     df = pd.read_pickle(df_path)
     df = df[start_date:end_date]
+    count=df.shape[0]
+    df = absolute_df(df)
     #import pdb; pdb.set_trace()
 
-    df = absolute_df(df)
     if cutoff > 0:
-        df = df[df.speed_error <= cutoff*df['speed'].max()]
+        df = df[df.speed_error <= cutoff]
 
     #import pdb; pdb.set_trace() # BREAKPOINT
 
     #df_printer(df, directory)
 
-    scatter_directory = '../data/processed/scatter_'+directory
+    #scatter_directory = '../data/processed/scatter_'+directory
     #dfc.plotter(df[['speed', 'speed_approx']],scatter_directory, end_date)
     #            scatter_directory, end_date)
     #dfc.plotter(df[['flow_u', 'u_scaled_approx', 'u', 'error_u']],
@@ -161,9 +165,9 @@ def data_analysis(start_date, end_date, var, directory, cutoff):
     #            scatter_directory, end_date)
 
     heatmap_directory = '../data/processed/heatmaps_'+directory
-    dfc.heatmap_plotter(df[['lat','lon','speed']], end_date, heatmap_directory)
+    dfc.heatmap_plotter(df[['lat','lon','speed','speed_error','qvdens']], end_date, heatmap_directory)
 
-    df_stats=df_summary(df)
+    df_stats=df_summary(df,count)
     
 
     print('Done!')

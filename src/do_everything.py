@@ -11,6 +11,7 @@ import matplotlib as mpl
 from data import make_dataset_geos5 as gd
 from computer_vision import optical_flow as of
 from viz import amv_analysis as aa
+from viz import dataframe_calculators as dfc
 from features import build_features as qvd
 import viz
 from viz import moviemaker as mm
@@ -60,30 +61,36 @@ def iterator(var, winsizes, levelses, poly_ns, iterationses, cutoffs):
                         #of.optical_flow_calculator(d0, var, pyr_scale, levels,
                         #                          winsize, iterations, poly_n,poly_sigma)
                         #aa.dataframe_builder(d1, var, grid,dt)
-                        d_sample=datetime(2006, 7, 1, 0, 30, 0, 0)
-                        df_unit = aa.data_analysis(d_sample, d_sample,
+                        #d_sample=datetime(2006, 7, 1, 0, 30, 0, 0)
+                        df_unit = aa.data_analysis(d0, d1,
                                                    var, size_path, cutoff)
 
                         df = df_parameters(df, df_unit, parameters)
-                        print(df.loc['speed_error'])
+                        print(df[['cutoff', 'corr_speed','mean_speed_error','initial_count','ratio_count']])
+                        #print(df.loc['speed_error'])
                         
-    df_path = '../data/interim/dataframes'
+    print(df)
+    today = date.today()
+    df_path = '../data/interim/dataframes/'+str(today)
+    plot_path='../data/processed/summary_plots/'+str(today)
     if not os.path.exists(df_path):
         os.makedirs(df_path)
-    today = date.today()
-    #df.to_pickle(df_path+'/'+str(today)+'.pkl')
-
+    if not os.path.exists(plot_path):
+        os.makedirs(plot_path)
+   
+    df.to_pickle(df_path+'/c'+str(coarse)+'.pkl')
+    dfc.line_plotter(df[['cutoff', 'corr_speed',
+                         'mean_speed_error','initial_count','ratio_count']], plot_path)
 
 d0 = datetime(2006, 7, 1, 0, 0, 0, 0)
 d1 = datetime(2006, 7, 1, 1, 0, 0, 0)
-grid = 0.0625
-#seconds
-dt=1800
+grid = 0.0625 #deg
+dt=1800 #seconds
 winsizes = [10]
 levelses = [5]
 poly_ns = [2]
 iterationses = [3]
-cutoffs = [-1]
+cutoffs = [2.5,5,10,-1]
 poly_sigma = 1.2
 pyr_scale = 0.5
 

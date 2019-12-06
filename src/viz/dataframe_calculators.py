@@ -15,8 +15,27 @@ import os
 import matplotlib.pyplot as plt
 import pandas as pd
 import metpy.calc as mpcalc
+from scipy.interpolate import interpn
 
+def density_scatter( x , y, ax = None, sort = True, bins = 20, **kwargs )   :
+    """
+    Scatter plot colored by 2d histogram,  modified from 
+    https://stackoverflow.com/questions/20105364/how-can-i-make-a-scatter-plot-colored-by-density-in-matplotlib
+    """
 
+    fig , ax = plt.subplots()
+    data , x_e, y_e = np.histogram2d( x, y, bins = bins,normed=True)
+    z = interpn( ( 0.5*(x_e[1:] + x_e[:-1]) , 0.5*(y_e[1:]+y_e[:-1]) ) 
+    , data , np.vstack([x,y]).T , method = "splinef2d", bounds_error = False )
+
+    # Sort the points by density, so that the densest points are plotted last
+    if sort :
+        idx = z.argsort()
+        x, y, z = x[idx], y[idx], z[idx]
+
+    im=ax.scatter( x, y, c=z,**kwargs )
+    fig.colorbar(im, ax=ax)
+    return ax
 
 def daterange(start_date, end_date):
     """creates a list of dates to be iterated"""
@@ -43,10 +62,13 @@ def heatmapper(df, values, directory):
     """creates a heatmap from a column"""
     piv = pd.pivot_table(df, values=values,
                          index=["lat"], columns=["lon"], fill_value=0)
-    ax = sns.heatmap(piv)
-    ax.set_title(values)
+    fig, ax = plt.subplots()
+    im = ax.imshow(piv, cmap=sns.cm.rocket,extent=[-180,180,-90,90],origin='lower')
+    fig.colorbar(im, ax=ax)
+    ax.set_xlabel("lon")
+    ax.set_ylabel("lat")
     plt.tight_layout()
-    plt.savefig(directory + '/'+values+'.png', bbox_inches='tight')
+    plt.savefig(directory + '/'+values+'.png', bbox_inches='tight',dpi=1000)
     plt.close()
 
 
@@ -58,11 +80,26 @@ def plotter(df, directory, date):
     for column_a in df:
         for column_b in df:
             if column_a != column_b:
-                ax = df.plot(kind="scatter", x=column_a, y=column_b)
+                #ax = df.plot(kind="scatter", x=column_a, y=column_b)
+                #plt.hist2d(df[column_a], df[column_b], (500, 500), cmap=plt.cm.jet)
+                #plt.colorbar()
+                ax=density_scatter(df[column_a], df[column_b], bins = [30,30],s=1,cmap=sns.cm.rocket)
                 plt.savefig(directory + '/'+column_a+'_' +
                             column_b+'.png', bbox_inches='tight')
                 plt.close()
 
+
+def line_plotter(df, directory):
+    """creates scatter plots through various column combinations"""
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+    for column_a in df:
+        for column_b in df:
+            if column_a != column_b:
+                ax = df.plot(kind="line", x=column_a, y=column_b)
+                plt.savefig(directory + '/'+column_a+'_' +
+                            column_b+'.png', bbox_inches='tight')
+                plt.close()    
 
 def dataframe_quantum(file, date, dictionary_dict):
     """creates a datafrane for a particular date meant for being concatenated"""
