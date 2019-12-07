@@ -165,7 +165,7 @@ def data_analysis(start_date, end_date, var, directory, cutoff):
     #            scatter_directory, end_date)
 
     heatmap_directory = '../data/processed/heatmaps_'+directory
-    dfc.heatmap_plotter(df[['lat','lon','speed','speed_error','qvdens']], end_date, heatmap_directory)
+    dfc.heatmap_plotter(df[['lat','lon','speed_approx','speed','qvdens']], end_date, heatmap_directory)
 
     df_stats=df_summary(df,count)
     

@@ -85,12 +85,19 @@ def iterator(var, winsizes, levelses, poly_ns, iterationses, cutoffs):
 d0 = datetime(2006, 7, 1, 0, 0, 0, 0)
 d1 = datetime(2006, 7, 1, 1, 0, 0, 0)
 grid = 0.0625 #deg
+scale=0.5/0.0625 
+scale=1
+#grid=0.5
+#dt=3600
 dt=1800 #seconds
-winsizes = [10]
+#dt=dt*2
+#winsizes = [int(round(10*scale))]
+winsizes=[10]
 levelses = [5]
 poly_ns = [2]
+#poly_ns = [int(round(1*scale))]
 iterationses = [3]
-cutoffs = [2.5,5,10,-1]
+cutoffs = [2.5,-1]
 poly_sigma = 1.2
 pyr_scale = 0.5
 
@@ -100,7 +107,7 @@ coarse=False
 #gd.downloader(d0,d1,'U','u',level, coarse)
 #gd.downloader(d0,d1,'V','v',level, coarse)
 #gd.downloader(d0,d1,'AIRDENS','airdens',level, coarse)
-qvd.builder('qvdens')
+#qvd.builder('qvdens')
 #gd.data_diagnostic('U',d0)
 #gd.pressure_diagnostic('PL',d0)
 

@@ -16,6 +16,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 import metpy.calc as mpcalc
 from scipy.interpolate import interpn
+import math
 
 def density_scatter( x , y, ax = None, sort = True, bins = 20, **kwargs )   :
     """
@@ -64,9 +65,11 @@ def heatmapper(df, values, directory):
                          index=["lat"], columns=["lon"], fill_value=0)
     fig, ax = plt.subplots()
     im = ax.imshow(piv, cmap=sns.cm.rocket,extent=[-180,180,-90,90],origin='lower')
-    fig.colorbar(im, ax=ax)
+    cbar=fig.colorbar(im, ax=ax)
+    cbar.set_label('m/s')
     ax.set_xlabel("lon")
     ax.set_ylabel("lat")
+    ax.set_title(values)
     plt.tight_layout()
     plt.savefig(directory + '/'+values+'.png', bbox_inches='tight',dpi=1000)
     plt.close()
@@ -168,13 +171,13 @@ def scaling_lon_approx(lon, lat, dpixel,grid,dt_inv):
     """coordinate transform for u from pixel/angular to metric, approximate"""
 
     dtheta = grid*dpixel
-    drads = dtheta * np.pi / 180
-    lat = lat*np.pi/90/2
+    drads = dtheta * math.pi / 180
+    lat = lat*math.pi/90/2
     #dt_hr = 1
     #dt_s = 3600
     R = 6371000
     scaleConstant = dt_inv
-    dx = R*abs(np.cos(lat))*drads
+    dx = R*abs(math.cos(lat))*drads
     scale = dx*scaleConstant
     return scale
 
@@ -185,7 +188,7 @@ def scaling_lon_approx(lon, lat, dpixel,grid,dt_inv):
 def scaling_lat_approx(lon, lat, dpixel,grid,dt_inv):
     """coordinate transform for v from pixel/angular to metric, approximate"""
     dtheta = grid*dpixel
-    drads = dtheta * np.pi / 180
+    drads = dtheta * math.pi / 180
     #dt_hr = 1
     #dt_s = 3600
     R = 6371000

@@ -74,7 +74,7 @@ def downloader(start_date, end_date,opendap_var,directory,level,coarse):
     d0=start_date
     d1=end_date
     if coarse:    
-        url = u'https://opendap.nccs.nasa.gov/dods/OSSE/G5NR/Ganymed/7km/0.5000_deg/inst/inst01hr_3d_'+opendap_var+'_Cp'
+        url = u'https://opendap.nccs.nasa.gov/dods/OSSE/G5NR/Ganymed/7km/0.5000_deg/inst/inst01hr_3d_'+opendap_var+'_Cv'
         date_list= daterange(d0, d1,1)
 
     else:
@@ -89,18 +89,18 @@ def downloader(start_date, end_date,opendap_var,directory,level,coarse):
                 print(opendap_var)
                 print(date)
                 T= ds.sel(time=date,method='nearest')
-                print(T.time)
+                #print(T.time)
                 T = T.sel(lev=level, lon=slice(-180,180),lat=slice(-90,90))
                 T=T.get([opendap_var.lower()])            #print(T)
                 T=T.to_array()
                 T=np.squeeze(T)
                 print(T.shape)
-                level = 71 
                 X = np.arange(-130.0, -64.99, .5) # -65 is the last element
                 Y = np.arange(25.0, 50.01, .5) # 50 is the last element
                 file_path=str(directory+'/'+str(date)+".npy")
                 np.save(file_path,T.values)
                 file_paths[date]=file_path
+                gc.collect()
             except Exception as e:
                 print(type(e).__name__, e)
     dictionary_path='../data/interim/dictionaries'
@@ -108,5 +108,5 @@ def downloader(start_date, end_date,opendap_var,directory,level,coarse):
         os.makedirs(dictionary_path)
     f = open(dictionary_path+'/'+ opendap_var+'.pkl',"wb")
     pickle.dump(file_paths,f)
-    gc.collect()
+    
 
