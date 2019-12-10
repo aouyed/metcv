@@ -19,19 +19,32 @@ import pandas as pd
 import os
 
 
+
 class Parameters:
-    def __init__(self, start_date, end_date, var, pyr_scale, levels,
-                 winsize, iterations, poly_n, poly_sigma, cutoff):
-        self.start_date = start_date
-        self.end_date = end_date
-        self.var = var
-        self.pyr_scale = pyr_scale
-        self.levels = levels
-        self.winsize = winsize
-        self.iterations = iterations
-        self.poly_n = poly_n
-        self.poly_sigma = poly_sigma
-        self.cutoff = cutoff
+     def __init__(self, **kwargs):
+         prop_defaults={
+                 "start_date": datetime(2006, 7, 1, 0, 0, 0, 0),
+                 "end_date": datetime(2006, 7, 1, 1, 0, 0, 0),
+                 "var": "QVDENS",
+                 "pyr_scale": 0.5,
+                 "levels": 5,
+                 "level": 65, 
+                 "winsize": 10,
+                 "iterations": 3,
+                 "poly_n": 2,
+                 "poly_sigma": 1.2,
+                 "cutoff": 2.5,
+                 "cutoffs": [2.5],
+                 "grid": 0.0625,
+                 "coarse": False,
+                 "dt": 1800,
+                 "path":"_"
+                 }
+         for (prop, default) in prop_defaults.items():
+            setattr(self, prop, kwargs.get(prop, default))
+
+
+    
 
 
 def df_parameters(df, df_unit, parameters):
@@ -43,33 +56,38 @@ def df_parameters(df, df_unit, parameters):
         df = pd.concat([df, df_unit])
     return df
 
+def optical_flow(parameters):
+    print('initializing optical flow...')
+    kwargs=vars(parameters)
+    of.optical_flow_calculator(**kwargs)
+    print('finished optical flow.')
 
-def iterator(var, winsizes, levelses, poly_ns, iterationses, cutoffs):
-    """ iteratres through the hyperparameters"""
-    df = pd.DataFrame()
-    for cutoff in cutoffs:
-        for poly_n in poly_ns:
-            for iterations in iterationses:
-                for levels in levelses:
-                    for winsize in winsizes:
-                        parameters = Parameters(d0, d1, var, pyr_scale, levels,
-                                                winsize, iterations, poly_n, poly_sigma, cutoff)
-                        size_path = (var+'_w'+str(winsize)+'_p'+str(poly_n)+'_l'
+    
+def builder(parameters):
+    print('initializing builder...')
+    kwargs=vars(parameters)
+    aa.dataframe_builder(**kwargs)
+    print('finished builder.')
+
+    
+def analysis(parameters):
+    print('initializing analysis...')
+    kwargs=vars(parameters)
+    df_unit = aa.data_analysis(**kwargs)
+    print('finished analysis.')
+    return df_unit
+ 
+def path(parameters):
+    kwargs=vars(parameters)
+    path=file_string(**kwargs)
+    return( path)
+
+def file_string(var, winsize, poly_n, levels, iterations, cutoff, grid,**kwargs):
+     path = (var+'_w'+str(winsize)+'_p'+str(poly_n)+'_l'
                                      + str(levels)+'_i'+str(iterations)+'_c'+str(cutoff)+'_g'+str(grid))
-                        print(size_path)
-                        #mm.frame_maker(var, size_path)
-                        #of.optical_flow_calculator(d0, var, pyr_scale, levels,
-                        #                          winsize, iterations, poly_n,poly_sigma)
-                        #aa.dataframe_builder(d1, var, grid,dt)
-                        #d_sample=datetime(2006, 7, 1, 0, 30, 0, 0)
-                        df_unit = aa.data_analysis(d0, d1,
-                                                   var, size_path, cutoff)
-
-                        df = df_parameters(df, df_unit, parameters)
-                        print(df[['cutoff', 'corr_speed','mean_speed_error','initial_count','ratio_count']])
-                        #print(df.loc['speed_error'])
-                        
-    print(df)
+     return path
+ 
+def df_sumnmary(df,coarse):
     today = date.today()
     df_path = '../data/interim/dataframes/'+str(today)
     plot_path='../data/processed/summary_plots/'+str(today)
@@ -77,40 +95,43 @@ def iterator(var, winsizes, levelses, poly_ns, iterationses, cutoffs):
         os.makedirs(df_path)
     if not os.path.exists(plot_path):
         os.makedirs(plot_path)
-   
+    print(df)
     df.to_pickle(df_path+'/c'+str(coarse)+'.pkl')
     dfc.line_plotter(df[['cutoff', 'corr_speed',
                          'mean_speed_error','initial_count','ratio_count']], plot_path)
+    
 
-d0 = datetime(2006, 7, 1, 0, 0, 0, 0)
-d1 = datetime(2006, 7, 1, 1, 0, 0, 0)
-grid = 0.0625 #deg
-scale=0.5/0.0625 
-scale=1
-#grid=0.5
-#dt=3600
-dt=1800 #seconds
-#dt=dt*2
-#winsizes = [int(round(10*scale))]
-winsizes=[10]
-levelses = [5]
-poly_ns = [2]
-#poly_ns = [int(round(1*scale))]
-iterationses = [3]
-cutoffs = [2.5,-1]
-poly_sigma = 1.2
-pyr_scale = 0.5
+def processor(parameters,parameters_process):
+    """ iteratres through the hyperparameters"""
+    print('initializing processor...')
+    cutoffs=parameters.cutoffs
+    df = pd.DataFrame()
+    for cutoff in cutoffs:
+        parameters.cutoff=cutoff                       
+        size_path = path(parameters)
+        parameters.path=size_path
+        print(size_path)
+        if parameters_process.do_optical_flow:                 
+            optical_flow(parameters)
+        if parameters_process.do_builder:  
+            builder(parameters)
+        if parameters_process.do_analysis:
+            df_unit=analysis(parameters) 
+                      
+        #mm.frame_maker(var, size_path)
+        df = df_parameters(df, df_unit, parameters)
+    df_sumnmary(df,parameters.coarse)
+    print('finished processor.')
 
-level=65
-coarse=False
-#gd.downloader(d0,d1,'QV','qv',level, coarse)
-#gd.downloader(d0,d1,'U','u',level, coarse)
-#gd.downloader(d0,d1,'V','v',level, coarse)
-#gd.downloader(d0,d1,'AIRDENS','airdens',level, coarse)
-#qvd.builder('qvdens')
-#gd.data_diagnostic('U',d0)
-#gd.pressure_diagnostic('PL',d0)
 
-iterator('QVDENS', winsizes, levelses, poly_ns, iterationses, cutoffs)
+def downloader(parameters):
+    print('initializing  downloader...')
+    if(parameters.var=='QVDENS'):
+        qvd.builder(parameters.var)
+    else:
+        kwargs=vars(parameters)
+        gd.downloader(**kwargs)
+    print('finished downloader.')
 
-print('Done_final')
+
+

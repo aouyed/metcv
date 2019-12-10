@@ -63,7 +63,7 @@ def df_summary(df,count):
      
 
 
-def dataframe_builder(end_date, var, grid,dt):
+def dataframe_builder(end_date, var, grid,dt,**kwargs):
     """build dataframe that includes data from all relevant dates"""
     dictionary_paths = glob.glob('../data/interim/dictionaries/*')
     dict_optical_paths = glob.glob(
@@ -136,7 +136,7 @@ def absolute_df(df):
     return df
 
 
-def data_analysis(start_date, end_date, var, directory, cutoff):
+def data_analysis(start_date, end_date, var, path, cutoff,**kwargs):
     """perform analytics on the dataframe"""
 
     pd.set_option('display.max_colwidth', -1)
@@ -164,7 +164,7 @@ def data_analysis(start_date, end_date, var, directory, cutoff):
     #dfc.plotter(df[['speed', 'speed_approx', 'speed_error']],
     #            scatter_directory, end_date)
 
-    heatmap_directory = '../data/processed/heatmaps_'+directory
+    heatmap_directory = '../data/processed/heatmaps_'+path
     dfc.heatmap_plotter(df[['lat','lon','speed_approx','speed','qvdens']], end_date, heatmap_directory)
 
     df_stats=df_summary(df,count)

@@ -13,7 +13,7 @@ import matplotlib.pyplot as plt
 
 
 def optical_flow_calculator(start_date, var, pyr_scale, levels, winsize, iterations,
-                            poly_n, poly_sigma):
+                            poly_n, poly_sigma,**kwargs):
     """Implements Farneback's optical flow algorithm."""
     file_paths = pickle.load(
         open('../data/interim/dictionaries/'+var+'.pkl', 'rb'))
