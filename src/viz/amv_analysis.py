@@ -65,41 +65,44 @@ def df_summary(df,count):
 
 def dataframe_builder(end_date, var, grid,dt,**kwargs):
     """build dataframe that includes data from all relevant dates"""
-    dictionary_paths = glob.glob('../data/interim/dictionaries/*')
+    dictionary_paths = glob.glob('../data/interim/dictionaries/vars/*')
+    dictionary_path = '../data/interim/dictionaries/'
+
     dict_optical_paths = glob.glob(
         '../data/interim/dictionaries_optical_flow/*')
     dictionary_dict = {}
     dictionary_dict_optical = {}
-    print(dictionary_paths)
+    dictionary_dataframes = {}
 
     for path in dictionary_paths:
         var_name = os.path.basename(path).split('.')[0]
         dictionary_dict[var_name] = pickle.load(open(path, 'rb'))
-        print(path)
 
     for path in dict_optical_paths:
         var_name = os.path.basename(path).split('.')[0]
         dictionary_dict_optical[var_name] = pickle.load(open(path, 'rb'))
 
-    flow_files = dictionary_dict_optical[var]
-    random_date = list(flow_files.keys())[0]   
-    df = dfc.dataframe_quantum(
-        flow_files[random_date], random_date, dictionary_dict)
-    df= parallelize_dataframe(df, df_loop,grid, dt)
-    flow_files.pop(random_date)
-
-    for date in flow_files:
-        print(date)
-        file = flow_files[date]        
-        df_quantum = dfc.dataframe_quantum(file, date, dictionary_dict)
-        df_quantum= parallelize_dataframe(df_quantum, df_loop,grid,dt)
-        df = pd.concat([df, df_quantum])
-
-    df.set_index('datetime', inplace=True)
     df_path = '../data/interim/dataframes'
     if not os.path.exists(df_path):
         os.makedirs(df_path)
-    df.to_pickle(df_path+'/'+var+'.pkl')
+    flow_files = dictionary_dict_optical[var]
+
+    for date in flow_files:
+        print('building dataframe for the date: '+ str(date))
+        file = flow_files[date]        
+        df= dfc.dataframe_quantum(file, date, dictionary_dict)
+        df= parallelize_dataframe(df, df_loop,grid,dt)
+        df.set_index('datetime', inplace=True)
+        path=df_path+'/'+var+'_'+str(date)+'.pkl'
+        df.to_pickle(path)
+        dictionary_dataframes[date]=path
+
+    f = open(dictionary_path+'/dataframes.pkl',"wb")
+    pickle.dump(dictionary_dataframes,f)
+    
+   
+  
+    
 
 
 def df_printer(df, directory):
@@ -119,14 +122,10 @@ def df_printer(df, directory):
             method='pearson'), file=f)
 
 
-def absolute_df(df):
+def error_df(df):
     """calculates error and its absolute values"""
     df["error_u"] = df['u']-df['u_scaled_approx']
     df["error_v"] = df['v']-df['v_scaled_approx']
-    df["error_u_abs"] = abs(df["error_u"])
-    df["error_v_abs"] = abs(df["error_v"])
-    df["u_abs"] = abs(df["u"])
-    df["v_abs"] = abs(df["v"])
     df['speed'] = np.sqrt(df['u']*df['u']+df['v']*df['v'])
     df['speed_approx'] = np.sqrt(
         df['u_scaled_approx']*df['u_scaled_approx']+df['v_scaled_approx']*df['v_scaled_approx'])
@@ -136,23 +135,34 @@ def absolute_df(df):
     return df
 
 
+def df_concatenator(dataframes_dict):
+    df=pd.DataFrame()
+    for date in dataframes_dict:
+        df_path=dataframes_dict[date]
+        df_unit = pd.read_pickle(df_path)
+        df_unit=df_unit[['lon','lat','u','v','u_scaled_approx','v_scaled_approx','qvdens']]
+        df_unit = error_df(df_unit)
+        df_unit=df_unit.apply(pd.to_numeric, downcast='float')
+        if df.empty:
+            df = df_unit
+        else:
+            df = pd.concat([df, df_unit])
+    return df
+
+
 def data_analysis(start_date, end_date, var, path, cutoff,**kwargs):
     """perform analytics on the dataframe"""
 
+    
     pd.set_option('display.max_colwidth', -1)
     pd.set_option('display.expand_frame_repr', False)
-    df_path = '../data/interim/dataframes/'+var+'.pkl'
-    df_path = os.path.abspath(df_path)
-    df = pd.read_pickle(df_path)
-    df = df[start_date:end_date]
+    dict_path = '../data/interim/dictionaries/dataframes.pkl'
+    dataframes_dict=pickle.load(open(dict_path, 'rb'))
+    df=df_concatenator(dataframes_dict)
     count=df.shape[0]
-    df = absolute_df(df)
-    #import pdb; pdb.set_trace()
-
     if cutoff > 0:
         df = df[df.speed_error <= cutoff]
 
-    #import pdb; pdb.set_trace() # BREAKPOINT
 
     #df_printer(df, directory)
 
@@ -168,7 +178,7 @@ def data_analysis(start_date, end_date, var, path, cutoff,**kwargs):
     dfc.heatmap_plotter(df[['lat','lon','speed_approx','speed','qvdens']], end_date, heatmap_directory)
 
     df_stats=df_summary(df,count)
-    
+
 
     print('Done!')
     

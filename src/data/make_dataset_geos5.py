@@ -73,7 +73,7 @@ def pressure_diagnostic(var, start_date):
 def downloader(start_date, end_date,var,level,coarse, **kwargs):
     d0=start_date
     d1=end_date
-    directory_path='../data/interim/'+var.lower()
+    directory_path='../data/raw/'+var.lower()
     if not os.path.exists(directory_path):
         os.makedirs(directory_path)
     if coarse:    
@@ -85,25 +85,26 @@ def downloader(start_date, end_date,var,level,coarse, **kwargs):
         date_list= daterange(d0, d1,0.5)
 
             
+    print("Downloading dataset from url: " + url)
     ds = xr.open_dataset(url,decode_times=True)
     file_paths={}
     for date in date_list:
             try:
-                print(var)
-                print(date)
+                print('Downloading data for variable '+ var + ' for date: ' + str(date))
                 T= ds.sel(time=date,method='nearest')
-                T = T.sel(lev=level, lon=slice(-180,180),lat=slice(-90,90))
+                T = T.sel(lev=level)
+                #T = T.sel(lev=level, lon=slice(-180,:),lat=slice(-90,:))
                 T=T.get([var.lower()])         
                 T=T.to_array()
                 T=np.squeeze(T)
-                print(T.shape)
+                print('shape of downloaded array: ' +str(T.shape))
                 file_path=str(directory_path+'/'+str(date)+".npy")
                 np.save(file_path,T.values)
                 file_paths[date]=file_path
                 gc.collect()
             except Exception as e:
                 print(type(e).__name__, e)
-    dictionary_path='../data/interim/dictionaries'
+    dictionary_path='../data/interim/dictionaries/vars'
     if not os.path.exists(dictionary_path):
         os.makedirs(dictionary_path)
     f = open(dictionary_path+'/'+ var+'.pkl',"wb")

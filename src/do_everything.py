@@ -49,10 +49,11 @@ class Parameters:
 
 def df_parameters(df, df_unit, parameters):
     for parameter, value in parameters.__dict__.items():
-        df_unit[parameter] = value
-    if df.empty:
+        if not isinstance(value, list):
+            df_unit[parameter] = value    
+    if df.empty: 
         df = df_unit
-    else:
+    else:    
         df = pd.concat([df, df_unit])
     return df
 
@@ -68,7 +69,6 @@ def builder(parameters):
     kwargs=vars(parameters)
     aa.dataframe_builder(**kwargs)
     print('finished builder.')
-
     
 def analysis(parameters):
     print('initializing analysis...')
@@ -110,27 +110,42 @@ def processor(parameters,parameters_process):
         parameters.cutoff=cutoff                       
         size_path = path(parameters)
         parameters.path=size_path
-        print(size_path)
+        #print(size_path)
         if parameters_process.do_optical_flow:                 
             optical_flow(parameters)
         if parameters_process.do_builder:  
             builder(parameters)
         if parameters_process.do_analysis:
-            df_unit=analysis(parameters) 
+            df_unit=analysis(parameters)
+            df = df_parameters(df, df_unit, parameters)
+
                       
         #mm.frame_maker(var, size_path)
-        df = df_parameters(df, df_unit, parameters)
     df_sumnmary(df,parameters.coarse)
     print('finished processor.')
 
 
 def downloader(parameters):
     print('initializing  downloader...')
-    if(parameters.var=='QVDENS'):
-        qvd.builder(parameters.var)
-    else:
-        kwargs=vars(parameters)
-        gd.downloader(**kwargs)
+    parameters.var='U'
+    kwargs=vars(parameters)
+    gd.downloader(**kwargs)
+        
+    parameters.var='V'
+    kwargs=vars(parameters)
+    gd.downloader(**kwargs)
+        
+    parameters.var='QV'
+    kwargs=vars(parameters)
+    gd.downloader(**kwargs)
+        
+    parameters.var='AIRDENS'
+    kwargs=vars(parameters)
+    gd.downloader(**kwargs)
+        
+    parameters.var='QVDENS'
+    qvd.builder(parameters.var)
+       
     print('finished downloader.')
 
 
