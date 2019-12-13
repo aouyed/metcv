@@ -18,8 +18,10 @@ class ProcessParameters:
                  "do_builder": False,
                  "do_analysis": True,
                  "do_optical_flow": False,
+                 "do_cross_correlation": False,
                  "do_downloader": False,
-                 "do_processor": True
+                 "do_processor": True,
+                 "do_summary": True
                  }
          for (prop, default) in prop_defaults.items():
             setattr(self, prop, kwargs.get(prop, default))
@@ -36,9 +38,11 @@ def parser(process_parameters,parameters):
     parser = argparse.ArgumentParser()
     parser.add_argument("-c", "--cutoffs", help="Input list of speed VD cutoffs.", type=float, nargs='+')
     parser.add_argument("-v", "--variable", help="Choose GEOS-5 variable to analyze", type= str)
+    parser.add_argument("-g", "--grid", help="Choose the spatial resolution in degrees", type= float)
     parser.add_argument("-b", "--builder", help="Whether we build the dataframe", action ="store_true")
     parser.add_argument("-a", "--analysis", help="Whether we analyze the dataframe", action ="store_true")
     parser.add_argument("-of", "--optical_flow", help="Whether we run optical flow algorithm", action ="store_true")
+    parser.add_argument("-cc", "--cross_correlation", help="Whether we run cross_correlation algorithm", action ="store_true")
     parser.add_argument("-d", "--downloader", help="Whether we run downloader", action ="store_true")
     parser.add_argument("-p", "--processor", help="Whether we run processor", action ="store_true")
     parser.add_argument("-sd", "--start_date", help="The Start Date - format YYYY-MM-DD-00:00", 
@@ -50,11 +54,12 @@ def parser(process_parameters,parameters):
     if args.cutoffs is not None:
         parameters.cutoffs=args.cutoffs
         print(parameters.cutoffs)
-    if args.variable is not None:
-        parameters.var=args.variable
+    if args.grid is not None:
+        parameters.grid=args.grid
     process_parameters.do_builder=args.builder
     process_parameters.do_analysis=args.analysis
     process_parameters.do_optical_flow=args.optical_flow
+    process_parameters.do_cross_correlation=args.cross_correlation
     process_parameters.do_downloader=args.downloader
     process_parameters.do_processor=args.processor
     if args.start_date is not None:
