@@ -39,3 +39,5 @@ def coarsener(grid,**kwargs):
             os.makedirs(path)
         file_dictionary = open(path+'/'+var+'.pkl', "wb")
         pickle.dump(file_paths_coarse, file_dictionary)
+        print('frame shape for var '+ str(var) +' at 0.0625 deg is: ' + str(frame.shape))
+        print('frame shape for var '+ str(var) +' at ' + str(grid)+  'deg is: ' + str(resized_frame.shape))

@@ -7,6 +7,7 @@ Created on Tue Nov 12 15:27:02 2019
 """
 #from pathos.multiprocessing import ProcessingPool as Pool
 from multiprocessing import Pool
+import parmap
 import glob
 import os
 import pickle

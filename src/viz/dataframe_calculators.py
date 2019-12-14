@@ -215,6 +215,8 @@ def scaling_lat(lon, lat, dpixel):
 
 def latlon_converter(df, dtheta):
     """coordinate transform for pixel to angular"""
+    
+
     df['lat'] = df['y']*dtheta - 90
     df['lon'] = df['x']*dtheta - 180
     return df
