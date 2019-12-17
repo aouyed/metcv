@@ -14,25 +14,66 @@ import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.feature_extraction import image
 from skimage.feature import register_translation
+from tqdm import trange
 
-def amv_calculator(prvs_frame, next_frame,shape):
-    prvs_patches=util.view_as_blocks(prvs_frame, shape)
-    next_patches = util.view_as_blocks(next_frame, shape)
+def amv_calculator(prvs_frame, next_frame,shape, sub_pixel):
+    leftovers=[0]*2
+    frame_shape=np.shape(prvs_frame)
     flowx=np.zeros(prvs_frame.shape)
     flowy=np.zeros(prvs_frame.shape)
-    shift_patches_x=util.view_as_blocks(flowx, shape)
-    shift_patches_y=util.view_as_blocks(flowy, shape)
+    leftovers[0]=frame_shape[0]%shape[0]
+    leftovers[1]=frame_shape[1]%shape[1]
+       
+    if(leftovers[0]!=0 and leftovers[1]!=0):
+        prvs_frame_view=prvs_frame[:-leftovers[0],:-leftovers[1]]
+        next_frame_view=next_frame[:-leftovers[0],:-leftovers[1]]
+        flow_viewx=flowx[:-leftovers[0],:-leftovers[1]]
+        flow_viewy=flowy[:-leftovers[0],:-leftovers[1]]
+    elif (leftovers[0]==0):
+        prvs_frame_view=prvs_frame[:,:-leftovers[1]]
+        next_frame_view=next_frame[:,:-leftovers[1]]
+        flow_viewx=flowx[:,:-leftovers[1]]
+        flow_viewy=flowy[:,:-leftovers[1]]
+    elif (leftovers[0]==1):
+        prvs_frame_view=prvs_frame[:-leftovers[0],:]
+        next_frame_view=next_frame[:-leftovers[0],:]
+        flow_viewx=flowx[:-leftovers[0],:]
+        flow_viewy=flowy[:-leftovers[0],:]
+    else:
+        prvs_frame_view=prvs_frame
+        next_frame_view=next_frame
+        flow_viewx=flowx
+        flow_viewy=flowy
+            
+    print("shape of original frame: " + str(np.shape(prvs_frame)))
+
+    print("shape of array view removing leftovers: " + str(np.shape(prvs_frame_view)))
+
+    prvs_patches=util.view_as_blocks(prvs_frame_view, shape)
+    next_patches = util.view_as_blocks(next_frame_view, shape)
+    print("shape of array of blocks: " + str(np.shape(prvs_patches)))
+
+    shift_patches_x=util.view_as_blocks(flow_viewx, shape)
+    shift_patches_y=util.view_as_blocks(flow_viewy, shape)
     shape=list(np.shape(prvs_frame))
     shape.append(2)
     shape=tuple(shape)
     flow=np.zeros(shape)
     rows = prvs_patches.shape[0]
     cols = prvs_patches.shape[1]
-    for x in range(0, rows):
+    print('progress of cross correlation calculation:')
+    for x in trange(0, rows):
         for y in range(0, cols):
-            shift, error, diffphase = register_translation(prvs_patches[x,y,...], next_patches[x,y,...])
+            if not sub_pixel:
+                shift, error, diffphase = register_translation(prvs_patches[x,y,...], next_patches[x,y,...])
+            else:
+                shift, error, diffphase = register_translation(prvs_patches[x,y,...], next_patches[x,y,...],10)
+
             shift_patches_x[x,y,...]=shift[1]
             shift_patches_y[x,y,...]=shift[0]
+    print('mean pixel offset in x direction: ' + str(np.mean(flowx)))
+    print('mean pixel offset in y direction: ' + str(np.mean(flowy)))
+
     flow[...,0]=flowx
     flow[...,1]=flowy
 
@@ -40,7 +81,7 @@ def amv_calculator(prvs_frame, next_frame,shape):
     return flow
 
 def cross_correlation_amv(start_date, var, pyr_scale, levels, winsize, iterations,
-                            poly_n, poly_sigma,**kwargs):
+                            poly_n, poly_sigma, sub_pixel, target_box,**kwargs):
     """Implements cross correlation algorithm for calculating AMVs."""
     file_paths = pickle.load(
         open('../data/interim/dictionaries/vars/'+var+'.pkl', 'rb'))
@@ -51,13 +92,14 @@ def cross_correlation_amv(start_date, var, pyr_scale, levels, winsize, iteration
     file_paths_flow = {}
     file_paths.pop(start_date, None)
     for date in file_paths:
+        print('cross correlation calculation for date: ' + str(date))
         file = file_paths[date]
         frame2 = np.load(file)
         frame2 = cv2.normalize(src=frame2, dst=None,
                                alpha=0, beta=255, norm_type=cv2.NORM_MINMAX,
                                dtype=cv2.CV_8UC1)
         next_frame = frame2
-        flow = amv_calculator(prvs, next_frame,(10,10))
+        flow = amv_calculator(prvs, next_frame,(target_box,target_box), sub_pixel)
         filename = os.path.basename(file)
         filename = os.path.splitext(filename)[0]
         file_path = '../data/processed/flow_frames/'+var+'_'+filename+'.npy'

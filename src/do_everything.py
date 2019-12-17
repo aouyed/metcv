@@ -29,6 +29,8 @@ class Parameters:
             "grid": 0.0625,
             "coarse": False,
             "dt": 1800,
+            "target_box": 10, 
+            'sub_pixel': False,
             "path": "_",
         }
         for (prop, default) in prop_defaults.items():
@@ -65,17 +67,21 @@ def processor(parameters, parameters_process):
     print('initializing processor...')
     cutoffs = parameters.cutoffs
     df = pd.DataFrame()
+  
+  
+    size_path = dc.path(parameters)
+    parameters.path = size_path
+    if parameters_process.do_cross_correlation:
+        dc.cross_correlation(parameters)
+    if parameters_process.do_optical_flow:
+        dc.optical_flow(parameters)
+    if parameters_process.do_builder:
+        dc.builder(parameters)
     for cutoff in cutoffs:
         parameters.cutoff = cutoff
         size_path = dc.path(parameters)
         parameters.path = size_path
-        if parameters_process.do_cross_correlation:
-            dc.cross_correlation(parameters)
-        if parameters_process.do_optical_flow:
-            dc.optical_flow(parameters)
-        if parameters_process.do_builder:
-            dc.builder(parameters)
-        if parameters_process.do_analysis:
+        if parameters_process.do_analysis:     
             df_unit = dc.analysis(parameters)
             df = dc.df_parameters(df, df_unit, parameters)
 

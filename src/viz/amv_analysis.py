@@ -97,9 +97,10 @@ def dataframe_builder(end_date, var, grid,dt,**kwargs):
         path=df_path+'/'+var+'_'+str(date)+'.pkl'
         df.to_pickle(path)
         dictionary_dataframes[date]=path
+        f = open(dictionary_path+'/dataframes.pkl',"wb")
+        pickle.dump(dictionary_dataframes,f)
+    
 
-    f = open(dictionary_path+'/dataframes.pkl',"wb")
-    pickle.dump(dictionary_dataframes,f)
     
    
   
@@ -176,6 +177,7 @@ def data_analysis(start_date, end_date, var, path, cutoff,**kwargs):
     #            scatter_directory, end_date)
 
     heatmap_directory = '../data/processed/heatmaps/'+path
+    print(heatmap_directory)
     dfc.heatmap_plotter(df[['lat','lon','speed_approx','speed','qvdens']], end_date, heatmap_directory)
 
     df_stats=df_summary(df,count)

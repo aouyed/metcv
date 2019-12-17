@@ -21,7 +21,8 @@ class ProcessParameters:
                  "do_cross_correlation": False,
                  "do_downloader": False,
                  "do_processor": True,
-                 "do_summary": True
+                 "do_summary": True,
+                 "do subpixel": False 
                  }
          for (prop, default) in prop_defaults.items():
             setattr(self, prop, kwargs.get(prop, default))
@@ -37,6 +38,7 @@ def valid_date(d):
 def parser(process_parameters,parameters):
     parser = argparse.ArgumentParser()
     parser.add_argument("-c", "--cutoffs", help="Input list of speed VD cutoffs.", type=float, nargs='+')
+    parser.add_argument("-t", "--target_box", help="Input size of target box in pixels", type=int)
     parser.add_argument("-v", "--variable", help="Choose GEOS-5 variable to analyze", type= str)
     parser.add_argument("-g", "--grid", help="Choose the spatial resolution in degrees", type= float)
     parser.add_argument("-b", "--builder", help="Whether we build the dataframe", action ="store_true")
@@ -45,6 +47,7 @@ def parser(process_parameters,parameters):
     parser.add_argument("-cc", "--cross_correlation", help="Whether we run cross_correlation algorithm", action ="store_true")
     parser.add_argument("-d", "--downloader", help="Whether we run downloader", action ="store_true")
     parser.add_argument("-p", "--processor", help="Whether we run processor", action ="store_true")
+    parser.add_argument("-sp", "--sub_pixel", help="Whether we run subpixel in cross correlation", action ="store_true")
     parser.add_argument("-sd", "--start_date", help="The Start Date - format YYYY-MM-DD-00:00", 
                         type=valid_date)
     parser.add_argument("-ed", "--end_date", help="The End Date - format YYYY-MM-DD-00:00", 
@@ -53,15 +56,17 @@ def parser(process_parameters,parameters):
     
     if args.cutoffs is not None:
         parameters.cutoffs=args.cutoffs
-        print(parameters.cutoffs)
     if args.grid is not None:
         parameters.grid=args.grid
+    if args.target_box is not None:
+        parameters.target_box=args.target_box
     process_parameters.do_builder=args.builder
     process_parameters.do_analysis=args.analysis
     process_parameters.do_optical_flow=args.optical_flow
     process_parameters.do_cross_correlation=args.cross_correlation
     process_parameters.do_downloader=args.downloader
     process_parameters.do_processor=args.processor
+    parameters.subpixel=args.sub_pixel
     if args.start_date is not None:
         parameters.start_date=args.start_date
     if args.end_date is not None:

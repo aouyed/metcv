@@ -17,6 +17,7 @@ import pandas as pd
 import metpy.calc as mpcalc
 from scipy.interpolate import interpn
 import math
+from tqdm import tqdm
 
 def density_scatter( x , y, ax = None, sort = True, bins = 20, **kwargs )   :
     """
@@ -61,6 +62,7 @@ def heatmap_plotter(df, date, directory):
 
 def heatmapper(df, values, directory):
     """creates a heatmap from a column"""
+    
     piv = pd.pivot_table(df, values=values,
                          index=["lat"], columns=["lon"], fill_value=0)
     fig, ax = plt.subplots()
@@ -126,6 +128,7 @@ def dataframe_quantum(file, date, dictionary_dict):
 
 def scaling_df(df):
     """coordinate transforms vels from angle/pixel to metric exactly"""
+    
     df['u_scaled_approx'] = df.apply(
         lambda x: scaling_lon(x.lon, x.lat, x.flow_u), axis=1)
     df['v_scaled_approx'] = df.apply(
