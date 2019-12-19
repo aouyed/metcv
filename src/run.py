@@ -71,7 +71,8 @@ def parser(process_parameters,parameters):
         parameters.start_date=args.start_date
     if args.end_date is not None:
         parameters.end_date=args.end_date
-        
+    if args.variable is not None:
+        parameters.var=args.variable    
 
 def main():
     parameters=de.Parameters()

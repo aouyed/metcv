@@ -25,6 +25,7 @@ def builder(var):
         frame1 = np.load(file_paths_airdens[date])
         frame2 = np.load(file_paths_qv[date])
         frame3 = np.multiply(frame1, frame2)
+
         file_path = str(directory_path+'/'+str(date)+".npy")
         np.save(file_path, frame3)
         file_paths_qvdens[date] = file_path

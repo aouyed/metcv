@@ -28,7 +28,7 @@ def coarsener(grid,**kwargs):
             resized_frame = cv2.resize(frame,None,fx=factor,fy=factor)
             filename = os.path.basename(file)
             filename = os.path.splitext(filename)[0]
-            coarse_path='../data/interim/'+ str(grid)+'/'
+            coarse_path='../data/interim/'+ str(grid)+'/' + str(var)+'/'
             if not os.path.exists(coarse_path):
                 os.makedirs(coarse_path)
             file_path = coarse_path+filename+'.npy'

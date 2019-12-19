@@ -29,12 +29,12 @@ def amv_calculator(prvs_frame, next_frame,shape, sub_pixel):
         next_frame_view=next_frame[:-leftovers[0],:-leftovers[1]]
         flow_viewx=flowx[:-leftovers[0],:-leftovers[1]]
         flow_viewy=flowy[:-leftovers[0],:-leftovers[1]]
-    elif (leftovers[0]==0):
+    elif (leftovers[0]==0 and leftovers[1]!=0):
         prvs_frame_view=prvs_frame[:,:-leftovers[1]]
         next_frame_view=next_frame[:,:-leftovers[1]]
         flow_viewx=flowx[:,:-leftovers[1]]
         flow_viewy=flowy[:,:-leftovers[1]]
-    elif (leftovers[0]==1):
+    elif (leftovers[0]!=0 and leftovers[1]==0):
         prvs_frame_view=prvs_frame[:-leftovers[0],:]
         next_frame_view=next_frame[:-leftovers[0],:]
         flow_viewx=flowx[:-leftovers[0],:]
