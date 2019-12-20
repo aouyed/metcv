@@ -1,6 +1,7 @@
 import sqlite3
 import os
 import pandas as pd
+from viz import dataframe_calculators as dfc
 
 
 def create_connection():
@@ -17,7 +18,7 @@ def create_connection():
     return(conn)
 
 
-def add_dataframe(frame, var, date, conn):
+def add_dataframe(frame, var, date, conn, dtheta):
 
     cursor = conn.cursor()
     cursor.execute(
@@ -30,4 +31,5 @@ def add_dataframe(frame, var, date, conn):
         ['y', 'x']).reset_index(name=var.lower())
     df['datetime'] = pd.Timestamp(date)
     df.set_index('datetime', inplace=True)
+    df = dfc.latlon_converter(df, dtheta)
     df.to_sql(var, conn, if_exists=action)
