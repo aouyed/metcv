@@ -24,8 +24,8 @@ sns.set_context('notebook')
 fig, ax = plt.subplots()
 
 
-sns.lineplot(x=df['cutoff'],y=df['corr_speed'], ax=ax,label='cross_correlation')
-sns.lineplot(x=dff['cutoff'],y=dff['corr_speed'],ax=ax,label='DOF')
+sns.lineplot(x=df['cutoff'],y=df['corr_speed'], ax=ax,label=label1)
+sns.lineplot(x=dff['cutoff'],y=dff['corr_speed'],ax=ax,label=label2)
 
 ax.set(xlim=(2.5,10))
 #ax.set(ylim=(0.7,1))
@@ -35,8 +35,11 @@ ax.set_ylabel('correlation coefficient')
 ################################
 fig, ax = plt.subplots()
 
+label1='water vapor density'
+label2='specific humidity'
 
-sns.lineplot(x=df['cutoff'],y=df['corr_speed'], ax=ax,label='cross_correlation')
+
+sns.lineplot(x=df['cutoff'],y=df['corr_speed'], ax=ax,label=label1)
 sns.lineplot(x=dff['cutoff'],y=dff['corr_speed'],ax=ax,label=' DOF')
 #ns.lineplot(x=df['cutoff'],y=0.487145,ax=ax, label='Δθ = 0.5 deg, unfiltered')
 #sns.lineplot(x=dff['cutoff'],y=0.174652,ax=ax, label='Δθ = 0.0625 deg, unfiltered')
@@ -52,16 +55,16 @@ ax.set_ylabel('correlation coefficient')
 fig, ax = plt.subplots()
 
 scale=1
-sns.lineplot(x=df['ratio_count']*scale,y=df['corr_speed'], ax=ax, label='cross_correlation')
-sns.lineplot(x=dff['ratio_count']*scale,y=dff['corr_speed'], ax=ax,label='DOF')
+sns.lineplot(x=df['ratio_count']*scale,y=df['corr_speed'], ax=ax, label=label1)
+sns.lineplot(x=dff['ratio_count']*scale,y=dff['corr_speed'], ax=ax,label=label2)
 ax.set_xlabel('fraction of raw AMVs preserved')
 ax.set_ylabel('correlation coefficient')
 
 fig, ax = plt.subplots()
 
 
-sns.lineplot(x=df['cutoff'],y=df['ratio_count']*scale, ax=ax,label='cross correlation')
-sns.lineplot(x=dff['cutoff'],y=dff['ratio_count']*scale,ax=ax,label='DOF')
+sns.lineplot(x=df['cutoff'],y=df['ratio_count']*scale, ax=ax,label=label1)
+sns.lineplot(x=dff['cutoff'],y=dff['ratio_count']*scale,ax=ax,label=label2)
 
 ax.set(xlim=(2.5,10))
 
@@ -73,10 +76,10 @@ ax.set_ylabel('fraction of raw AMVs preserved')
 
 fig, ax = plt.subplots()
 
-sns.lineplot(x=df['ratio_count']*scale,y=df['mean_speed_error'], ax=ax, label='cross correlation')
-sns.lineplot(x=dff['ratio_count']*scale,y=dff['mean_speed_error'], ax=ax,label='DOF')
+sns.lineplot(x=df['ratio_count']*scale,y=df['mean_speed_error'], ax=ax, label=label1)
+sns.lineplot(x=dff['ratio_count']*scale,y=dff['mean_speed_error'], ax=ax,label=label2)
 ax.set_xlabel('fraction of raw AMVs preserved')
 ax.set_ylabel('mean vector difference [m/s]')
 
-print(df)
+print(df[])
 print(dff)
