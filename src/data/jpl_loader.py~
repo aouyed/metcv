@@ -1,0 +1,24 @@
+import xarray as xr
+import netCDF4
+import glob
+import numpy as np
+import os
+import pickle 
+
+def loader(var, pressure, start_date, end_date, **kwargs):
+    date=start_date
+    directory_path = '../data/raw/'+var.lower()
+    if not os.path.exists(directory_path):
+        os.makedirs(directory_path)
+    filenames = glob.glob("../../data/raw/jpl/raw_jpl/*")
+    file_paths = {}
+    ds = xr.open_dataset(filenames[0])
+    T = ds.sel(pressure=pressure, method='nearest')
+    T=T.get(var.lower())
+    T=T.to_array()
+    T=np.squeeze(T)
+    print(np.mean(T))
+    print('shape of downloaded array: ' + str(T.shape))
+    file_path = str(directory_path+'/'+str(date)+".npy")
+    np.save(file_path, T.values)
+    file_paths[date] = file_path

@@ -1,12 +1,16 @@
 import xarray as xr
 import netCDF4
-import glob 
-filenames = glob.glob("../../data/raw/longtao_amv/raw/*")
+import glob
+import numpy as np
+filenames = glob.glob("../../data/raw/jpl/raw_jpl/*")
 print(filenames)
 
-ds = xr.open_dataset(filenames[1])
+ds = xr.open_dataset(filenames[0])
 #print(ds)
-print(ds)
-#T = ds.sel(lon=slice(-180, 180), lat=slice(-90, 90))
-#T=T.get('umean')
-#print(T.values)
+#print(ds)
+T = ds.sel(pressure=850, method='nearest')
+print(T)
+T=T.get('qv')
+T=T.values
+T=np.nan_to_num(T)
+print(np.mean(T))

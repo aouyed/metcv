@@ -10,7 +10,7 @@ import do_calculators as dc
 import pandas as pd
 from data import make_dataset_geos5 as gd
 from features import build_features as qvd
-from data import jpl_loader as jl
+
 class Parameters:
     def __init__(self, **kwargs):
         prop_defaults = {
@@ -32,43 +32,30 @@ class Parameters:
             "target_box": 10, 
             'sub_pixel': False,
             "path": "_",
-            "jpl_loader":False,
-            "track": False,
-            "pressure": 850
         }
         for (prop, default) in prop_defaults.items():
             setattr(self, prop, kwargs.get(prop, default))
-
-def downloader_function(parameters):
-    kwargs = vars(parameters)
-    if parameters.jpl_loader:
-        jl.loader(**kwargs)
-    else:       
-        gd.downloader(**kwargs)
-
-
 
 def downloader(parameters):
     print('initializing  downloader...')
     parameters.var = 'U'
     kwargs = vars(parameters)
-    downloader_function(parameters)
+    gd.downloader(**kwargs)
 
     parameters.var = 'V'
     kwargs = vars(parameters)
-    downloader_function(parameters)
+    gd.downloader(**kwargs)
 
     parameters.var = 'QV'
     kwargs = vars(parameters)
-    downloader_function(parameters)
+    gd.downloader(**kwargs)
 
+    parameters.var = 'AIRDENS'
+    kwargs = vars(parameters)
+    gd.downloader(**kwargs)
 
-    # parameters.var = 'AIRDENS'
-    # kwargs = vars(parameters)
-    # gd.downloader(**kwargs)
-
-    # parameters.var = 'QVDENS'
-    # qvd.builder(parameters.var)
+    parameters.var = 'QVDENS'
+    qvd.builder(parameters.var)
     
     if parameters.grid >0.0625:
         dc.coarsener(parameters)
