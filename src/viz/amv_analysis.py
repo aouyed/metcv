@@ -26,7 +26,7 @@ def df_loop(df, grid, dt):
     return df
 
 
-def parallelize_dataframe(df, func, grid, dt, n_cores=5):
+def parallelize_dataframe(df, func, grid, dt, n_cores):
     start_time = time.time()
     print('start parallelization routine')
     df_split = np.array_split(df, n_cores)
@@ -61,7 +61,7 @@ def df_summary(df, count):
     return df_total
 
 
-def dataframe_builder(end_date, var, grid, dt, **kwargs):
+def dataframe_builder(end_date, var, grid, dt, cores,  **kwargs):
     """build dataframe that includes data from all relevant dates"""
     dictionary_paths = glob.glob('../data/interim/dictionaries/vars/*')
     dictionary_path = '../data/interim/dictionaries/'
@@ -89,7 +89,7 @@ def dataframe_builder(end_date, var, grid, dt, **kwargs):
         print('building dataframe for the date: ' + str(date))
         file = flow_files[date]
         df = dfc.dataframe_quantum(file, date, dictionary_dict)
-        df = parallelize_dataframe(df, df_loop, grid, dt)
+        df = parallelize_dataframe(df, df_loop, grid, dt, cores)
         df.set_index('datetime', inplace=True)
         path = df_path+'/'+var+'_'+str(date)+'.pkl'
         df.to_pickle(path)
@@ -131,6 +131,7 @@ def error_df(df):
 def df_concatenator(dataframes_dict, start_date, end_date, track):
     df = pd.DataFrame()
     print('concatenating dataframes for all dates for further analysis:')
+    print(track)
     for date in tqdm(dataframes_dict):
         if date >= start_date and date <= end_date:
             df_path = dataframes_dict[date]

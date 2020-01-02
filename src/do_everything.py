@@ -34,7 +34,8 @@ class Parameters:
             "path": "_",
             "jpl_loader":False,
             "track": False,
-            "pressure": 850
+            "pressure": 850,
+            "cores": 5,
         }
         for (prop, default) in prop_defaults.items():
             setattr(self, prop, kwargs.get(prop, default))
@@ -61,6 +62,15 @@ def downloader(parameters):
     parameters.var = 'QV'
     kwargs = vars(parameters)
     downloader_function(parameters)
+
+    if parameters.track:
+        parameters.var = 'vtrack'
+        kwargs = vars(parameters)
+        downloader_function(parameters)
+
+        parameters.var = 'utrack'
+        kwargs = vars(parameters)
+        downloader_function(parameters)
 
 
     # parameters.var = 'AIRDENS'

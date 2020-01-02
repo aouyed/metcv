@@ -35,7 +35,10 @@ def optical_flow_calculator(start_date, var, pyr_scale, levels, winsize, iterati
                                             poly_n, poly_sigma, 0)
         filename = os.path.basename(file)
         filename = os.path.splitext(filename)[0]
+        path='../data/processed/flow_frames'
         file_path = '../data/processed/flow_frames/'+var+'_'+filename+'.npy'
+        if not os.path.exists(path):
+            os.makedirs(path)
         np.save(file_path, flow)
         file_paths_flow[date] = file_path
         prvs = next_frame

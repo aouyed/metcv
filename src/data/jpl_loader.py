@@ -12,29 +12,30 @@ def loader(var, pressure, start_date, end_date, dt,  **kwargs):
     date_list = gd.daterange(d0, d1, 1)
     file_paths = {}
     if var.lower() == 'utrack' or var.lower() =='vtrack':
-         filenames = glob.glob("../../data/raw/jpl/processed_jpl/*")
+        filenames = glob.glob("../data/raw/jpl/processed_jpl/*")
     else:
-        filenames = glob.glob("../../data/raw/jpl/raw_jpl/*")
+        filenames = glob.glob("../data/raw/jpl/raw_jpl/*")
 
     
     for i, date in enumerate(date_list):
+        print('Downloading data for variable ' + var + ' for date: ' + str(date))
         directory_path = '../data/raw/'+var.lower()
         if not os.path.exists(directory_path):
             os.makedirs(directory_path)
 
  
-        ds = xr.open_dataset(filenames[i])
         if var.lower() == 'utrack' or var.lower() =='vtrack':
+            ds = xr.open_dataset(filenames[0])
             T=ds.get(var.lower())
         else:
+            ds = xr.open_dataset(filenames[i])
             T = ds.sel(pressure=pressure, method='nearest')
             T=T.get(var.lower())
-        T=T.to_array()
-        T=np.squeeze(T)
+        T=T.values
         T=np.nan_to_num(T)
         print('shape of downloaded array: ' + str(T.shape))
         file_path = str(directory_path+'/'+str(date)+".npy")
-        np.save(file_path, T.values)
+        np.save(file_path, T)
         file_paths[date] = file_path
     dictionary_path = '../data/interim/dictionaries/vars'
     if not os.path.exists(dictionary_path):

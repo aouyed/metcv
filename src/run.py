@@ -42,6 +42,7 @@ def parser(process_parameters,parameters):
     parser.add_argument("-v", "--variable", help="Choose GEOS-5 variable to analyze", type= str)
     parser.add_argument("-g", "--grid", help="Choose the spatial resolution in degrees", type= float)
     parser.add_argument("-dt", "--timestep", help="Choose the temporal  resolution in seconds", type= float)
+    parser.add_argument("-nc", "--cores", help="Choose the number of cores", type= int)
     parser.add_argument("-b", "--builder", help="Whether we build the dataframe", action ="store_true")
     parser.add_argument("-a", "--analysis", help="Whether we analyze the dataframe", action ="store_true")
     parser.add_argument("-of", "--optical_flow", help="Whether we run optical flow algorithm", action ="store_true")
@@ -80,7 +81,8 @@ def parser(process_parameters,parameters):
         parameters.var=args.variable
     if args.timestep is not None:
         parameters.dt=args.timestep
-
+    if args.cores is not None:
+        parameters.cores=args.cores
 
 def main():
     parameters=de.Parameters()
