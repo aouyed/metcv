@@ -29,6 +29,7 @@ def loader(var, pressure, start_date, end_date, dt,  **kwargs):
             ds = xr.open_dataset(filenames[0])
             T = ds.get(var.lower())
             T = T.values
+qq
 
         else:
             ds = xr.open_dataset(filenames[i])

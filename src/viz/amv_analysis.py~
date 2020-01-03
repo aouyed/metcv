@@ -7,7 +7,6 @@ Created on Tue Nov 12 15:27:02 2019
 """
 #from pathos.multiprocessing import ProcessingPool as Pool
 from multiprocessing import Pool
-import parmap
 import glob
 import os
 import pickle
@@ -27,7 +26,7 @@ def df_loop(df, grid, dt):
     return df
 
 
-def parallelize_dataframe(df, func, grid, dt, n_cores=5):
+def parallelize_dataframe(df, func, grid, dt, n_cores):
     start_time = time.time()
     print('start parallelization routine')
     df_split = np.array_split(df, n_cores)
@@ -54,15 +53,15 @@ def df_summary(df, count):
         else:
             df_total = pd.concat([df_total, df_unit])
     df_total['corr_speed'] = df['speed'].corr(df['speed_approx'])
-    #df_total['corr_u']= df['u'].corr(df['u_scaled_approx'])
-    #df_total['corr_v']= df['v'].corr(df['v_scaled_approx'])
+    df_total['corr_u'] = df['u'].corr(df['u_scaled_approx'])
+    df_total['corr_v'] = df['v'].corr(df['v_scaled_approx'])
     # df_total['initial_count']=count
     df_total['ratio_count'] = df.shape[0]/count
     df_total['mean_speed_error'] = df['speed_error'].mean()
     return df_total
 
 
-def dataframe_builder(end_date, var, grid, dt, **kwargs):
+def dataframe_builder(end_date, var, grid, dt, cores,  **kwargs):
     """build dataframe that includes data from all relevant dates"""
     dictionary_paths = glob.glob('../data/interim/dictionaries/vars/*')
     dictionary_path = '../data/interim/dictionaries/'
@@ -90,7 +89,7 @@ def dataframe_builder(end_date, var, grid, dt, **kwargs):
         print('building dataframe for the date: ' + str(date))
         file = flow_files[date]
         df = dfc.dataframe_quantum(file, date, dictionary_dict)
-        df = parallelize_dataframe(df, df_loop, grid, dt)
+        df = parallelize_dataframe(df, df_loop, grid, dt, cores)
         df.set_index('datetime', inplace=True)
         path = df_path+'/'+var+'_'+str(date)+'.pkl'
         df.to_pickle(path)
@@ -129,17 +128,23 @@ def error_df(df):
     return df
 
 
-def df_concatenator(dataframes_dict, start_date, end_date):
+def df_concatenator(dataframes_dict, start_date, end_date, track):
     df = pd.DataFrame()
     print('concatenating dataframes for all dates for further analysis:')
+    print(track)
     for date in tqdm(dataframes_dict):
         if date >= start_date and date <= end_date:
             df_path = dataframes_dict[date]
             df_unit = pd.read_pickle(df_path)
+
+            if track:
+                df_unit['u_scaled_approx'] = df_unit['utrack']
+                df_unit['v_scaled_approx'] = df_unit['vtrack']
             df_unit = df_unit[['lon', 'lat', 'u', 'v',
-                               'u_scaled_approx', 'v_scaled_approx', 'qvdens']]
+                               'u_scaled_approx', 'v_scaled_approx', 'qv']]
             df_unit = error_df(df_unit)
-            df_unit = df_unit[['speed', 'speed_approx', 'speed_error']]
+            df_unit = df_unit[['speed', 'speed_approx', 'speed_error', 'error_v',
+                               'error_u', 'u_scaled_approx', 'v_scaled_approx', 'u', 'v']]
 
             df_unit = df_unit.apply(pd.to_numeric, downcast='float')
             if df.empty:
@@ -149,15 +154,16 @@ def df_concatenator(dataframes_dict, start_date, end_date):
     return df
 
 
-def data_analysis(start_date, end_date, var, path, cutoff, **kwargs):
+def data_analysis(start_date, end_date, var, path, cutoff, track, **kwargs):
     """perform analytics on the dataframe"""
 
     pd.set_option('display.max_colwidth', -1)
     pd.set_option('display.expand_frame_repr', False)
     dict_path = '../data/interim/dictionaries/dataframes.pkl'
     dataframes_dict = pickle.load(open(dict_path, 'rb'))
-    df = df_concatenator(dataframes_dict, start_date, end_date)
+    df = df_concatenator(dataframes_dict, start_date, end_date, track)
     count = df.shape[0]
+    df.dropna
     if cutoff > 0:
         df = df[df.speed_error <= cutoff]
 

@@ -16,6 +16,8 @@ import pandas as pd
 import os
 
 
+
+
 def df_parameters(df, df_unit, parameters):
     for parameter, value in parameters.__dict__.items():
         if not isinstance(value, list):
@@ -33,13 +35,11 @@ def cross_correlation(parameters):
     cc.cross_correlation_amv(**kwargs)
     print('finished cross correlation.')
 
-
 def optical_flow(parameters):
     print('initializing optical flow...')
     kwargs = vars(parameters)
     of.optical_flow_calculator(**kwargs)
     print('finished optical flow.')
-
 
 def coarsener(parameters):
     print('initializing coarsener...')
@@ -84,8 +84,7 @@ def df_sumnmary(df, coarse):
     if not os.path.exists(plot_path):
         os.makedirs(plot_path)
     df.to_pickle(df_path+'/c'+str(coarse)+'.pkl')
-    print(df[["corr_speed", "corr_u", "corr_v", "ratio_count", "mean", "std"]])
-    import pdb
-    pdb.set_trace()
+    import pdb; pdb.set_trace()
    # dfc.line_plotter(df[['cutoff', 'corr_speed',
    #                      'mean_speed_error', 'initial_count', 'ratio_count']], plot_path)
+

@@ -53,8 +53,8 @@ def df_summary(df, count):
         else:
             df_total = pd.concat([df_total, df_unit])
     df_total['corr_speed'] = df['speed'].corr(df['speed_approx'])
-    #df_total['corr_u']= df['u'].corr(df['u_scaled_approx'])
-    #df_total['corr_v']= df['v'].corr(df['v_scaled_approx'])
+    df_total['corr_u'] = df['u'].corr(df['u_scaled_approx'])
+    df_total['corr_v'] = df['v'].corr(df['v_scaled_approx'])
     # df_total['initial_count']=count
     df_total['ratio_count'] = df.shape[0]/count
     df_total['mean_speed_error'] = df['speed_error'].mean()
@@ -136,13 +136,15 @@ def df_concatenator(dataframes_dict, start_date, end_date, track):
         if date >= start_date and date <= end_date:
             df_path = dataframes_dict[date]
             df_unit = pd.read_pickle(df_path)
+
             if track:
-                df_unit['u_scaled_approx']=df_unit['utrack']
-                df_unit['v_scaled_approx']=df_unit['vtrack']
+                df_unit['u_scaled_approx'] = df_unit['utrack']
+                df_unit['v_scaled_approx'] = df_unit['vtrack']
             df_unit = df_unit[['lon', 'lat', 'u', 'v',
                                'u_scaled_approx', 'v_scaled_approx', 'qv']]
             df_unit = error_df(df_unit)
-            df_unit = df_unit[['speed', 'speed_approx', 'speed_error']]
+            df_unit = df_unit[['lon', 'lat', 'speed', 'qv', 'speed_approx', 'speed_error', 'error_v',
+                               'error_u', 'u_scaled_approx', 'v_scaled_approx', 'u', 'v']]
 
             df_unit = df_unit.apply(pd.to_numeric, downcast='float')
             if df.empty:
@@ -152,15 +154,16 @@ def df_concatenator(dataframes_dict, start_date, end_date, track):
     return df
 
 
-def data_analysis(start_date, end_date, var, path, cutoff,track, **kwargs):
+def data_analysis(start_date, end_date, var, path, cutoff, track, **kwargs):
     """perform analytics on the dataframe"""
 
     pd.set_option('display.max_colwidth', -1)
     pd.set_option('display.expand_frame_repr', False)
     dict_path = '../data/interim/dictionaries/dataframes.pkl'
     dataframes_dict = pickle.load(open(dict_path, 'rb'))
-    df = df_concatenator(dataframes_dict, start_date, end_date,track)
+    df = df_concatenator(dataframes_dict, start_date, end_date, track)
     count = df.shape[0]
+    df.dropna
     if cutoff > 0:
         df = df[df.speed_error <= cutoff]
 
@@ -177,7 +180,8 @@ def data_analysis(start_date, end_date, var, path, cutoff,track, **kwargs):
     heatmap_directory = '../data/processed/heatmaps/'+path
     print(heatmap_directory)
 
-    #dfc.heatmap_plotter(df[['lat','lon','speed_approx','speed','qvdens']], end_date, heatmap_directory)
+    dfc.heatmap_plotter(
+        df[['lat', 'lon', 'speed_approx', 'speed', 'qv']], end_date, heatmap_directory)
 
     df_stats = df_summary(df, count)
 
