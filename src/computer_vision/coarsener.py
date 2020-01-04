@@ -17,7 +17,10 @@ def coarse_fun(file_paths, date, grid, var):
     file = file_paths[date]
     frame = np.load(file)
     factor = 0.0625/grid
-    resized_frame = cv2.resize(frame, None, fx=factor, fy=factor)
+    try:
+        resized_frame = cv2.resize(frame, None, fx=factor, fy=factor)
+    except:
+        resized_frame=frame
     filename = os.path.basename(file)
     filename = os.path.splitext(filename)[0]
     coarse_path = '../data/interim/' + str(grid)+'/' + str(var)+'/'
@@ -38,6 +41,7 @@ def coarsener(grid, track, **kwargs):
         for date in file_paths:
             filename = os.path.basename(dict_path)
             var = os.path.splitext(filename)[0]
+            
             if track:
                 file_paths_coarse[date], frame, resized_frame = coarse_fun(
                     file_paths, date, grid, var)
