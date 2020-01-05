@@ -57,6 +57,7 @@ def df_summary(df, count):
     df_total['corr_v'] = df['v'].corr(df['v_scaled_approx'])
     # df_total['initial_count']=count
     df_total['ratio_count'] = df.shape[0]/count
+    df_total['count'] = count
     df_total['mean_speed_error'] = df['speed_error'].mean()
     return df_total
 
@@ -154,7 +155,7 @@ def df_concatenator(dataframes_dict, start_date, end_date, track):
     return df
 
 
-def data_analysis(start_date, end_date, var, path, cutoff, track, **kwargs):
+def data_analysis(start_date, end_date, var, path, cutoff, track, speed_cutoff, up_speed, low_speed, **kwargs):
     """perform analytics on the dataframe"""
 
     pd.set_option('display.max_colwidth', -1)
@@ -162,6 +163,10 @@ def data_analysis(start_date, end_date, var, path, cutoff, track, **kwargs):
     dict_path = '../data/interim/dictionaries/dataframes.pkl'
     dataframes_dict = pickle.load(open(dict_path, 'rb'))
     df = df_concatenator(dataframes_dict, start_date, end_date, track)
+
+    if speed_cutoff:
+        df = df[df.speed >= low_speed]
+        df = df[df.speed <= up_speed]
     count = df.shape[0]
     df.dropna
     if cutoff > 0:

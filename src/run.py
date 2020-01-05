@@ -49,6 +49,10 @@ def parser(process_parameters, parameters):
     parser.add_argument(
         "-dt", "--timestep", help="Choose the temporal  resolution in seconds", type=float)
     parser.add_argument(
+        "-us", "--up_speed", help="upper bound of speed", type=float)
+    parser.add_argument(
+        "-ls", "--low_speed", help="lower  bound of speed", type=float)
+    parser.add_argument(
         "-nc", "--cores", help="Choose the number of cores", type=int)
     parser.add_argument(
         "-np", "--poly_n", help="Number of pixels used for dof algorithm", type=int)
@@ -76,6 +80,10 @@ def parser(process_parameters, parameters):
                         help="Whether we low jpl dataset", action="store_true")
     parser.add_argument(
         "-tk", "--track", help="Whether we load jpl amvs", action="store_true")
+    parser.add_argument(
+        "-sc", "--speed_cutoff", help="Whether we filter wind speeds by magnitude", action="store_true")
+    parser.add_argument(
+        "-t1", "--tvl1", help="Whether we use tvl1 for optical flow", action="store_true")
     args = parser.parse_args()
 
     if args.cutoffs is not None:
@@ -93,6 +101,8 @@ def parser(process_parameters, parameters):
     parameters.subpixel = args.sub_pixel
     parameters.track = args.track
     parameters.jpl_loader = args.jpl_loader
+    parameters.speed_cutoff = args.speed_cutoff
+    parameters.tvl1 = args.tvl1
     if args.start_date is not None:
         parameters.start_date = args.start_date
     if args.end_date is not None:
@@ -101,6 +111,10 @@ def parser(process_parameters, parameters):
         parameters.var = args.variable
     if args.timestep is not None:
         parameters.dt = args.timestep
+    if args.low_speed is not None:
+        parameters.low_speed = args.low_speed
+    if args.up_speed is not None:
+        parameters.up_speed = args.up_speed
     if args.cores is not None:
         parameters.cores = args.cores
     if args.poly_n is not None:

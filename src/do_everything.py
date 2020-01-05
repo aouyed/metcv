@@ -11,6 +11,8 @@ import pandas as pd
 from data import make_dataset_geos5 as gd
 from features import build_features as qvd
 from data import jpl_loader as jl
+
+
 class Parameters:
     def __init__(self, **kwargs):
         prop_defaults = {
@@ -29,24 +31,28 @@ class Parameters:
             "grid": 0.0625,
             "coarse": False,
             "dt": 1800,
-            "target_box": 10, 
+            "target_box": 10,
             'sub_pixel': False,
             "path": "_",
-            "jpl_loader":False,
+            "jpl_loader": False,
             "track": False,
             "pressure": 850,
             "cores": 5,
+            "speed_cutoff": False,
+            "low_speed": 0,
+            "up_speed": 10,
+            'tvl1': False
         }
         for (prop, default) in prop_defaults.items():
             setattr(self, prop, kwargs.get(prop, default))
+
 
 def downloader_function(parameters):
     kwargs = vars(parameters)
     if parameters.jpl_loader:
         jl.loader(**kwargs)
-    else:       
+    else:
         gd.downloader(**kwargs)
-
 
 
 def downloader(parameters):
@@ -72,26 +78,25 @@ def downloader(parameters):
         kwargs = vars(parameters)
         downloader_function(parameters)
 
-
     # parameters.var = 'AIRDENS'
     # kwargs = vars(parameters)
     # gd.downloader(**kwargs)
 
     # parameters.var = 'QVDENS'
     # qvd.builder(parameters.var)
-    
-    if parameters.grid >0.0625:
+
+    if parameters.grid > 0.0625:
         dc.coarsener(parameters)
 
     print('finished downloader.')
+
 
 def processor(parameters, parameters_process):
     """ iteratres through the hyperparameters"""
     print('initializing processor...')
     cutoffs = parameters.cutoffs
     df = pd.DataFrame()
-  
-  
+
     size_path = dc.path(parameters)
     parameters.path = size_path
     if parameters_process.do_cross_correlation:
@@ -104,13 +109,10 @@ def processor(parameters, parameters_process):
         parameters.cutoff = cutoff
         size_path = dc.path(parameters)
         parameters.path = size_path
-        if parameters_process.do_analysis:     
+        if parameters_process.do_analysis:
             df_unit = dc.analysis(parameters)
             df = dc.df_parameters(df, df_unit, parameters)
 
         #mm.frame_maker(var, size_path)
     dc.df_sumnmary(df, parameters.coarse)
     print('finished processor.')
-
-
-

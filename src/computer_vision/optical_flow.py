@@ -13,7 +13,7 @@ import matplotlib.pyplot as plt
 
 
 def optical_flow_calculator(start_date, var, pyr_scale, levels, winsize, iterations,
-                            poly_n, poly_sigma, **kwargs):
+                            poly_n, poly_sigma, tvl1,  **kwargs):
     """Implements Farneback's optical flow algorithm."""
     file_paths = pickle.load(
         open('../data/interim/dictionaries/vars/'+var+'.pkl', 'rb'))
@@ -30,14 +30,16 @@ def optical_flow_calculator(start_date, var, pyr_scale, levels, winsize, iterati
                                alpha=0, beta=255, norm_type=cv2.NORM_MINMAX,
                                dtype=cv2.CV_8UC1)
         next_frame = frame2
-       # optical_flow = cv2.DualTVL1OpticalFlow_create()
-        #optical_flow = cv2.optflow.DualTVL1OpticalFlow_create()
-        #optical_flow.setLambda(0.005)
-        #flow = optical_flow.calc(prvs, next_frame, None)
-        
-        flow = cv2.calcOpticalFlowFarneback(prvs, next_frame, None, pyr_scale,
-                                            levels, winsize, iterations,
-                                            poly_n, poly_sigma, 0)
+
+        if tvl1:
+           # optical_flow = cv2.DualTVL1OpticalFlow_create()
+            optical_flow = cv2.optflow.DualTVL1OpticalFlow_create()
+            optical_flow.setLambda(0.005)
+            flow = optical_flow.calc(prvs, next_frame, None)
+        else:
+            flow = cv2.calcOpticalFlowFarneback(prvs, next_frame, None, pyr_scale,
+                                                levels, winsize, iterations,
+                                                poly_n, poly_sigma, 0)
         filename = os.path.basename(file)
         filename = os.path.splitext(filename)[0]
         path = '../data/processed/flow_frames'
