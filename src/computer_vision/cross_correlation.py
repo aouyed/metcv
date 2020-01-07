@@ -55,12 +55,15 @@ def amv_calculator(prvs_frame, next_frame,shape, sub_pixel):
 
     shift_patches_x=util.view_as_blocks(flow_viewx, shape)
     shift_patches_y=util.view_as_blocks(flow_viewy, shape)
+ 
     shape=list(np.shape(prvs_frame))
     shape.append(2)
     shape=tuple(shape)
     flow=np.zeros(shape)
     rows = prvs_patches.shape[0]
     cols = prvs_patches.shape[1]
+    shift_inter_x=np.zeros((rows,cols))
+    shift_inter_y=np.zeros((rows,cols))
     print('progress of cross correlation calculation:')
     for x in trange(0, rows):
         for y in range(0, cols):
@@ -71,9 +74,13 @@ def amv_calculator(prvs_frame, next_frame,shape, sub_pixel):
 
             shift_patches_x[x,y,...]=shift[1]
             shift_patches_y[x,y,...]=shift[0]
+            shift_inter_x[x,y]=shift[1]
+            shift_inter_y[x,y]=shift[0]
     print('mean pixel offset in x direction: ' + str(np.mean(flowx)))
     print('mean pixel offset in y direction: ' + str(np.mean(flowy)))
-
+    shape_inter=(flowx.shape[1],flowx.shape[0])
+    flowx=cv2.resize(shift_inter_x,shape_inter)
+    flowy=cv2.resize(shift_inter_y,shape_inter)
     flow[...,0]=flowx
     flow[...,1]=flowy
 
