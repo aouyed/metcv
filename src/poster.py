@@ -22,15 +22,18 @@ dataframes_dict = pickle.load(open(dict_path, 'rb'))
 def plotter(df,values):
     piv = pd.pivot_table(df, values=values,
                          index=["lat"], columns=["lon"], fill_value=0)
-    u= pd.pivot_table(df, values='u',
+    U= pd.pivot_table(df, values='u',
                          index=["lat"], columns=["lon"], fill_value=0)
-    v= pd.pivot_table(df, values='v',
+    V= pd.pivot_table(df, values='v',
                          index=["lat"], columns=["lon"], fill_value=0)
    
     print(u.to_numpy())
+    X=np.arange(-180,180,0.0625)
+    Y=np.arange(-90,90,0.0625)
     fig, ax = plt.subplots()
     ax = plt.axes(projection=ccrs.PlateCarree())
     ax.coastlines()
+    ax.quiver(X,Y,U,V)
     im = ax.imshow(piv, cmap="YlGnBu",extent=[-180,180,-90,90],origin='lower')
     cbar=fig.colorbar(im, ax=ax)
    

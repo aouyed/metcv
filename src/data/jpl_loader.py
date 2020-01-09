@@ -35,7 +35,7 @@ def loader(var, pressure, start_date, end_date, dt,  **kwargs):
             T = ds.sel(pressure=pressure, method='nearest')
             T = T.get(var.lower())
             T = T.values
-            T = np.nan_to_num(T)
+        T = np.nan_to_num(T)
 
         print('shape of downloaded array: ' + str(T.shape))
         file_path = str(directory_path+'/'+str(date)+".npy")

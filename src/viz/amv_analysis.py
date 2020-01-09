@@ -5,7 +5,7 @@ Created on Tue Nov 12 15:27:02 2019
 
 @author: amirouyed
 """
-#from pathos.multiprocessing import ProcessingPool as Pool
+# from pathos.multiprocessing import ProcessingPool as Pool
 from multiprocessing import Pool
 import glob
 import os
@@ -172,16 +172,18 @@ def data_analysis(start_date, end_date, var, path, cutoff, track, speed_cutoff, 
     if cutoff > 0:
         df = df[df.speed_error <= cutoff]
 
-    #df_printer(df, directory)
+    # df_printer(df, directory)
 
-    #scatter_directory = '../data/processed/scatter_'+directory
-    #dfc.plotter(df[['speed', 'speed_approx']],scatter_directory, end_date)
+    scatter_directory = '../data/processed/scatter_'+path
+    line_directory = '../data/processed/line_'+path
+
+    # dfc.plotter(df[['speed', 'speed_approx']],scatter_directory, end_date)
     #            scatter_directory, end_date)
     # dfc.plotter(df[['flow_u', 'u_scaled_approx', 'u', 'error_u']],
     #            scatter_directory, end_date)
-    # dfc.plotter(df[['speed', 'speed_approx', 'speed_error']],
+    # dfc.plotter(df[['lat',  'u', 'v', 'error_u', 'error_v']],
     #            scatter_directory, end_date)
-
+    dfc.plot_average(10, df, line_directory)
     heatmap_directory = '../data/processed/heatmaps/'+path
     print(heatmap_directory)
 

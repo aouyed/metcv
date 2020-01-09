@@ -52,7 +52,7 @@ def daterange(start_date, end_date):
 
 
 def heatmap_plotter(df, date, directory):
-    """creates heatmaps through all dataframes columns"""
+    """createp heatmaps through all dataframes columns"""
     if not os.path.exists(directory):
         os.makedirs(directory)
     df = df.loc[[date]]
@@ -96,6 +96,25 @@ def plotter(df, directory, date):
                 plt.savefig(directory + '/'+column_a+'_' +
                             column_b+'.png', bbox_inches='tight')
                 plt.close()
+
+
+def plot_average(deltax, df, directory):
+    xlist = np.arange(-90, 90, deltax)
+    df_mean = pd.DataFrame()
+    df_unit = pd.DataFrame(data=[0], columns=['lat'])
+    print("calculating averages ...")
+    for x in tqdm(xlist):
+        df_a = df[df.lat >= x]
+        df_a = df_a[df_a.lat <= x+deltax]
+
+        df_unit['lat'] = x
+        df_unit['speed_error_mean'] = df_a['speed_error'].mean()
+        if df_mean.empty:
+            df_mean = df_unit
+        else:
+            df_mean = pd.concat([df_mean, df_unit])
+    print("preparing line plots...")
+    line_plotter(df_mean, directory)
 
 
 def line_plotter(df, directory):

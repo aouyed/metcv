@@ -39,7 +39,7 @@ def optical_flow_calculator(start_date, var, pyr_scale, levels, winsize, iterati
         else:
             flow = cv2.calcOpticalFlowFarneback(prvs, next_frame, None, pyr_scale,
                                                 levels, winsize, iterations,
-                                                poly_n, poly_sigma, 0)
+                                                poly_n, poly_sigma, cv2.OPTFLOW_FARNEBACK_GAUSSIAN)
         filename = os.path.basename(file)
         filename = os.path.splitext(filename)[0]
         path = '../data/processed/flow_frames'
