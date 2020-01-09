@@ -29,13 +29,14 @@ def loader(var, pressure, start_date, end_date, dt,  **kwargs):
             ds = xr.open_dataset(filenames[0])
             T = ds.get(var.lower())
             T = T.values
+            T = np.nan_to_num(T,nan=50)
 
         else:
             ds = xr.open_dataset(filenames[i])
             T = ds.sel(pressure=pressure, method='nearest')
             T = T.get(var.lower())
             T = T.values
-        T = np.nan_to_num(T)
+            #T = np.nan_to_num(T, nan=0)
 
         print('shape of downloaded array: ' + str(T.shape))
         file_path = str(directory_path+'/'+str(date)+".npy")
