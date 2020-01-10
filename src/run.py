@@ -81,6 +81,9 @@ def parser(process_parameters, parameters):
     parser.add_argument(
         "-tk", "--track", help="Whether we load jpl amvs", action="store_true")
     parser.add_argument(
+        "-jd", "--jpl_disk", help="Whether we load jpl disk data", action="store_true")
+
+    parser.add_argument(
         "-sc", "--speed_cutoff", help="Whether we filter wind speeds by magnitude", action="store_true")
     parser.add_argument(
         "-t1", "--tvl1", help="Whether we use tvl1 for optical flow", action="store_true")
@@ -103,6 +106,7 @@ def parser(process_parameters, parameters):
     parameters.jpl_loader = args.jpl_loader
     parameters.speed_cutoff = args.speed_cutoff
     parameters.tvl1 = args.tvl1
+    parameters.jpl_disk = args.jpl_disk
     if args.start_date is not None:
         parameters.start_date = args.start_date
     if args.end_date is not None:

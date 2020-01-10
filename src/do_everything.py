@@ -41,7 +41,8 @@ class Parameters:
             "speed_cutoff": False,
             "low_speed": 0,
             "up_speed": 10,
-            'tvl1': False
+            'tvl1': False,
+            'jpl_disk': True
         }
         for (prop, default) in prop_defaults.items():
             setattr(self, prop, kwargs.get(prop, default))

@@ -178,6 +178,7 @@ def data_analysis(start_date, end_date, var, path, cutoff, track, speed_cutoff, 
     dataframes_dict = pickle.load(open(dict_path, 'rb'))
     df = df_concatenator(dataframes_dict, start_date,
                          end_date, track, jpl_loader)
+
     if speed_cutoff:
         df = df[df.speed >= low_speed]
         df = df[df.speed <= up_speed]
@@ -201,8 +202,8 @@ def data_analysis(start_date, end_date, var, path, cutoff, track, speed_cutoff, 
     heatmap_directory = '../data/processed/heatmaps/'+path
     print(heatmap_directory)
 
-    # dfc.heatmap_plotter(
-    #   df[['lat', 'lon', 'speed_approx', 'speed', 'qv']], end_date, heatmap_directory)
+    dfc.heatmap_plotter(
+        df[['lat', 'lon', 'speed_approx', 'speed', 'qv']], end_date, heatmap_directory)
 
     df_stats = df_summary(df, count)
 

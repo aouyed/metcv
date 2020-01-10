@@ -92,14 +92,17 @@ def plotter(df,values, u_version,v_version, error,label, vmin, vmax, grid ,scale
     directory='../data/processed/poster'
     plt.savefig(directory + '/'+values+'_'+u_version+'.png', bbox_inches='tight', dpi=2000)
 
+directory='../data/processed/tests/'
+df_geos= pd.read_pickle(directory+"disk.pkl")
 
-
-start_date=datetime.datetime(2006,7,1,5,0,0,0)
+start_date=datetime.datetime(2006,7,1,6,0,0,0)
 end_date=datetime.datetime(2006,7,1,7,0,0,0)
-df = aa.df_concatenator(dataframes_dict, start_date, end_date, True, True)
-#df['u']
-print(df['u'])
-
+df = aa.df_concatenator(dataframes_dict, start_date, end_date,True,True)
+df.to_pickle(directory +'diskdisk.pkl')
+#df_geos=df_geos[df_geos.lat==50]
+#df=df[df.lat==50]
+print(df_geos['u'].mean())
+print(df['u'].mean())
 #plotter(df, 'speed','u','v',np.inf, 'Wind speed [m/s]',0,40,10,250, 'Ground truth',sns.cm.rocket_r)
 #plotter(df, 'speed_approx','u_scaled_approx','v_scaled_approx', np.inf,'Wind speed [m/s]',0,40,10,250, 'Atmospheric motion vectors',sns.cm.rocket_r)
 #plotter(df, 'qv','u','v',np.inf, 'Water vapor [g/kg]',0,20,10,250, 'Ground truth','PuBuGn')

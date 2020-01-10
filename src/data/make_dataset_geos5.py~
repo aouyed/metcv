@@ -80,7 +80,7 @@ def timeout_handler(signum, frame):   # Custom signal handler
     raise TimeoutException
 
 
-def downloader(start_date, end_date, var, level, coarse, dt,  **kwargs):
+def downloader(start_date, end_date, var, level, coarse, **kwargs):
     signal.signal(signal.SIGALRM, timeout_handler)
     d0 = start_date
     d1 = end_date
@@ -88,26 +88,25 @@ def downloader(start_date, end_date, var, level, coarse, dt,  **kwargs):
     if not os.path.exists(directory_path):
         os.makedirs(directory_path)
     if coarse:
-        url = u'https://opendap.nccs.nasa.gov/dods/OSSE/G5NR/Ganymed/7km/0.5000_deg/inst/inst01hr_3d_'+var+'_Cp'
+        url = u'https://opendap.nccs.nasa.gov/dods/OSSE/G5NR/Ganymed/7km/0.5000_deg/inst/inst01hr_3d_'+var+'_Cv'
         date_list = daterange(d0, d1, 1)
 
     else:
         url = u'https://opendap.nccs.nasa.gov/dods/OSSE/G5NR/Ganymed/7km/0.0625_deg/inst/inst30mn_3d_'+var+'_Nv'
-        date_list = daterange(d0, d1, (dt/3600))
+        date_list = daterange(d0, d1, 0.5)
 
     print("Downloading dataset from url: " + url)
-
     ds = xr.open_dataset(url, decode_times=True)
     file_paths = {}
     for date in date_list:
-        signal.alarm(15)
+        signal.alarm(20)
 
         while True:
             try:
                 print('Downloading data for variable ' +
                       var + ' for date: ' + str(date))
                 T = ds.sel(time=date, method='nearest')
-                T = T.sel(lev=level, method='nearest')
+                T = T.sel(lev=level)
                 # T = T.sel(lev=level, lon=slice(-180,:),lat=slice(-90,:))
                 T = T.get([var.lower()])
                 T = T.to_array()
@@ -120,11 +119,11 @@ def downloader(start_date, end_date, var, level, coarse, dt,  **kwargs):
             except TimeoutException:
                 gc.collect()
                 print('retrying download.')
-                signal.alarm(15)
+                signal.alarm(20)
                 continue  # continue the for loop if function A takes more than 5 second
             else:
-                gc.collect()
-                break
+                 gc.collect()
+                 break
         # Reset the alarm
     signal.alarm(0)
     dictionary_path = '../data/interim/dictionaries/vars'

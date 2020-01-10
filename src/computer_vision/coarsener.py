@@ -31,7 +31,7 @@ def coarse_fun(file_paths, date, grid, var):
     return file_path, frame, resized_frame
 
 
-def coarsener(grid, track, coarse, **kwargs):
+def coarsener(grid, track, jpl_disk, **kwargs):
     """Implements opencv resizing."""
     dictionary_list = glob.glob('../data/interim/dictionaries/vars/*')
     for dict_path in dictionary_list:
@@ -42,7 +42,7 @@ def coarsener(grid, track, coarse, **kwargs):
             var = os.path.splitext(filename)[0]
 
             # if track:
-            if not coarse:
+            if jpl_disk:
                 file_paths_coarse[date], frame, resized_frame = coarse_fun(
                     file_paths, date, grid, var)
             else:
@@ -56,7 +56,7 @@ def coarsener(grid, track, coarse, **kwargs):
                 # if var in ('utrack', 'vtrack'):
                  #   resized_frame = frame
 
-        if (not coarse) or (var in ('utrack', 'vtrack')):
+        if jpl_disk or (var in ('utrack', 'vtrack')):
             path = '../data/interim/dictionaries/vars'
             if not os.path.exists(path):
                 os.makedirs(path)

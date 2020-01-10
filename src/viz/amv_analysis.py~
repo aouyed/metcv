@@ -5,7 +5,7 @@ Created on Tue Nov 12 15:27:02 2019
 
 @author: amirouyed
 """
-#from pathos.multiprocessing import ProcessingPool as Pool
+# from pathos.multiprocessing import ProcessingPool as Pool
 from multiprocessing import Pool
 import glob
 import os
@@ -57,6 +57,7 @@ def df_summary(df, count):
     df_total['corr_v'] = df['v'].corr(df['v_scaled_approx'])
     # df_total['initial_count']=count
     df_total['ratio_count'] = df.shape[0]/count
+    df_total['count'] = count
     df_total['mean_speed_error'] = df['speed_error'].mean()
     return df_total
 
@@ -143,7 +144,7 @@ def df_concatenator(dataframes_dict, start_date, end_date, track):
             df_unit = df_unit[['lon', 'lat', 'u', 'v',
                                'u_scaled_approx', 'v_scaled_approx', 'qv']]
             df_unit = error_df(df_unit)
-            df_unit = df_unit[['speed', 'speed_approx', 'speed_error', 'error_v',
+            df_unit = df_unit[['lon', 'lat', 'speed', 'qv', 'speed_approx', 'speed_error', 'error_v',
                                'error_u', 'u_scaled_approx', 'v_scaled_approx', 'u', 'v']]
 
             df_unit = df_unit.apply(pd.to_numeric, downcast='float')
@@ -154,7 +155,7 @@ def df_concatenator(dataframes_dict, start_date, end_date, track):
     return df
 
 
-def data_analysis(start_date, end_date, var, path, cutoff, track, **kwargs):
+def data_analysis(start_date, end_date, var, path, cutoff, track, speed_cutoff, up_speed, low_speed, **kwargs):
     """perform analytics on the dataframe"""
 
     pd.set_option('display.max_colwidth', -1)
@@ -162,25 +163,32 @@ def data_analysis(start_date, end_date, var, path, cutoff, track, **kwargs):
     dict_path = '../data/interim/dictionaries/dataframes.pkl'
     dataframes_dict = pickle.load(open(dict_path, 'rb'))
     df = df_concatenator(dataframes_dict, start_date, end_date, track)
+
+    if speed_cutoff:
+        df = df[df.speed >= low_speed]
+        df = df[df.speed <= up_speed]
     count = df.shape[0]
     df.dropna
     if cutoff > 0:
         df = df[df.speed_error <= cutoff]
 
-    #df_printer(df, directory)
+    # df_printer(df, directory)
 
-    #scatter_directory = '../data/processed/scatter_'+directory
-    #dfc.plotter(df[['speed', 'speed_approx']],scatter_directory, end_date)
+    scatter_directory = '../data/processed/scatter_'+path
+    line_directory = '../data/processed/line_'+path
+
+    # dfc.plotter(df[['speed', 'speed_approx']],scatter_directory, end_date)
     #            scatter_directory, end_date)
     # dfc.plotter(df[['flow_u', 'u_scaled_approx', 'u', 'error_u']],
     #            scatter_directory, end_date)
-    # dfc.plotter(df[['speed', 'speed_approx', 'speed_error']],
+    # dfc.plotter(df[['lat',  'u', 'v', 'error_u', 'error_v']],
     #            scatter_directory, end_date)
-
+    dfc.plot_average(10, df, line_directory)
     heatmap_directory = '../data/processed/heatmaps/'+path
     print(heatmap_directory)
 
-    #dfc.heatmap_plotter(df[['lat','lon','speed_approx','speed','qvdens']], end_date, heatmap_directory)
+    dfc.heatmap_plotter(
+        df[['lat', 'lon', 'speed_approx', 'speed', 'qv']], end_date, heatmap_directory)
 
     df_stats = df_summary(df, count)
 
