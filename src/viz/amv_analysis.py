@@ -129,7 +129,7 @@ def error_df(df):
     return df
 
 
-def df_concatenator(dataframes_dict, start_date, end_date, track):
+def df_concatenator(dataframes_dict, start_date, end_date, track, jpl):
     df = pd.DataFrame()
     print('concatenating dataframes for all dates for further analysis:')
     print(track)
@@ -143,27 +143,41 @@ def df_concatenator(dataframes_dict, start_date, end_date, track):
                 df_unit['v_scaled_approx'] = df_unit['vtrack']
             df_unit = df_unit[['lon', 'lat', 'u', 'v',
                                'u_scaled_approx', 'v_scaled_approx', 'qv']]
-            df_unit = error_df(df_unit)
-            df_unit = df_unit[['lon', 'lat', 'speed', 'qv', 'speed_approx', 'speed_error', 'error_v',
-                               'error_u', 'u_scaled_approx', 'v_scaled_approx', 'u', 'v']]
-
-            df_unit = df_unit.apply(pd.to_numeric, downcast='float')
-            if df.empty:
-                df = df_unit
+            if not jpl:
+                df_unit = error_df(df_unit)
+                df_unit = df_unit[['lon', 'lat', 'speed', 'qv', 'speed_approx', 'speed_error',
+                                   'error_v', 'error_u', 'u_scaled_approx', 'v_scaled_approx', 'u', 'v']]
+                df_unit = df_unit.apply(pd.to_numeric, downcast='float')
+                if df.empty:
+                    df = df_unit
+                else:
+                    df = pd.concat([df, df_unit])
             else:
-                df = pd.concat([df, df_unit])
+                df_unit = df_unit.reset_index(drop=True)
+                if df.empty:
+                    df = df_unit
+                else:
+                    df = df + df_unit
+    if jpl:
+        df = df/2
+        df['datetime'] = end_date
+        df = df.set_index('datetime')
+        df = error_df(df)
+        df = df[['lon', 'lat', 'speed', 'qv', 'speed_approx', 'speed_error',
+                 'error_v', 'error_u', 'u_scaled_approx', 'v_scaled_approx', 'u', 'v']]
+
     return df
 
 
-def data_analysis(start_date, end_date, var, path, cutoff, track, speed_cutoff, up_speed, low_speed, **kwargs):
+def data_analysis(start_date, end_date, var, path, cutoff, track, speed_cutoff, up_speed, low_speed, jpl_loader, **kwargs):
     """perform analytics on the dataframe"""
 
     pd.set_option('display.max_colwidth', -1)
     pd.set_option('display.expand_frame_repr', False)
     dict_path = '../data/interim/dictionaries/dataframes.pkl'
     dataframes_dict = pickle.load(open(dict_path, 'rb'))
-    df = df_concatenator(dataframes_dict, start_date, end_date, track)
-
+    df = df_concatenator(dataframes_dict, start_date,
+                         end_date, track, jpl_loader)
     if speed_cutoff:
         df = df[df.speed >= low_speed]
         df = df[df.speed <= up_speed]
@@ -187,8 +201,8 @@ def data_analysis(start_date, end_date, var, path, cutoff, track, speed_cutoff, 
     heatmap_directory = '../data/processed/heatmaps/'+path
     print(heatmap_directory)
 
-    dfc.heatmap_plotter(
-        df[['lat', 'lon', 'speed_approx', 'speed', 'qv']], end_date, heatmap_directory)
+    # dfc.heatmap_plotter(
+    #   df[['lat', 'lon', 'speed_approx', 'speed', 'qv']], end_date, heatmap_directory)
 
     df_stats = df_summary(df, count)
 

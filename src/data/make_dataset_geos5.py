@@ -88,7 +88,7 @@ def downloader(start_date, end_date, var, level, coarse, **kwargs):
     if not os.path.exists(directory_path):
         os.makedirs(directory_path)
     if coarse:
-        url = u'https://opendap.nccs.nasa.gov/dods/OSSE/G5NR/Ganymed/7km/0.5000_deg/inst/inst01hr_3d_'+var+'_Cv'
+        url = u'https://opendap.nccs.nasa.gov/dods/OSSE/G5NR/Ganymed/7km/0.5000_deg/inst/inst01hr_3d_'+var+'_Cp'
         date_list = daterange(d0, d1, 1)
 
     else:
@@ -122,8 +122,8 @@ def downloader(start_date, end_date, var, level, coarse, **kwargs):
                 signal.alarm(20)
                 continue  # continue the for loop if function A takes more than 5 second
             else:
-                 gc.collect()
-                 break
+                gc.collect()
+                break
         # Reset the alarm
     signal.alarm(0)
     dictionary_path = '../data/interim/dictionaries/vars'
