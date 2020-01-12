@@ -4,6 +4,7 @@
 *.npy
 *.gif
 *.nc
+*.nc4
 *.mp4
 *.avi
 *.mpg

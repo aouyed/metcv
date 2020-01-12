@@ -48,4 +48,5 @@ def loader(var, pressure, start_date, end_date, dt, jpl_disk, level,  **kwargs):
         f = open(dictionary_path+'/' + var+'.pkl', "wb")
         pickle.dump(file_paths, f)
     else:
-        gd.downloader(start_date, end_date, var, level, False, dt)
+       # gd.downloader(start_date, end_date, var, level, False, dt)
+        gd.pressure_interpolation(start_date,65)

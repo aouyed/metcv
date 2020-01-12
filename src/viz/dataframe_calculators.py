@@ -148,6 +148,11 @@ def dataframe_quantum(file, date, dictionary_dict):
         df = df.merge(df_1, how='left')
     return df
 
+def dataframe_pivot(frame, var):
+    df= pd.DataFrame(frame).stack().rename_axis(
+    ['y', 'x']).reset_index(name=var.lower())
+    return df
+    
 
 def scaling_df(df):
     """coordinate transforms vels from angle/pixel to metric exactly"""

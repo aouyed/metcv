@@ -5,14 +5,17 @@ Created on Thu Nov  7 13:22:13 2019
 
 @author: amirouyed
 """
-
+import glob
 import signal
 import pickle
 import os
+from tqdm import tqdm
+import pandas as pd
 import numpy as np
 import xarray as xr
 from datetime import datetime
 from datetime import timedelta
+from viz import dataframe_calculators as dfc
 import gc
 
 
@@ -56,12 +59,12 @@ def data_diagnostic(var, start_date):
     print('mean of zeroes: '+str(np.mean(zeros)))
 
 
-def pressure_diagnostic(var, start_date):
+def pressure_diagnostic(var, start_date, level):
     url = u'https://opendap.nccs.nasa.gov/dods/OSSE/G5NR/Ganymed/7km/0.0625_deg/inst/inst30mn_3d_PL_Nv'
+
     ds = xr.open_dataset(url, decode_times=True)
     date = start_date
     ds = ds.sel(time=date, method='nearest')
-
     for level in range(60, 73):
         T = ds.sel(lev=level, lon=slice(-180, 180), lat=slice(-90, 90))
         T = T.get([var.lower()])  # print(T)
@@ -70,6 +73,37 @@ def pressure_diagnostic(var, start_date):
         mean = np.mean(T.values)/100
         stdev = np.std(T.values)/100
         print(str(level)+' '+str(mean)+' '+str(stdev))
+
+        
+def pressure_interpolation(date, levelp):
+    signal.signal(signal.SIGALRM, timeout_handler)
+
+    df=pd.DataFrame()
+    levels=[1, 72]
+    levels=list(levels)
+    for level in levels:
+        print('calculating dataframe for level: '+ str(level))
+        for var in tqdm(('pl','qv','u','v')):        
+            filenames=glob.glob("../data/raw/ganymede/"+var+'/*')
+            ds = xr.open_dataset(filenames[0])
+           # print('downloading frame for var: ' + str(var))
+            frame = ds.sel(lev=level)
+            frame = frame.get(var.upper())
+            frame=frame.values
+            frame=np.squeeze(frame)
+            #print('downloaded frame for var:'+str(var))
+                    #frame = frame.to_array()
+                    #frame = np.squeeze(pl_frame)
+            name=var+'_l'+str(level)
+            df_u=dfc.dataframe_pivot(frame,name)
+            if df.empty:
+                df=df_u
+            else:
+                df=df.merge(df_u, how='left')
+
+
+    print(df)
+    import pdb; pdb.set_trace()
 
 
 class TimeoutException(Exception):   # Custom exception class
