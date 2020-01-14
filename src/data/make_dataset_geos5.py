@@ -79,7 +79,7 @@ def pressure_interpolation(date, levelp):
     signal.signal(signal.SIGALRM, timeout_handler)
 
     df=pd.DataFrame()
-    levels=[1, 72]
+    levels=[levelp]
     levels=list(levels)
     for level in levels:
         print('calculating dataframe for level: '+ str(level))
@@ -103,7 +103,38 @@ def pressure_interpolation(date, levelp):
 
 
     print(df)
-    import pdb; pdb.set_trace()
+
+def disk_downloader(start_date,end_date,dt, levelp, var):
+
+    level=levelp
+    d0 = start_date
+    d1 = end_date
+    date_list = daterange(d0, d1, (dt/3600))
+    file_paths = {}
+    
+    for i, date in enumerate(date_list):
+        directory_path = '../data/raw/'+var.lower()
+        if not os.path.exists(directory_path):
+            os.makedirs(directory_path)
+        filenames=glob.glob("../data/raw/ganymede/"+var+'/*')
+        ds = xr.open_dataset(filenames[i])
+        print('downloading frame for var: ' + str(var) + ' in date ' + str(date))
+        frame = ds.sel(lev=level)
+        frame = frame.get(var.upper())
+        frame=frame.values
+        frame=np.squeeze(frame)
+        print('shape of downloaded array: ' + str(frame.shape))
+        file_path = str(directory_path+'/'+str(date)+".npy")
+        np.save(file_path, frame)
+        file_paths[date]=file_path
+
+    dictionary_path = '../data/interim/dictionaries/vars'
+    if not os.path.exists(dictionary_path):
+        os.makedirs(dictionary_path)
+
+    f = open(dictionary_path+'/' + var+'.pkl', "wb")
+    pickle.dump(file_paths, f)
+    print("Done downloading.")
 
 
 class TimeoutException(Exception):   # Custom exception class
@@ -134,7 +165,7 @@ def downloader(start_date, end_date, var, level, coarse, dt,  **kwargs):
     ds = xr.open_dataset(url, decode_times=True)
     file_paths = {}
     for date in date_list:
-        signal.alarm(15)
+        signal.alarm(5)
 
         while True:
             try:
@@ -154,7 +185,7 @@ def downloader(start_date, end_date, var, level, coarse, dt,  **kwargs):
             except TimeoutException:
                 gc.collect()
                 print('retrying download.')
-                signal.alarm(15)
+                signal.alarm(5)
                 continue  # continue the for loop if function A takes more than 5 second
             else:
                 gc.collect()

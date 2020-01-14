@@ -42,7 +42,7 @@ def coarsener(grid, track, jpl_disk, **kwargs):
             var = os.path.splitext(filename)[0]
 
             # if track:
-            if jpl_disk:
+            if jpl_disk or not track:
                 file_paths_coarse[date], frame, resized_frame = coarse_fun(
                     file_paths, date, grid, var)
             else:
@@ -56,7 +56,7 @@ def coarsener(grid, track, jpl_disk, **kwargs):
                 # if var in ('utrack', 'vtrack'):
                  #   resized_frame = frame
 
-        if jpl_disk or (var in ('utrack', 'vtrack')):
+        if jpl_disk or (var in ('utrack', 'vtrack')) or (not track):
             path = '../data/interim/dictionaries/vars'
             if not os.path.exists(path):
                 os.makedirs(path)

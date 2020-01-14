@@ -98,22 +98,24 @@ def plotter(df, directory, date):
                 plt.close()
 
 
-def plot_average(deltax, df, directory):
-    xlist = np.arange(-90, 90, deltax)
+def plot_average(deltax, df, directory, xlist, varx, vary):
+    if not os.path.exists(directory):
+        os.makedirs(directory)
     df_mean = pd.DataFrame()
-    df_unit = pd.DataFrame(data=[0], columns=['lat'])
+    df_unit = pd.DataFrame(data=[0], columns=[varx])
     print("calculating averages ...")
     for x in tqdm(xlist):
-        df_a = df[df.lat >= x]
-        df_a = df_a[df_a.lat <= x+deltax]
+        df_a = df[df[varx] >= x]
+        df_a = df_a[df_a[varx] <= x+deltax]
 
-        df_unit['lat'] = x
-        df_unit['speed_error_mean'] = df_a['speed_error'].mean()
+        df_unit[varx] = x
+        df_unit[vary] = df_a[vary].mean()
         if df_mean.empty:
             df_mean = df_unit
         else:
             df_mean = pd.concat([df_mean, df_unit])
     print("preparing line plots...")
+    df_mean.to_pickle(directory+'/df_mean_'+varx+'_'+vary+'.pkl')
     line_plotter(df_mean, directory)
 
 

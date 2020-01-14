@@ -59,6 +59,10 @@ def parser(process_parameters, parameters):
     parser.add_argument(
         "-ws", "--winsize", help="Size of smoothing window for DOF algorithm", type=int)
     parser.add_argument(
+        "-psi", "--poly_sigma", help="stdev for polynomial fitting", type=float)
+    parser.add_argument(
+        "-levs", "--levels", help="pyramid scheme levels for DOF", type=int)
+    parser.add_argument(
         "-b", "--builder", help="Whether we build the dataframe", action="store_true")
     parser.add_argument(
         "-a", "--analysis", help="Whether we analyze the dataframe", action="store_true")
@@ -123,6 +127,10 @@ def parser(process_parameters, parameters):
         parameters.cores = args.cores
     if args.poly_n is not None:
         parameters.poly_n = args.poly_n
+    if args.poly_sigma is not None:
+        parameters.poly_sigma = args.poly_sigma
+    if args.levels  is not None:
+        parameters.levels = args.levels
     if args.winsize is not None:
         parameters.winsize = args.winsize
 

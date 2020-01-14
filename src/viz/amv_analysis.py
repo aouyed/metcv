@@ -183,7 +183,9 @@ def data_analysis(start_date, end_date, var, path, cutoff, track, speed_cutoff, 
         df = df[df.speed >= low_speed]
         df = df[df.speed <= up_speed]
     count = df.shape[0]
-    df.dropna
+
+    df=df.dropna()
+
     if cutoff > 0:
         df = df[df.speed_error <= cutoff]
 
@@ -198,12 +200,35 @@ def data_analysis(start_date, end_date, var, path, cutoff, track, speed_cutoff, 
     #            scatter_directory, end_date)
     # dfc.plotter(df[['lat',  'u', 'v', 'error_u', 'error_v']],
     #            scatter_directory, end_date)
-    dfc.plot_average(10, df, line_directory)
-    heatmap_directory = '../data/processed/heatmaps/'+path
-    print(heatmap_directory)
 
-    dfc.heatmap_plotter(
-        df[['lat', 'lon', 'speed_approx', 'speed', 'qv']], end_date, heatmap_directory)
+
+#####
+    deltax=5
+    xlist = np.arange(-90, 90, deltax)
+    dfc.plot_average(deltax, df, line_directory, xlist, 'lat', 'speed_error')
+
+####
+    deltax=1
+    xlist = np.arange(df['speed'].min(), df['speed'].max(), deltax)
+    dfc.plot_average(deltax, df, line_directory, xlist, 'speed','speed_error')
+
+####
+    deltax=1
+    xlist = np.arange(df['u'].min(), df['u'].max(), deltax)
+    dfc.plot_average(deltax, df, line_directory, xlist, 'u','u_scaled_approx')
+
+    
+####
+    deltax=1
+    xlist = np.arange(df['v'].min(), df['v'].max(), deltax)
+    dfc.plot_average(deltax, df, line_directory, xlist, 'v','v_scaled_approx')
+
+
+##    heatmap_directory = '../data/processed/heatmaps/'+path
+##    print(heatmap_directory)
+
+ ##   dfc.heatmap_plotter(
+ ##       df[['lat', 'lon', 'speed_approx', ##'speed', 'qv']], end_date, heatmap_directory)
 
     df_stats = df_summary(df, count)
 

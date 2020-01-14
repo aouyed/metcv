@@ -29,7 +29,7 @@ def loader(var, pressure, start_date, end_date, dt, jpl_disk, level,  **kwargs):
                 ds = xr.open_dataset(filenames[0])
                 T = ds.get(var.lower())
                 T = T.values
-                T = np.nan_to_num(T, nan=50)
+                #T = np.nan_to_num(T, nan=50)
 
             else:
                 ds = xr.open_dataset(filenames[i])
@@ -49,4 +49,4 @@ def loader(var, pressure, start_date, end_date, dt, jpl_disk, level,  **kwargs):
         pickle.dump(file_paths, f)
     else:
        # gd.downloader(start_date, end_date, var, level, False, dt)
-        gd.pressure_interpolation(start_date,65)
+        gd.disk_downloader(start_date,end_date, dt, level,var)
