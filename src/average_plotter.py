@@ -28,6 +28,11 @@ df_cc_s=pd.read_pickle('../data/processed/cc/df_mean_speed_speed_error.pkl')
 df_cc_u=pd.read_pickle('../data/processed/cc/df_mean_u_u_scaled_approx.pkl')
 df_cc_v=pd.read_pickle('../data/processed/cc/df_mean_v_v_scaled_approx.pkl')
 
+df_cct20=pd.read_pickle('../data/processed/cct20/df_mean_lat_speed_error.pkl')
+df_cct20_s=pd.read_pickle('../data/processed/cct20/df_mean_speed_speed_error.pkl')
+df_cct20_u=pd.read_pickle('../data/processed/cct20/df_mean_u_u_scaled_approx.pkl')
+df_cct20_v=pd.read_pickle('../data/processed/cct20/df_mean_v_v_scaled_approx.pkl')
+
 
 
 fig, ax = plt.subplots()
@@ -46,14 +51,18 @@ ax=sns.lineplot(x=df_cc_s['speed'], y=df_cc_s['speed_error'], label='cc')
 fig, ax = plt.subplots()
 ax=sns.lineplot(x=df_jpl_u['u'], y=df_jpl_u['u_scaled_approx'], label='jpl')
 ax=sns.lineplot(x=df_dof_u['u'], y=df_dof_u['u_scaled_approx'], label='dof')
-ax=sns.lineplot(x=df_cc_u['u'], y=df_cc_u['u_scaled_approx'], label='cc')
-ax=sns.lineplot(x=df_cc_u['u'], y=(-df_cc_u['u_scaled_approx']+df_dof_u['u_scaled_approx']), label='h')
+#ax=sns.lineplot(x=df_cc_u['u'], y=df_cc_u['u_scaled_approx'], label='cc')
+#ax=sns.lineplot(x=df_cc_u['u'], y=(df_cc_u['u_scaled_approx']+df_dof_u['u_scaled_approx']), label='h')
+ax=sns.lineplot(x=df_cct20_u['u'], y=(df_cct20_u['u_scaled_approx']+df_dof_u['u_scaled_approx']), label='h')
+
 ax=sns.lineplot(x=l, y=l, label='y=x')
 
 
 fig, ax = plt.subplots()
 ax=sns.lineplot(x=df_jpl_v['v'], y=df_jpl_v['v_scaled_approx'], label='jpl')
 ax=sns.lineplot(x=df_dof_v['v'], y=df_dof_v['v_scaled_approx'], label='dof')
-ax=sns.lineplot(x=df_cc_v['v'], y=df_cc_v['v_scaled_approx'], label='cc')
-ax=sns.lineplot(x=df_cc_v['v'], y=(-df_cc_v['v_scaled_approx']+df_dof_v['v_scaled_approx']), label='h')
+#ax=sns.lineplot(x=df_cc_v['v'], y=df_cc_v['v_scaled_approx'], label='cc')
+#ax=sns.lineplot(x=df_cc_v['v'], y=(df_cc_v['v_scaled_approx']+df_dof_v['v_scaled_approx']), label='h')
+ax=sns.lineplot(x=df_cc_v['v'], y=(df_cc_v['v_scaled_approx']+df_dof_v['v_scaled_approx']), label='h')
+
 ax=sns.lineplot(x=l, y=l, label='y=x')

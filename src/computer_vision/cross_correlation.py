@@ -70,7 +70,7 @@ def amv_calculator(prvs_frame, next_frame,shape, sub_pixel):
             if not sub_pixel:
                 shift, error, diffphase = register_translation(prvs_patches[x,y,...], next_patches[x,y,...])
             else:
-                shift, error, diffphase = register_translation(prvs_patches[x,y,...], next_patches[x,y,...],10)
+                shift, error, diffphase = register_translation(prvs_patches[x,y,...], next_patches[x,y,...],100)
 
             shift_patches_x[x,y,...]=shift[1]
             shift_patches_y[x,y,...]=shift[0]
@@ -81,8 +81,8 @@ def amv_calculator(prvs_frame, next_frame,shape, sub_pixel):
     shape_inter=(flowx.shape[1],flowx.shape[0])
     flowx=cv2.resize(shift_inter_x,shape_inter)
     flowy=cv2.resize(shift_inter_y,shape_inter)
-    flow[...,0]=flowx
-    flow[...,1]=flowy
+    flow[...,0]= -flowx
+    flow[...,1]= -flowy
 
 
     return flow
