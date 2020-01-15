@@ -40,8 +40,8 @@ def parser(process_parameters, parameters):
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "-c", "--cutoffs", help="Input list of speed VD cutoffs.", type=float, nargs='+')
-    parser.add_argument("-t", "--target_box",
-                        help="Input size of target box in pixels", type=int)
+    parser.add_argument(
+        "-t", "--target_box", help="Input list of targetboxes.", type=int, nargs='+')
     parser.add_argument("-v", "--variable",
                         help="Choose GEOS-5 variable to analyze", type=str)
     parser.add_argument(
@@ -91,6 +91,8 @@ def parser(process_parameters, parameters):
         "-sc", "--speed_cutoff", help="Whether we filter wind speeds by magnitude", action="store_true")
     parser.add_argument(
         "-t1", "--tvl1", help="Whether we use tvl1 for optical flow", action="store_true")
+    parser.add_argument( "-fb", "--farneback", help="Whether we use Farneback's algorithm for optical flow", action="store_true")
+
     args = parser.parse_args()
 
     if args.cutoffs is not None:
@@ -103,6 +105,7 @@ def parser(process_parameters, parameters):
     process_parameters.do_analysis = args.analysis
     process_parameters.do_optical_flow = args.optical_flow
     process_parameters.do_cross_correlation = args.cross_correlation
+    parameters.do_cross_correlation = args.cross_correlation
     process_parameters.do_downloader = args.downloader
     process_parameters.do_processor = args.processor
     parameters.subpixel = args.sub_pixel
@@ -110,6 +113,7 @@ def parser(process_parameters, parameters):
     parameters.jpl_loader = args.jpl_loader
     parameters.speed_cutoff = args.speed_cutoff
     parameters.tvl1 = args.tvl1
+    parameters.farneback = args.farneback
     parameters.jpl_disk = args.jpl_disk
     if args.start_date is not None:
         parameters.start_date = args.start_date

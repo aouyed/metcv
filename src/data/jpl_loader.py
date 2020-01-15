@@ -17,7 +17,7 @@ def loader(var, pressure, start_date, end_date, dt, jpl_disk, level,  **kwargs):
         filenames = glob.glob("../data/raw/jpl/processed_jpl/*")
     else:
         filenames = glob.glob("../data/raw/jpl/raw_jpl/*")
-    if (var.lower() in ('utrack', 'vtrack')) or jpl_disk:
+    if  jpl_disk:
         for i, date in enumerate(date_list):
             print('Downloading data for variable ' +
                   var + ' for date: ' + str(date))

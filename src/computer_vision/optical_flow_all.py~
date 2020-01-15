@@ -79,8 +79,8 @@ def amv_calculator(prvs_frame, next_frame,shape, sub_pixel):
     print('mean pixel offset in x direction: ' + str(np.mean(flowx)))
     print('mean pixel offset in y direction: ' + str(np.mean(flowy)))
     shape_inter=(flowx.shape[1],flowx.shape[0])
-    flowx=cv2.resize(shift_inter_x,shape_inter, cv2.INTER_CUBIC)
-    flowy=cv2.resize(shift_inter_y,shape_inter, cv2.INTER_CUBIC)
+    flowx=cv2.resize(shift_inter_x,shape_inter)
+    flowy=cv2.resize(shift_inter_y,shape_inter)
     flow[...,0]= -flowx
     flow[...,1]= -flowy
 

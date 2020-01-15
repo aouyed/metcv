@@ -31,7 +31,7 @@ class Parameters:
             "grid": 0.0625,
             "coarse": False,
             "dt": 1800,
-            "target_box": 10,
+            "target_box": [10],
             'sub_pixel': False,
             "path": "_",
             "jpl_loader": False,
@@ -42,7 +42,9 @@ class Parameters:
             "low_speed": 0,
             "up_speed": 10,
             'tvl1': False,
-            'jpl_disk': True
+            'jpl_disk': True,
+            'do_cross_correlation': False,
+            'farneback': False
         }
         for (prop, default) in prop_defaults.items():
             setattr(self, prop, kwargs.get(prop, default))
@@ -70,14 +72,13 @@ def downloader(parameters):
     kwargs = vars(parameters)
     downloader_function(parameters)
 
-    if parameters.track:
-        parameters.var = 'vtrack'
-        kwargs = vars(parameters)
-        downloader_function(parameters)
+    parameters.var = 'vtrack'
+    kwargs = vars(parameters)
+    downloader_function(parameters)
 
-        parameters.var = 'utrack'
-        kwargs = vars(parameters)
-        downloader_function(parameters)
+    parameters.var = 'utrack'
+    kwargs = vars(parameters)
+    downloader_function(parameters)
 
     # parameters.var = 'AIRDENS'
     # kwargs = vars(parameters)
@@ -100,8 +101,6 @@ def processor(parameters, parameters_process):
 
     size_path = dc.path(parameters)
     parameters.path = size_path
-    if parameters_process.do_cross_correlation:
-        dc.cross_correlation(parameters)
     if parameters_process.do_optical_flow:
         dc.optical_flow(parameters)
     if parameters_process.do_builder:

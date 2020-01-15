@@ -8,6 +8,7 @@ Created on Thu Dec 12 15:29:30 2019
 from datetime import date
 
 from computer_vision import optical_flow as of
+from computer_vision import optical_flow_all as ofa
 from computer_vision import cross_correlation as cc
 from computer_vision import coarsener as c
 from viz import amv_analysis as aa
@@ -37,7 +38,7 @@ def cross_correlation(parameters):
 def optical_flow(parameters):
     print('initializing optical flow...')
     kwargs = vars(parameters)
-    of.optical_flow_calculator(**kwargs)
+    ofa.optical_flow(**kwargs)
     print('finished optical flow.')
 
 
