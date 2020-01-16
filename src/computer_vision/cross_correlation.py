@@ -16,6 +16,22 @@ from sklearn.feature_extraction import image
 from skimage.feature import register_translation
 from tqdm import trange
 
+def striding_mean(shift_inter_x,shift_inter_y, stride_n):
+    shape=int(shift_inter_x.size/stride_n)
+            
+    leftover=shift_inter_x.size %shape
+    if leftover==0:
+        stridex=util.view_as_blocks(shift_inter_x, (shape,))
+        stridey=util.view_as_blocks(shift_inter_y, (shape,))
+    else:
+        stridex=util.view_as_blocks(shift_inter_x[:-leftover], (shape,))
+        stridey=util.view_as_blocks(shift_inter_y[:-leftover], (shape,))
+
+        for x in range(stridex.shape[0]):
+            stridex[x]=np.mean(stridex[x])
+            stridex[y]=np.mean(stridex[y])
+
+
 def amv_calculator(prvs_frame, next_frame,shape, sub_pixel, average_lon, stride_n):
     leftovers=[0]*2
     frame_shape=np.shape(prvs_frame)
@@ -71,27 +87,25 @@ def amv_calculator(prvs_frame, next_frame,shape, sub_pixel, average_lon, stride_
                 shift, error, diffphase = register_translation(prvs_patches[x,y,...], next_patches[x,y,...])
             else:
                 shift, error, diffphase = register_translation(prvs_patches[x,y,...], next_patches[x,y,...],100)
-
-            shift_patches_x[x,y,...]=shift[1]
-            shift_patches_y[x,y,...]=shift[0]
             shift_inter_x[x,y]=shift[1]
             shift_inter_y[x,y]=shift[0]
         if average_lon:
             shape=int(shift_inter_x[x,:].size/stride_n)
-            stridex=util.view_as_blocks(shift_inter_x[x,:], (shape,))
-            stridey=util.view_as_blocks(shift_inter_y[x,:], (shape,))
-
+            
+            leftover=shift_inter_x[x,:].size %shape
+            if leftover==0:
+                stridex=util.view_as_blocks(shift_inter_x[x,:], (shape,))
+                stridey=util.view_as_blocks(shift_inter_y[x,:], (shape,))
+            else:
+                stridex=util.view_as_blocks(shift_inter_x[x,:-leftover], (shape,))
+                stridey=util.view_as_blocks(shift_inter_y[x,:-leftover], (shape,))
             
             for x in range(stridex.shape[0]):
                 stridex[x]=np.mean(stridex[x])
                 stridey[x]=np.mean(stridey[x])
-
-
-            #shift_inter_x[x,:]=shift_inter_x[x,:].mean(axis=0)
-            #shift_inter_y[x,:]=shift_inter_y[x,:].mean(axis=0)
             
-    print('mean pixel offset in x direction: ' + str(np.mean(flowx)))
-    print('mean pixel offset in y direction: ' + str(np.mean(flowy)))
+    print('mean pixel offset in x direction: ' + str(np.mean(shift_inter_x)))
+    print('mean pixel offset in y direction: ' + str(np.mean(shift_inter_y)))
     shape_inter=(flowx.shape[1],flowx.shape[0])
     flowx=cv2.resize(shift_inter_x,shape_inter, cv2.INTER_CUBIC)
     flowy=cv2.resize(shift_inter_y,shape_inter, cv2.INTER_CUBIC)
