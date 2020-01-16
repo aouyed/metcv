@@ -41,7 +41,9 @@ def parser(process_parameters, parameters):
     parser.add_argument(
         "-c", "--cutoffs", help="Input list of speed VD cutoffs.", type=float, nargs='+')
     parser.add_argument(
-        "-t", "--target_box", help="Input list of targetboxes.", type=int, nargs='+')
+        "-tx", "--target_box_x", help="Input list of x dimensions for target boxes.", type=int, nargs='+')
+    parser.add_argument(
+        "-ty", "--target_box_y", help="Input list of y dimensions for target boxes.", type=int, nargs='+')
     parser.add_argument("-v", "--variable",
                         help="Choose GEOS-5 variable to analyze", type=str)
     parser.add_argument(
@@ -56,6 +58,8 @@ def parser(process_parameters, parameters):
         "-nc", "--cores", help="Choose the number of cores", type=int)
     parser.add_argument(
         "-np", "--poly_n", help="Number of pixels used for dof algorithm", type=int)
+    parser.add_argument(
+        "-sn", "--stride_n", help="Number of strides  used for averaging cc", type=int)
     parser.add_argument(
         "-ws", "--winsize", help="Size of smoothing window for DOF algorithm", type=int)
     parser.add_argument(
@@ -86,6 +90,8 @@ def parser(process_parameters, parameters):
         "-tk", "--track", help="Whether we load jpl amvs", action="store_true")
     parser.add_argument(
         "-jd", "--jpl_disk", help="Whether we load jpl disk data", action="store_true")
+    parser.add_argument(
+        "-al", "--average_lon", help="Average across a latitude", action="store_true")
 
     parser.add_argument(
         "-sc", "--speed_cutoff", help="Whether we filter wind speeds by magnitude", action="store_true")
@@ -99,8 +105,10 @@ def parser(process_parameters, parameters):
         parameters.cutoffs = args.cutoffs
     if args.grid is not None:
         parameters.grid = args.grid
-    if args.target_box is not None:
-        parameters.target_box = args.target_box
+    if args.target_box_x is not None:
+        parameters.target_box_x = args.target_box_x
+    if args.target_box_y is not None:
+        parameters.target_box_y = args.target_box_y
     process_parameters.do_builder = args.builder
     process_parameters.do_analysis = args.analysis
     process_parameters.do_optical_flow = args.optical_flow
@@ -111,6 +119,7 @@ def parser(process_parameters, parameters):
     parameters.subpixel = args.sub_pixel
     parameters.track = args.track
     parameters.jpl_loader = args.jpl_loader
+    parameters.average_lon = args.average_lon
     parameters.speed_cutoff = args.speed_cutoff
     parameters.tvl1 = args.tvl1
     parameters.farneback = args.farneback
@@ -131,6 +140,8 @@ def parser(process_parameters, parameters):
         parameters.cores = args.cores
     if args.poly_n is not None:
         parameters.poly_n = args.poly_n
+    if args.stride_n is not None:
+        parameters.stride_n = args.stride_n
     if args.poly_sigma is not None:
         parameters.poly_sigma = args.poly_sigma
     if args.levels  is not None:

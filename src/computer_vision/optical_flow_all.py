@@ -18,11 +18,19 @@ from skimage.feature import register_translation
 from tqdm import trange
 
 
-def optical_flow(start_date, var, pyr_scale, levels, winsize, iterations, poly_n, poly_sigma, sub_pixel, target_box, tvl1, do_cross_correlation, farneback, **kwargs):
+def drop_nan(frame):
+    row_mean = np.nanmean(frame, axis=1)
+    inds = np.where(np.isnan(frame))
+    frame[inds] = np.take(row_mean, inds[0])   
+    return frame 
+
+
+def optical_flow(start_date, var, pyr_scale, levels, winsize, iterations, poly_n, poly_sigma, sub_pixel, target_box_x,target_box_y, average_lon, tvl1, do_cross_correlation, farneback, stride_n, **kwargs):
     """Implements cross correlation algorithm for calculating AMVs."""
     file_paths = pickle.load(
         open('../data/interim/dictionaries/vars/'+var+'.pkl', 'rb'))
     frame1 = np.load(file_paths[start_date])
+    frame1=drop_nan(frame1)
     frame1 = cv2.normalize(src=frame1, dst=None,
                            alpha=0, beta=255, norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_8UC1)
     prvs = frame1
@@ -32,6 +40,8 @@ def optical_flow(start_date, var, pyr_scale, levels, winsize, iterations, poly_n
         print('cross correlation calculation for date: ' + str(date))
         file = file_paths[date]
         frame2 = np.load(file)
+        frame2=drop_nan(frame2)
+
         frame2 = cv2.normalize(src=frame2, dst=None,
                                alpha=0, beta=255, norm_type=cv2.NORM_MINMAX,
                                dtype=cv2.CV_8UC1)
@@ -41,9 +51,11 @@ def optical_flow(start_date, var, pyr_scale, levels, winsize, iterations, poly_n
         shape=tuple(shape)
         flow=np.zeros(shape)
         
+        
         if do_cross_correlation:
-            for box in target_box:
-                flow =flow+cc. amv_calculator(prvs, next_frame,(box,box), sub_pixel)
+            target_boxes=zip(target_box_y,target_box_x)
+            for box in target_boxes:
+                flow =flow+cc. amv_calculator(prvs, next_frame,box, sub_pixel, average_lon, stride_n)
         if tvl1:
             optical_flow = cv2.optflow.DualTVL1OpticalFlow_create()
             optical_flow.setLambda(0.005)

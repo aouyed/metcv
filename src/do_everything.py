@@ -31,7 +31,8 @@ class Parameters:
             "grid": 0.0625,
             "coarse": False,
             "dt": 1800,
-            "target_box": [10],
+            "target_box_x": [10],
+            "target_box_y": [10],
             'sub_pixel': False,
             "path": "_",
             "jpl_loader": False,
@@ -44,7 +45,9 @@ class Parameters:
             'tvl1': False,
             'jpl_disk': True,
             'do_cross_correlation': False,
-            'farneback': False
+            'farneback': False,
+            'average_lon': False,
+            'stride_n': 3
         }
         for (prop, default) in prop_defaults.items():
             setattr(self, prop, kwargs.get(prop, default))

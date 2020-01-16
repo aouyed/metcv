@@ -202,13 +202,23 @@ def data_analysis(start_date, end_date, var, path, cutoff, track, speed_cutoff, 
 
 
 #####
-    deltax=5
+    deltax=1
     xlist = np.arange(-90, 90, deltax)
     dfc.plot_average(deltax, df, line_directory, xlist, 'lat', 'speed_error')
     dfc.plot_average(deltax, df, line_directory, xlist, 'lat', 'speed')
     dfc.plot_average(deltax, df, line_directory, xlist, 'lat', 'speed_approx')
     dfc.plot_average(deltax, df, line_directory, xlist, 'lat', 'u_scaled_approx')
     dfc.plot_average(deltax, df, line_directory, xlist, 'lat', 'v_scaled_approx')
+
+
+#####
+    deltax=1
+    xlist = np.arange(-180, 180, deltax)
+    dfc.plot_average(deltax, df, line_directory, xlist, 'lon', 'speed_error')
+    dfc.plot_average(deltax, df, line_directory, xlist, 'lon', 'speed')
+    dfc.plot_average(deltax, df, line_directory, xlist, 'lon', 'speed_approx')
+    dfc.plot_average(deltax, df, line_directory, xlist, 'lon', 'u_scaled_approx')
+    dfc.plot_average(deltax, df, line_directory, xlist, 'lon', 'v_scaled_approx')
 ####
     deltax=1
     xlist = np.arange(df['speed'].min(), df['speed'].max(), deltax)
