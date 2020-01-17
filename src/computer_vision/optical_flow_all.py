@@ -112,7 +112,10 @@ def optical_flow(start_date, var, pyr_scale, levels, winsize, iterations, poly_n
             target_boxes=zip(target_box_y,target_box_x)
             for box in target_boxes:
                 #flow =flow+cc. amv_calculator(prvs, next_frame,(4*box[0],4*box[1]), sub_pixel, average_lon, int(stride_n/2))
-                flow =flow+cc. amv_calculator(prvs, next_frame,box, sub_pixel, average_lon, int(stride_n))
+                flow0 =flow+cc. amv_calculator(prvs, next_frame,box, sub_pixel, average_lon, int(stride_n))
+                flow1=dof_averager(flow0[...,0],flow0[...,1],(720,720))
+                #flow2=dof_averager(flow0[...,0],flow0[...,1],(360,360))
+                flow=flow1 
         if tvl1:
             optical_flow = cv2.optflow.DualTVL1OpticalFlow_create()
             optical_flow.setLambda(0.005)
@@ -135,3 +138,4 @@ def optical_flow(start_date, var, pyr_scale, levels, winsize, iterations, poly_n
         os.makedirs(path)
     file_dictionary = open(path+'/'+var+'.pkl', "wb")
     pickle.dump(file_paths_flow, file_dictionary)
+

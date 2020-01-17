@@ -16,6 +16,61 @@ from sklearn.feature_extraction import image
 from skimage.feature import register_translation
 from tqdm import trange
 
+
+def dof_averager(flow_x0,flow_y0, shape):
+    leftovers=[0]*2
+    frame_shape=np.shape(flow_x0)
+    flowx=np.zeros(flow_x0.shape)
+    flowy=np.zeros(flow_y0.shape)
+    leftovers[0]=frame_shape[0]%shape[0]
+    leftovers[1]=frame_shape[1]%shape[1]
+       
+    if(leftovers[0]!=0 and leftovers[1]!=0):
+        flow_x0_view=flow_x0[:-leftovers[0],:-leftovers[1]]
+        flow_y0_view=flow_y0[:-leftovers[0],:-leftovers[1]]
+
+        flow_viewx=flowx[:-leftovers[0],:-leftovers[1]]
+        flow_viewy=flowy[:-leftovers[0],:-leftovers[1]]
+    elif (leftovers[0]==0 and leftovers[1]!=0):
+        flow_x0_view=flow_x0[:,:-leftovers[1]]
+        flow_y0_view=flow_y0[:,:-leftovers[1]]
+
+        flow_viewx=flowx[:,:-leftovers[1]]
+        flow_viewy=flowy[:,:-leftovers[1]]
+    elif (leftovers[0]!=0 and leftovers[1]==0):
+        flow_x0_view=flow_x0[:-leftovers[0],:]
+        flow_y0_view=flow_y0[:-leftovers[0],:]
+        flow_viewx=flowx[:-leftovers[0],:]
+        flow_viewy=flowy[:-leftovers[0],:]
+    else:
+        flow_x0_view=flow_x0
+        flow_y0_view=flow_y0
+        flow_viewx=flowx
+        flow_viewy=flowy
+    patches_x=util.view_as_blocks(flow_x0_view, shape)
+    patches_y=util.view_as_blocks(flow_y0_view, shape)
+    shape=list(np.shape(flow_x0))
+    shape.append(2)
+    shape=tuple(shape)
+    flow=np.zeros(shape)
+    rows = patches_x.shape[0]
+    cols = patches_x.shape[1]
+    mean_strides_x=np.zeros((rows,cols))
+    mean_strides_y=np.zeros((rows,cols))
+    for x in range(0, rows):
+        for y in range(0, cols):
+            mean_strides_x[x,y]=np.mean(patches_x[x,y,...])
+            mean_strides_y[x,y]=np.mean(patches_y[x,y,...])
+
+    shape_inter=(flowx.shape[1],flowx.shape[0])
+    flowx=cv2.resize(mean_strides_x,shape_inter, cv2.INTER_CUBIC)
+    flowy=cv2.resize(mean_strides_y,shape_inter, cv2.INTER_CUBIC)
+    flow[...,0]= flowx
+    flow[...,1]= flowy
+
+
+    return flow
+
 def striding_mean(shift_inter_x,shift_inter_y, stride_n):
     shape=int(shift_inter_x.size/stride_n)
             
