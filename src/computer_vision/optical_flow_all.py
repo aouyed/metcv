@@ -72,6 +72,25 @@ def dof_averager(flow_x0,flow_y0, shape):
 
     return flow
 
+def smoother(flowx,flowy):
+    sizex=flowx.shape[1]
+    sizey=flowx.shape[0]
+    shape=(sizex,sizey)
+    small_shape=(int(sizex/2),int(sizey/2))
+    shapef=list(flowx.shape)
+    shapef.append(2)
+    flow=np.zeros(shapef)
+   
+    flowx=cv2.resize(flowx,small_shape, cv2.INTER_CUBIC)
+    flowy=cv2.resize(flowy,small_shape, cv2.INTER_CUBIC)
+    flowx=cv2.resize(flowx,shape,  cv2.INTER_CUBIC)
+    flowy=cv2.resize(flowy,shape, cv2.INTER_CUBIC)
+    flow[...,0]= flowx
+    flow[...,1]= flowy
+
+
+    return flow
+
 
 
 def drop_nan(frame):
@@ -81,7 +100,7 @@ def drop_nan(frame):
     return frame 
 
 
-def optical_flow(start_date, var, pyr_scale, levels, winsize, iterations, poly_n, poly_sigma, sub_pixel, target_box_x,target_box_y, average_lon, tvl1, do_cross_correlation, farneback, stride_n, **kwargs):
+def optical_flow(start_date, var, pyr_scale, levels, winsize, iterations, poly_n, poly_sigma, sub_pixel, target_box_x,target_box_y, average_lon, tvl1, do_cross_correlation, farneback, stride_n, dof_average_x, dof_average_y, cc_average_x, cc_average_y, **kwargs):
     """Implements cross correlation algorithm for calculating AMVs."""
     file_paths = pickle.load(
         open('../data/interim/dictionaries/vars/'+var+'.pkl', 'rb'))
@@ -113,16 +132,19 @@ def optical_flow(start_date, var, pyr_scale, levels, winsize, iterations, poly_n
             for box in target_boxes:
                 #flow =flow+cc. amv_calculator(prvs, next_frame,(4*box[0],4*box[1]), sub_pixel, average_lon, int(stride_n/2))
                 flow0 =flow+cc. amv_calculator(prvs, next_frame,box, sub_pixel, average_lon, int(stride_n))
-                flow1=dof_averager(flow0[...,0],flow0[...,1],(720,720))
-                #flow2=dof_averager(flow0[...,0],flow0[...,1],(360,360))
-                flow=flow1 
+                flow=dof_averager(flow0[...,0],flow0[...,1],(cc_average_y,cc_average_x)) + dof_averager(flow0[...,0],flow0[...,1],(int(cc_average_y/2),int(cc_average_x/2)))
+                #flow=smoother(flow0[...,0],flow0[...,1])
+                
         if tvl1:
             optical_flow = cv2.optflow.DualTVL1OpticalFlow_create()
             optical_flow.setLambda(0.005)
             flow = flow+optical_flow.calc(prvs, next_frame, None)
         if farneback:
             flowd=cv2.calcOpticalFlowFarneback(prvs, next_frame, None, pyr_scale, levels, winsize, iterations, poly_n, poly_sigma, cv2.OPTFLOW_FARNEBACK_GAUSSIAN)
-            flowd0=dof_averager(flowd[...,0],flowd[...,1],(3,3))
+
+            if dof_average_x> 1 or dof_average_y>1:            flowd0=dof_averager(flowd[...,0],flowd[...,1],(dof_average_y,dof_average_y))
+            else:
+                flowd0=np.zeros(flow.shape)
             #flowd1=dof_averager(flowd[...,0],flowd[...,1],(20,20))
             flow =flow+ flowd0
  

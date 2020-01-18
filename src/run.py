@@ -51,6 +51,14 @@ def parser(process_parameters, parameters):
     parser.add_argument(
         "-dt", "--timestep", help="Choose the temporal  resolution in seconds", type=float)
     parser.add_argument(
+        "-dax", "--dof_average_x", help="lon size of averaging window for dense optical flow", type=int)
+    parser.add_argument(
+        "-day", "--dof_average_y", help="lat size of averaging window for dense optical flow", type=int)
+    parser.add_argument(
+        "-cax", "--cc_average_x", help="lon size of averaging window for cross correlation", type=int)
+    parser.add_argument(
+        "-cay", "--cc_average_y", help="lat size of averaging window for cross correlation", type=int)
+    parser.add_argument(
         "-us", "--up_speed", help="upper bound of speed", type=float)
     parser.add_argument(
         "-ls", "--low_speed", help="lower  bound of speed", type=float)
@@ -136,6 +144,14 @@ def parser(process_parameters, parameters):
         parameters.low_speed = args.low_speed
     if args.up_speed is not None:
         parameters.up_speed = args.up_speed
+    if args.dof_average_x is not None:
+        parameters.dof_average_x = args.dof_average_x
+    if args.dof_average_y is not None:
+        parameters.dof_average_y = args.dof_average_y
+    if args.cc_average_x is not None:
+        parameters.cc_average_x = args.cc_average_x
+    if args.cc_average_y is not None:
+        parameters.cc_average_y = args.cc_average_y
     if args.cores is not None:
         parameters.cores = args.cores
     if args.poly_n is not None:

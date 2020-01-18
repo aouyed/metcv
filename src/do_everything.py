@@ -47,7 +47,12 @@ class Parameters:
             'do_cross_correlation': False,
             'farneback': False,
             'average_lon': False,
-            'stride_n': 3
+            'stride_n': 3,
+            'dof_average_x': 3,
+            'dof_average_y': 3,
+            'cc_average_x': 720,
+            'cc_average_y': 720
+            
         }
         for (prop, default) in prop_defaults.items():
             setattr(self, prop, kwargs.get(prop, default))

@@ -16,6 +16,8 @@ from sklearn.feature_extraction import image
 from skimage.feature import register_translation
 from tqdm import trange
 
+
+
 def striding_mean(shift_inter_x,shift_inter_y, stride_n):
     shape=int(shift_inter_x.size/stride_n)
             
@@ -90,12 +92,7 @@ def amv_calculator(prvs_frame, next_frame,shape, sub_pixel, average_lon, stride_
                 shift, error, diffphase = register_translation(prvs_patches[x,y,...], next_patches[x,y,...],100)
             shift_inter_x[x,y]=shift[1]
             shift_inter_y[x,y]=shift[0]
-        if average_lon:
-            viewx= shift_inter_x[x,:]
-            viewy= shift_inter_y[x,:]
-            arrayx, arrayy=  striding_mean( viewx, viewy, stride_n)
-            shift_inter_x[x,:]=arrayx
-            shift_inter_y[x,:]=arrayy
+  
                    
     print('mean pixel offset in x direction: ' + str(np.mean(shift_inter_x)))
     print('mean pixel offset in y direction: ' + str(np.mean(shift_inter_y)))
