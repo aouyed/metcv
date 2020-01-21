@@ -22,7 +22,7 @@ class Parameters:
             "pyr_scale": 0.5,
             "levels": 5,
             "level": 65,
-            "winsize": 10,
+            "winsizes": [10],
             "iterations": 3,
             "poly_n": 2,
             "poly_sigma": 1.2,

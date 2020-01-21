@@ -69,7 +69,7 @@ def parser(process_parameters, parameters):
     parser.add_argument(
         "-sn", "--stride_n", help="Number of strides  used for averaging cc", type=int)
     parser.add_argument(
-        "-ws", "--winsize", help="Size of smoothing window for DOF algorithm", type=int)
+        "-ws", "--winsizes", help="Sizes of smoothing window for DOF algorithm", type=int, nargs='+')
     parser.add_argument(
         "-psi", "--poly_sigma", help="stdev for polynomial fitting", type=float)
     parser.add_argument(
@@ -162,8 +162,8 @@ def parser(process_parameters, parameters):
         parameters.poly_sigma = args.poly_sigma
     if args.levels  is not None:
         parameters.levels = args.levels
-    if args.winsize is not None:
-        parameters.winsize = args.winsize
+    if args.winsizes is not None:
+        parameters.winsizes = args.winsizes
 
 
 def main():
