@@ -52,7 +52,7 @@ class Parameters:
             'dof_average_y': 3,
             'cc_average_x': 720,
             'cc_average_y': 720
-            
+
         }
         for (prop, default) in prop_defaults.items():
             setattr(self, prop, kwargs.get(prop, default))
@@ -68,15 +68,15 @@ def downloader_function(parameters):
 
 def downloader(parameters):
     print('initializing  downloader...')
-    parameters.var = 'U'
+    parameters.var = 'u'
     kwargs = vars(parameters)
     downloader_function(parameters)
 
-    parameters.var = 'V'
+    parameters.var = 'v'
     kwargs = vars(parameters)
     downloader_function(parameters)
 
-    parameters.var = 'QV'
+    parameters.var = 'qv'
     kwargs = vars(parameters)
     downloader_function(parameters)
 

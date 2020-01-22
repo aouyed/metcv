@@ -150,12 +150,13 @@ def optical_flow(start_date, var, pyr_scale, levels, iterations, poly_n, poly_si
             flow = flow+optical_flow.calc(prvs, next_frame, None)
         if farneback:
             for winsize in winsizes:
+                print(winsize)
                 # 0+cv2.calcOpticalFlowFarneback(prvs, next_frame, None, pyr_scale, levels, int(300), iterations, poly_n, poly_sigma, cv2.OPTFLOW_FARNEBACK_GAUSSIAN)
                 flowd0 = cv2.calcOpticalFlowFarneback(
                     prvs, next_frame, None, pyr_scale, levels, winsize, iterations, poly_n, poly_sigma, cv2.OPTFLOW_FARNEBACK_GAUSSIAN)
 
                 flow = flow + flowd0
-                prvs = warp_flow(prvs, flowd0)
+         q       prvs = warp_flow(prvs, flowd0)
 
         filename = os.path.basename(file)
         filename = os.path.splitext(filename)[0]
