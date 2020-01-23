@@ -51,7 +51,9 @@ class Parameters:
             'dof_average_x': 3,
             'dof_average_y': 3,
             'cc_average_x': 720,
-            'cc_average_y': 720
+            'cc_average_y': 720,
+            'Lambda': 0.0025,
+            'coarse_grid': 0.25
 
         }
         for (prop, default) in prop_defaults.items():

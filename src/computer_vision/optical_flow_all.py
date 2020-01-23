@@ -18,13 +18,51 @@ from skimage.feature import register_translation
 from tqdm import trange
 
 
+def coarse_flow(flow,  pyr_scale, levels, iterations, poly_n, poly_sigma, prvs, next_frame, grid, coarse_grid):
+    flowd = np.zeros(flow.shape)
+    factor = grid/coarse_grid
+    resized_prvs = cv2.resize(prvs, None, fx=factor, fy=factor)
+    resized_next = cv2.resize(next_frame, None, fx=factor, fy=factor)
+    flowx = flowd[:, :, 0]
+    flowy = flowd[:, :, 1]
+    resized_flowx = cv2.resize(flowx, None, fx=factor, fy=factor)
+    resized_flowy = cv2.resize(flowy, None, fx=factor, fy=factor)
+    shape = (resized_flowx.shape[0], resized_flowx.shape[1], 2)
+    print('Flow coarsened from shape: ' +
+          str(flow.shape) + ' to shape: ' + str(shape))
+    resized_flow = np.zeros(shape)
+    resized_flow[:, :, 0] = resized_flowx
+    resized_flow[:, :, 1] = resized_flowy
+    winsizes_small = [200, 100, 50, 25, 12]
+    factor = 1/factor
+
+    resized_prvs, resized_flow = multiscale_farneback(
+        resized_flow,  resized_prvs, resized_next, pyr_scale, levels, winsizes_small, iterations, poly_n, poly_sigma)
+    flowd[:, :, 0] = cv2.resize(
+        resized_flow[:, :, 0], None, fx=factor, fy=factor)
+    flowd[:, :, 1] = cv2.resize(
+        resized_flow[:, :, 1], None, fx=factor, fy=factor)
+    prvs = warp_flow(prvs, flowd)
+    flow = flow+flowd
+    return prvs, flow
+
+
+def multiscale_farneback(flow,  prvs, next_frame, pyr_scale, levels, winsizes, iterations, poly_n, poly_sigma):
+    for winsize in winsizes:
+        flowd0 = cv2.calcOpticalFlowFarneback(
+            prvs, next_frame, None, pyr_scale, levels, winsize, iterations, poly_n, poly_sigma, cv2.OPTFLOW_FARNEBACK_GAUSSIAN)
+        flow = flow + flowd0
+        prvs = warp_flow(prvs, flowd0)
+    return prvs, flow
+
+
 def warp_flow(img, flow):
     h, w = flow.shape[:2]
     flow = -flow
     flow[:, :, 0] += np.arange(w)
     flow[:, :, 1] += np.arange(h)[:, np.newaxis]
     flow = flow.astype(np.float32)
-    res = cv2.remap(img, flow, None, cv2.INTER_LINEAR)
+    res = cv2.remap(img, flow, None, cv2.INTER_CUBIC)
     return res
 
 
@@ -108,7 +146,7 @@ def drop_nan(frame):
     return frame
 
 
-def optical_flow(start_date, var, pyr_scale, levels, iterations, poly_n, poly_sigma, sub_pixel, target_box_x, target_box_y, average_lon, tvl1, do_cross_correlation, farneback, stride_n, dof_average_x, dof_average_y, cc_average_x, cc_average_y, winsizes,  **kwargs):
+def optical_flow(start_date, var, pyr_scale, levels, iterations, poly_n, poly_sigma, sub_pixel, target_box_x, target_box_y, average_lon, tvl1, do_cross_correlation, farneback, stride_n, dof_average_x, dof_average_y, cc_average_x, cc_average_y, winsizes, grid, Lambda, coarse_grid,  **kwargs):
     """Implements cross correlation algorithm for calculating AMVs."""
     file_paths = pickle.load(
         open('../data/interim/dictionaries/vars/'+var+'.pkl', 'rb'))
@@ -120,7 +158,7 @@ def optical_flow(start_date, var, pyr_scale, levels, iterations, poly_n, poly_si
     file_paths_flow = {}
     file_paths.pop(start_date, None)
     for date in file_paths:
-        print('cross correlation calculation for date: ' + str(date))
+        print('flow calculation for date: ' + str(date))
         file = file_paths[date]
         frame2 = np.load(file)
         frame2 = drop_nan(frame2)
@@ -134,26 +172,29 @@ def optical_flow(start_date, var, pyr_scale, levels, iterations, poly_n, poly_si
         shape = tuple(shape)
         flow = np.zeros(shape)
 
+        if tvl1:
+            print('Initializing TV-L1 algorithm...')
+            if coarse_grid > grid:
+                prvs,  flow = coarse_flow(
+                    flow,  pyr_scale, levels, iterations, poly_n, poly_sigma, prvs, next_frame, grid, coarse_grid)
+            optical_flow = cv2.optflow.DualTVL1OpticalFlow_create()
+            optical_flow.setLambda(Lambda)
+            flow = flow+optical_flow.calc(prvs, next_frame, None)
+        if farneback:
+            print('Initializing Farnebacks algorithm...')
+            if coarse_grid > grid:
+                prvs, flow = coarse_flow(
+                    flow,  pyr_scale, levels, iterations, poly_n, poly_sigma, prvs, next_frame, grid, coarse_grid)
+
+            prvs, flow = multiscale_farneback(
+                flow,  prvs, next_frame, pyr_scale, levels, winsizes, iterations, poly_n, poly_sigma)
+
         if do_cross_correlation:
+            print("Initializing cross correlation...")
             target_boxes = zip(target_box_x, target_box_x)
             for box in target_boxes:
                 flowd0 = cc.amv_calculator(prvs, next_frame, box,
                                            sub_pixel, average_lon, int(stride_n))
-                flow = flow + flowd0
-                prvs = warp_flow(prvs, flowd0)
-
-                # flow=dof_averager(flow[...,0],flow[...,1],(cc_average_y,cc_average_x))
-
-        if tvl1:
-            optical_flow = cv2.optflow.DualTVL1OpticalFlow_create()
-            optical_flow.setLambda(0.005)
-            flow = flow+optical_flow.calc(prvs, next_frame, None)
-        if farneback:
-            for winsize in winsizes:
-                # 0+cv2.calcOpticalFlowFarneback(prvs, next_frame, None, pyr_scale, levels, int(300), iterations, poly_n, poly_sigma, cv2.OPTFLOW_FARNEBACK_GAUSSIAN)
-                flowd0 = cv2.calcOpticalFlowFarneback(
-                    prvs, next_frame, None, pyr_scale, levels, winsize, iterations, poly_n, poly_sigma, cv2.OPTFLOW_FARNEBACK_GAUSSIAN)
-
                 flow = flow + flowd0
                 prvs = warp_flow(prvs, flowd0)
 

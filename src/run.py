@@ -59,6 +59,8 @@ def parser(process_parameters, parameters):
     parser.add_argument(
         "-cay", "--cc_average_y", help="lat size of averaging window for cross correlation", type=int)
     parser.add_argument(
+        "-cg", "--coarse_grid", help="grid size for coarsening flow", type=float)
+    parser.add_argument(
         "-us", "--up_speed", help="upper bound of speed", type=float)
     parser.add_argument(
         "-ls", "--low_speed", help="lower  bound of speed", type=float)
@@ -72,6 +74,8 @@ def parser(process_parameters, parameters):
         "-ws", "--winsizes", help="Sizes of smoothing window for DOF algorithm", type=int, nargs='+')
     parser.add_argument(
         "-psi", "--poly_sigma", help="stdev for polynomial fitting", type=float)
+    parser.add_argument(
+        "-lam", "--Lambda", help="lambda for tvl1 algorithm", type=float)
     parser.add_argument(
         "-levs", "--levels", help="pyramid scheme levels for DOF", type=int)
     parser.add_argument(
@@ -105,7 +109,8 @@ def parser(process_parameters, parameters):
         "-sc", "--speed_cutoff", help="Whether we filter wind speeds by magnitude", action="store_true")
     parser.add_argument(
         "-t1", "--tvl1", help="Whether we use tvl1 for optical flow", action="store_true")
-    parser.add_argument( "-fb", "--farneback", help="Whether we use Farneback's algorithm for optical flow", action="store_true")
+    parser.add_argument(
+        "-fb", "--farneback", help="Whether we use Farneback's algorithm for optical flow", action="store_true")
 
     args = parser.parse_args()
 
@@ -160,7 +165,11 @@ def parser(process_parameters, parameters):
         parameters.stride_n = args.stride_n
     if args.poly_sigma is not None:
         parameters.poly_sigma = args.poly_sigma
-    if args.levels  is not None:
+    if args.coarse_grid is not None:
+        parameters.coarse_grid = args.coarse_grid
+    if args.Lambda is not None:
+        parameters.Lambda = args.Lambda
+    if args.levels is not None:
         parameters.levels = args.levels
     if args.winsizes is not None:
         parameters.winsizes = args.winsizes
