@@ -18,7 +18,7 @@ from skimage.feature import register_translation
 from tqdm import trange
 
 
-def coarse_flow(flow,  pyr_scale, levels, iterations, poly_n, poly_sigma, prvs, next_frame, grid, coarse_grid):
+def coarse_flow(flow,  pyr_scale, levels, iterations, poly_n, poly_sigma, prvs, next_frame, grid, coarse_grid, flag):
     flowd = np.zeros(flow.shape)
     factor = grid/coarse_grid
     resized_prvs = cv2.resize(prvs, None, fx=factor, fy=factor)
@@ -37,20 +37,61 @@ def coarse_flow(flow,  pyr_scale, levels, iterations, poly_n, poly_sigma, prvs, 
     factor = 1/factor
 
     resized_prvs, resized_flow = multiscale_farneback(
-        resized_flow,  resized_prvs, resized_next, pyr_scale, levels, winsizes_small, iterations, poly_n, poly_sigma)
+        resized_flow,  resized_prvs, resized_next, pyr_scale, levels, winsizes_small, iterations, poly_n, poly_sigma, flag)
+    shape0 = (flow.shape[1], flow.shape[0])
     flowd[:, :, 0] = cv2.resize(
-        resized_flow[:, :, 0], None, fx=factor, fy=factor)
+        resized_flow[:, :, 0], shape0)
     flowd[:, :, 1] = cv2.resize(
-        resized_flow[:, :, 1], None, fx=factor, fy=factor)
+        resized_flow[:, :, 1], shape0)
     prvs = warp_flow(prvs, flowd)
     flow = flow+flowd
+    print('frame succesfully warped with coarsened flow.')
     return prvs, flow
 
 
-def multiscale_farneback(flow,  prvs, next_frame, pyr_scale, levels, winsizes, iterations, poly_n, poly_sigma):
+def pyramid(grid, coarse_grid, prvs0, next_frame0, flow0, prvs, next_frame,  pyr_scale, levels, winsizes, iterations, poly_n, poly_sigma):
+    factor = grid/coarse_grid
+    print(coarse_grid)
+    if(grid < coarse_grid):
+        if(grid < (coarse_grid/2)):
+            prvs = cv2.resize(prvs, None, fx=factor, fy=factor)
+            next_frame = cv2.resize(next_frame, None, fx=factor, fy=factor)
+            flow = np.zeros((prvs.shape[0], prvs.shape[1], 2))
+        else:
+            prvs = prvs0
+            next_frame = prvs0
+            flow = flow0
+        for _ in range(2):
+            prvs, flow = coarse_flow(
+                flow,  pyr_scale, levels, iterations, poly_n, poly_sigma, prvs, next_frame, grid, coarse_grid, cv2.OPTFLOW_FARNEBACK_GAUSSIAN)
+    else:
+        prvs = prvs0
+        next_frame = prvs0
+        flow = flow0
+
+    # if(coarse_grid > 0.0625):
+    flag = cv2.OPTFLOW_FARNEBACK_GAUSSIAN
+    # else:
+    #   flag = 0
+
+    prvs, flow = multiscale_farneback(
+        flow,  prvs, next_frame, pyr_scale, levels, winsizes, iterations, poly_n, poly_sigma, flag)
+    if(grid < coarse_grid/2):
+        pyramid(grid, (coarse_grid/2), prvs0,
+                next_frame0, flow0, prvs, next_frame,  pyr_scale, levels, winsizes, iterations, poly_n, poly_sigma)
+        return prvs, flow
+    else:
+        return prvs, flow
+
+
+def multiscale_farneback(flow,  prvs, next_frame, pyr_scale, levels, winsizes, iterations, poly_n, poly_sigma, flag):
+    print('running pyramid with different filters for flag: ' + str(flag))
     for winsize in winsizes:
+        print('running optical flow algorithm with fliter window: ' + str(winsize))
+        # flowd0 = cv2.calcOpticalFlowFarneback(
+        #   prvs, next_frame, None, pyr_scale, levels, winsize, iterations, poly_n, poly_sigma, cv2.OPTFLOW_FARNEBACK_GAUSSIAN)
         flowd0 = cv2.calcOpticalFlowFarneback(
-            prvs, next_frame, None, pyr_scale, levels, winsize, iterations, poly_n, poly_sigma, cv2.OPTFLOW_FARNEBACK_GAUSSIAN)
+            prvs, next_frame, None, pyr_scale, levels, winsize, iterations, poly_n, poly_sigma, flag)
         flow = flow + flowd0
         prvs = warp_flow(prvs, flowd0)
     return prvs, flow
@@ -172,22 +213,34 @@ def optical_flow(start_date, var, pyr_scale, levels, iterations, poly_n, poly_si
         shape = tuple(shape)
         flow = np.zeros(shape)
 
-        if tvl1:
-            print('Initializing TV-L1 algorithm...')
-            if coarse_grid > grid:
-                prvs,  flow = coarse_flow(
-                    flow,  pyr_scale, levels, iterations, poly_n, poly_sigma, prvs, next_frame, grid, coarse_grid)
-            optical_flow = cv2.optflow.DualTVL1OpticalFlow_create()
-            optical_flow.setLambda(Lambda)
-            flow = flow+optical_flow.calc(prvs, next_frame, None)
+       # if tvl1:
+        #    print('Initializing TV-L1 algorithm...')
+        #   if coarse_grid > grid:
+        #      prvs,  flow = coarse_flow(
+        #         flow,  pyr_scale, levels, iterations, poly_n, poly_sigma, prvs, next_frame, grid, coarse_grid)
+        # optical_flow = cv2.optflow.DualTVL1OpticalFlow_create()
+        # optical_flow.setLambda(Lambda)
+        #flow = flow+optical_flow.calc(prvs, next_frame, None)
         if farneback:
             print('Initializing Farnebacks algorithm...')
             if coarse_grid > grid:
-                prvs, flow = coarse_flow(
-                    flow,  pyr_scale, levels, iterations, poly_n, poly_sigma, prvs, next_frame, grid, coarse_grid)
+                prvs, flow = coarse_flow(flow,  pyr_scale, levels, iterations, poly_n, poly_sigma,
+                                         prvs, next_frame, grid, coarse_grid, cv2.OPTFLOW_FARNEBACK_GAUSSIAN)
+                prvs, flow = coarse_flow(flow,  pyr_scale, levels, iterations, poly_n, poly_sigma,
+                                         prvs, next_frame, grid, coarse_grid, cv2.OPTFLOW_FARNEBACK_GAUSSIAN)
+                prvs, flow = multiscale_farneback(
+                    flow,  prvs, next_frame, pyr_scale, levels, winsizes, iterations, poly_n, poly_sigma, cv2.OPTFLOW_FARNEBACK_GAUSSIAN)
+           # prvs, flow = pyramid(grid, coarse_grid, prvs,
+            #                     next_frame, flow, prvs, next_frame,  pyr_scale, levels, winsizes, iterations, poly_n, poly_sigma)
+            # if coarse_grid > grid:
+            #   iters = int(coarse_grid/grid)+2
+            # for divisor in range(2, iters, 2)
+            #  for _ in range(2):
+            #      prvs, flow = coarse_flow(
+            #         flow,  pyr_scale, levels, iterations, poly_n, poly_sigma, prvs, next_frame, grid, coarse_grid, cv2.OPTFLOW_FARNEBACK_GAUSSIAN)
 
-            prvs, flow = multiscale_farneback(
-                flow,  prvs, next_frame, pyr_scale, levels, winsizes, iterations, poly_n, poly_sigma)
+            # prvs, flow = multiscale_farneback(
+            #   flow,  prvs, next_frame, pyr_scale, levels, winsizes, iterations, poly_n, poly_sigma, 0)
 
         if do_cross_correlation:
             print("Initializing cross correlation...")
