@@ -47,19 +47,19 @@ def coarse_flow(flow,  pyr_scale, levels, iterations, poly_n, poly_sigma, prvs, 
     prvs = warp_flow(prvs, flowd)
     flow = flow+flowd
     print('frame succesfully warped with coarsened flow.')
+    print('prvs mean: ' + str(np.mean(prvs)))
     return prvs, flow
 
 
 def pyramid(flow, grid, coarse_grid, prvs, next_frame,  pyr_scale, levels, winsizes, iterations, poly_n, poly_sigma):
-    prvs, flow = coarse_flow(flow,  pyr_scale, levels, iterations, poly_n, poly_sigma,
-                             prvs, next_frame, grid, coarse_grid, cv2.OPTFLOW_FARNEBACK_GAUSSIAN, winsizes)
-    winsizes.insert(0, 2*winsizes[0])
 
-    if grid < coarse_grid/2:
-        prvs, flow = pyramid(flow, grid, coarse_grid/2, prvs, next_frame,  pyr_scale,
-                             levels, winsizes, iterations, poly_n, poly_sigma)
+    while grid < coarse_grid:
+        prvs, flow = coarse_flow(flow,  pyr_scale, levels, iterations, poly_n, poly_sigma,
+                                 prvs, next_frame, grid, coarse_grid, cv2.OPTFLOW_FARNEBACK_GAUSSIAN, winsizes)
+        winsizes.insert(0, 2*winsizes[0])
+        coarse_grid = coarse_grid/2
 
-    return prvs, flow
+    return prvs, flow, winsizes
 
 
 def multiscale_farneback(flow,  prvs, next_frame, pyr_scale, levels, winsizes, iterations, poly_n, poly_sigma, flag):
@@ -202,21 +202,24 @@ def optical_flow(start_date, var, pyr_scale, levels, iterations, poly_n, poly_si
         if farneback:
             print('Initializing Farnebacks algorithm...')
             if coarse_grid > grid:
-                winsizes_small = [100, 50, 25, 12]
-                # prvs, flow = pyramid(flow, grid, coarse_grid, prvs, next_frame,  pyr_scale,
-                # levels, winsizes_small, iterations, poly_n, poly_sigma)
+                #winsizes_small = [50, 25, 12]
+               # prvs, flow = coarse_flow(flow,  pyr_scale, levels, iterations, poly_n, poly_sigma,
+                #                         prvs, next_frame, grid, coarse_grid, cv2.OPTFLOW_FARNEBACK_GAUSSIAN, winsizes_small)
 
-                prvs, flow = coarse_flow(flow,  pyr_scale, levels, iterations, poly_n, poly_sigma,
-                                         prvs, next_frame, grid, coarse_grid, cv2.OPTFLOW_FARNEBACK_GAUSSIAN, winsizes_small)
-                winsizes_small = [200, 100, 50, 25, 12]
-                prvs, flow = coarse_flow(flow,  pyr_scale, levels, iterations, poly_n, poly_sigma,
-                                         prvs, next_frame, grid, coarse_grid/2, cv2.OPTFLOW_FARNEBACK_GAUSSIAN, winsizes_small)
-                # winsizes_small = [400, 200, 100, 50, 25, 12]
+                #winsizes_small = [50, 25, 12]
+                prvs, flow, winsizes_final = pyramid(flow, grid, coarse_grid, prvs, next_frame,  pyr_scale,
+                                                     levels, winsizes.copy(), iterations, poly_n, poly_sigma)
+                #winsizes_small = [100, 50, 25, 12]
                 # prvs, flow = coarse_flow(flow,  pyr_scale, levels, iterations, poly_n, poly_sigma,
-                #                         prvs, next_frame, grid, coarse_grid/2, cv2.OPTFLOW_FARNEBACK_GAUSSIAN, winsizes_small)
+                #                        prvs, next_frame, grid, coarse_grid/2, cv2.OPTFLOW_FARNEBACK_GAUSSIAN, winsizes_small)
+
+                #winsizes_small = [200, 100, 50, 25, 12]
+               # prvs, flow = coarse_flow(flow,  pyr_scale, levels, iterations, poly_n, poly_sigma,
+                #                         prvs, next_frame, grid, coarse_grid/4, cv2.OPTFLOW_FARNEBACK_GAUSSIAN, winsizes_small)
                 prvs, flow = multiscale_farneback(
-                    flow,  prvs, next_frame, pyr_scale, levels, winsizes, iterations, poly_n, poly_sigma, cv2.OPTFLOW_FARNEBACK_GAUSSIAN)
-           # prvs, flow = pyramid(grid, coarse_grid, prvs,
+                    flow,  prvs, next_frame, pyr_scale, levels, winsizes_final, iterations, poly_n, poly_sigma, cv2.OPTFLOW_FARNEBACK_GAUSSIAN)
+
+             # prvs, flow = pyramid(grid, coarse_grid, prvs,
             #                     next_frame, flow, prvs, next_frame,  pyr_scale, levels, winsizes, iterations, poly_n, poly_sigma)
             # if coarse_grid > grid:
             #   iters = int(coarse_grid/grid)+2
