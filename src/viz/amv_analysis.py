@@ -26,17 +26,19 @@ def df_loop(df, grid, dt):
     return df
 
 
-def parallelize_dataframe(df, func, grid, dt, n_cores):
+def parallelize_dataframe(df, grid, dt):
     start_time = time.time()
     print('start parallelization routine')
-    df_split = np.array_split(df, n_cores)
-    grid = [grid]*len(df_split)
-    dt = [dt]*len(df_split)
-    pool = Pool(n_cores)
-    df = pd.concat(pool.starmap(func, zip(df_split, grid, dt)))
-    pool.close()
-    pool.join()
-    print('cores: '+str(n_cores)+' seconds: ' + str(time.time() - start_time))
+
+    #df_split = np.array_split(df, n_cores)
+    #grid = [grid]*len(df_split)
+    #dt = [dt]*len(df_split)
+    #pool = Pool(n_cores)
+    #df = pd.concat(pool.starmap(func, zip(df_split, grid, dt)))
+    # pool.close()
+    # pool.join()
+    df = df_loop(df, grid, dt)
+    #print('cores: '+str(n_cores)+' seconds: ' + str(time.time() - start_time))
 
     return df
 
@@ -90,7 +92,8 @@ def dataframe_builder(end_date, var, grid, dt, cores,  **kwargs):
         print('building dataframe for the date: ' + str(date))
         file = flow_files[date]
         df = dfc.dataframe_quantum(file, date, dictionary_dict)
-        df = parallelize_dataframe(df, df_loop, grid, dt, cores)
+
+        df = parallelize_dataframe(df, grid, dt)
         df.set_index('datetime', inplace=True)
         path = df_path+'/'+var+'_'+str(date)+'.pkl'
         df.to_pickle(path)

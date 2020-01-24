@@ -18,6 +18,7 @@ import metpy.calc as mpcalc
 from scipy.interpolate import interpn
 import math
 from tqdm import tqdm
+from numba import jit
 
 
 def density_scatter(x, y, ax=None, sort=True, bins=20, **kwargs):
@@ -110,7 +111,7 @@ def plot_average(deltax, df, directory, xlist, varx, vary):
 
         df_unit[varx] = x
         df_unit[vary+'_count'] = df_a[vary].shape[0]
-        df_unit[vary +'_std'] = df_a[vary].std()
+        df_unit[vary + '_std'] = df_a[vary].std()
         df_unit[vary] = df_a[vary].mean()
         if df_mean.empty:
             df_mean = df_unit
@@ -152,11 +153,12 @@ def dataframe_quantum(file, date, dictionary_dict):
         df = df.merge(df_1, how='left')
     return df
 
+
 def dataframe_pivot(frame, var):
-    df= pd.DataFrame(frame).stack().rename_axis(
-    ['y', 'x']).reset_index(name=var.lower())
+    df = pd.DataFrame(frame).stack().rename_axis(
+        ['y', 'x']).reset_index(name=var.lower())
     return df
-    
+
 
 def scaling_df(df):
     """coordinate transforms vels from angle/pixel to metric exactly"""
@@ -169,13 +171,49 @@ def scaling_df(df):
     return df
 
 
-def scaling_df_approx(df, grid, dt_inv):
+def scaling_df_approx_0(df, grid, dt_inv):
     """coordinate transforms vels from angle/pixel to metric, approximately"""
     df['u_scaled_approx'] = df.apply(
         lambda x: scaling_lon_approx(x.lon, x.lat, x.flow_u, grid, dt_inv), axis=1)
     df['v_scaled_approx'] = df.apply(
         lambda x: scaling_lat_approx(x.lon, x.lat, x.flow_v, grid, dt_inv), axis=1)
     return df
+
+
+def scaling_df_approx(df, grid, dt_inv):
+    """coordinate transforms vels from angle/pixel to metric, approximately"""
+
+    df['u_scaled_approx'] = scaling_u(
+        df['lon'], df['lat'], df['flow_u'], grid, dt_inv)
+    df['v_scaled_approx'] = scaling_v(
+        df['lon'], df['lat'], df['flow_v'], grid, dt_inv)
+    return df
+
+
+def scaling_u(df_lon, df_lat, df_flow_u, grid, dt_inv):
+    dtheta = grid*df_flow_u
+    drads = dtheta * math.pi / 180
+    lat = df_lat*math.pi/90/2
+    # dt_hr = 1
+    # dt_s = 3600
+    R = 6371000
+    scaleConstant = dt_inv
+    dx = R*abs(np.cos(lat))*drads
+    scale = dx*scaleConstant
+    return scale
+
+
+def scaling_v(df_lon, df_lat, df_flow_v, grid, dt_inv):
+    """coordinate transform for v from pixel/angular to metric, approximate"""
+    dtheta = grid*df_flow_v
+    drads = dtheta * math.pi / 180
+    # dt_hr = 1
+    # dt_s = 3600
+    R = 6371000
+    scaleConstant = dt_inv
+    dx = R*drads
+    scale = dx*scaleConstant
+    return scale
 
 
 def error_calculator(df):

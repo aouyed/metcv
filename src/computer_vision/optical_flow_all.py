@@ -55,9 +55,12 @@ def pyramid(flow, grid, coarse_grid, prvs, next_frame,  pyr_scale, levels, winsi
 
     while grid < coarse_grid:
         prvs, flow = coarse_flow(flow,  pyr_scale, levels, iterations, poly_n, poly_sigma,
-                                 prvs, next_frame, grid, coarse_grid, cv2.OPTFLOW_FARNEBACK_GAUSSIAN, winsizes)
+                                 prvs, next_frame, grid, coarse_grid, 0, winsizes)
         winsizes.insert(0, 2*winsizes[0])
         coarse_grid = coarse_grid/2
+
+    prvs, flow = multiscale_farneback(
+        flow,  prvs, next_frame, pyr_scale, levels, winsizes, iterations, poly_n, poly_sigma, 0)
 
     return prvs, flow, winsizes
 
@@ -209,6 +212,7 @@ def optical_flow(start_date, var, pyr_scale, levels, iterations, poly_n, poly_si
                 #winsizes_small = [50, 25, 12]
                 prvs, flow, winsizes_final = pyramid(flow, grid, coarse_grid, prvs, next_frame,  pyr_scale,
                                                      levels, winsizes.copy(), iterations, poly_n, poly_sigma)
+
                 #winsizes_small = [100, 50, 25, 12]
                 # prvs, flow = coarse_flow(flow,  pyr_scale, levels, iterations, poly_n, poly_sigma,
                 #                        prvs, next_frame, grid, coarse_grid/2, cv2.OPTFLOW_FARNEBACK_GAUSSIAN, winsizes_small)
@@ -216,8 +220,6 @@ def optical_flow(start_date, var, pyr_scale, levels, iterations, poly_n, poly_si
                 #winsizes_small = [200, 100, 50, 25, 12]
                # prvs, flow = coarse_flow(flow,  pyr_scale, levels, iterations, poly_n, poly_sigma,
                 #                         prvs, next_frame, grid, coarse_grid/4, cv2.OPTFLOW_FARNEBACK_GAUSSIAN, winsizes_small)
-                prvs, flow = multiscale_farneback(
-                    flow,  prvs, next_frame, pyr_scale, levels, winsizes_final, iterations, poly_n, poly_sigma, cv2.OPTFLOW_FARNEBACK_GAUSSIAN)
 
              # prvs, flow = pyramid(grid, coarse_grid, prvs,
             #                     next_frame, flow, prvs, next_frame,  pyr_scale, levels, winsizes, iterations, poly_n, poly_sigma)

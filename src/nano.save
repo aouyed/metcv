@@ -1,0 +1,25 @@
+ow coarsened from shape: (1440, 2880, 2) to shape: (180, 360, 2)
+running pyramid with different filters for flag: 256
+running optical flow algorithm with fliter window: 50
+running optical flow algorithm with fliter window: 25
+running optical flow algorithm with fliter window: 12
+frame succesfully warped with coarsened flow.
+prvs mean: 71.5639682195216
+Flow coarsened from shape: (1440, 2880, 2) to shape: (360, 720, 2)
+running pyramid with different filters for flag: 256
+running optical flow algorithm with fliter window: 100
+running optical flow algorithm with fliter window: 50
+running optical flow algorithm with fliter window: 25
+running optical flow algorithm with fliter window: 12
+frame succesfully warped with coarsened flow.
+prvs mean: 71.54969135802469
+Flow coarsened from shape: (1440, 2880, 2) to shape: (720, 1440, 2)
+running pyramid with different filters for flag: 256
+running optical flow algorithm with fliter window: 200
+running optical flow algorithm with fliter window: 100
+running optical flow algorithm with fliter window: 50
+running optical flow algorithm with fliter window: 25
+running optical flow algorithm with fliter window: 12
+frame succesfully warped with coarsened flow.
+prvs mean: 71.53467592592592
+
