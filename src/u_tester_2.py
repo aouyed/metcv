@@ -34,6 +34,6 @@ ax=sns.lineplot(x=df_jpl['lat'], y=df_jpl['u_scaled_approx'], label='jpl',linewi
 ax=sns.lineplot(x=df_dof['lat'], y=df_dof['u_scaled_approx'], label='dof',linewidth=1)
 #ax=sns.lineplot(x=df_cc_t10['lat'], y=df_cc_t10['u_scaled_approx'], label='cct10',linewidth=1)
 #ax=sns.lineplot(x=df_cc_t5['lat'], y=df_cc_t5['u_scaled_approx'], label='cct5',linewidth=1)
-ax=sns.lineplot(x=df_cc_t30['lat'], y=df_cc_t30['u_scaled_approx'], label='cct30',linewidth=1)
+#ax=sns.lineplot(x=df_cc_t30['lat'], y=df_cc_t30['u_scaled_approx'], label='cct30',linewidth=1)
 
-ax=sns.lineplot(x=df_u['lat'], y=df_u['u'], label='truth',linewidth=1)
+ax=sns.lineplot(x=df_u['lat'], y=df_u['u'], label='truth',linewidth=3)

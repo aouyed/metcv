@@ -77,6 +77,8 @@ def parser(process_parameters, parameters):
     parser.add_argument(
         "-lam", "--Lambda", help="lambda for tvl1 algorithm", type=float)
     parser.add_argument(
+        "-pf", "--pyramid_factor", help="factor used to divide pyramid", type=float)
+    parser.add_argument(
         "-levs", "--levels", help="pyramid scheme levels for DOF", type=int)
     parser.add_argument(
         "-b", "--builder", help="Whether we build the dataframe", action="store_true")
@@ -173,6 +175,8 @@ def parser(process_parameters, parameters):
         parameters.levels = args.levels
     if args.winsizes is not None:
         parameters.winsizes = args.winsizes
+    if args.pyramid_factor is not None:
+        parameters.pyramid_factor = args.pyramid_factor
 
 
 def main():

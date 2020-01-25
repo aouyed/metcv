@@ -53,7 +53,8 @@ class Parameters:
             'cc_average_x': 720,
             'cc_average_y': 720,
             'Lambda': 0.0025,
-            'coarse_grid': 1.0
+            'coarse_grid': 1.0,
+            'pyramid_factor': 2
 
         }
         for (prop, default) in prop_defaults.items():
