@@ -18,7 +18,8 @@ def coarse_fun(file_paths, date, grid, var):
     frame = np.load(file)
     factor = 0.0625/grid
     try:
-        resized_frame = cv2.resize(frame, None, fx=factor, fy=factor)
+        resized_frame = cv2.resize(
+            frame, None, fx=factor, fy=factor, interpolation=cv2.INTER_CUBIC)
     except:
         resized_frame = frame
     filename = os.path.basename(file)
