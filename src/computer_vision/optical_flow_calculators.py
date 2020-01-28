@@ -49,14 +49,23 @@ def coarse_flow(flow,  pyr_scale, levels, iterations, poly_n, poly_sigma, prvs, 
 
 def pyramid(flow, grid, coarse_grid, prvs, next_frame,  pyr_scale, levels, winsizes, iterations, poly_n, poly_sigma, pyramid_factor):
 
-    while grid < coarse_grid:
+    while 0.09375 < coarse_grid:
         prvs, flow = coarse_flow(flow,  pyr_scale, levels, iterations, poly_n, poly_sigma,
                                  prvs, next_frame, grid, coarse_grid, 0, winsizes)
+       # if coarse_grid > 0.124 and coarse_grid <0.126:
+         #   winsizes=[88,68,52,40,20,10]
         winsizes.insert(0, int(round(pyramid_factor*winsizes[0])))
         coarse_grid = coarse_grid/pyramid_factor
 
-
+####test pyramid
     print('multiscale flow processing ...')
+    pyramid_factor=0.125/0.09375
+    coarse_grid=0.09375
+    winsizes.pop(0)
+    winsizes.insert(0, int(round(pyramid_factor*winsizes[0])))
+    #prvs, flow = coarse_flow(flow,  pyr_scale, levels, iterations, poly_n, poly_sigma,
+     #                            prvs, next_frame, grid, coarse_grid, 0, winsizes)
+   # winsizes.insert(0, int(round(pyramid_factor*winsizes[0])))
     prvs, flow = multiscale_farneback(
         flow,  prvs, next_frame, pyr_scale, levels, winsizes, iterations, poly_n, poly_sigma, 0)
 
