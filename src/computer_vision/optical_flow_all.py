@@ -47,9 +47,8 @@ def optical_flow(start_date, var, pyr_scale, levels, iterations, poly_n, poly_si
 
         if farneback:
             print('Initializing Farnebacks algorithm...')
-            if coarse_grid > grid:
-                prvs, flow, winsizes_final = ofc.pyramid(flow, grid, coarse_grid, prvs, next_frame,  pyr_scale,
-                                                         levels, winsizes.copy(), iterations, poly_n, poly_sigma, pyramid_factor)
+            prvs, flow, winsizes_final = ofc.pyramid(flow, grid, coarse_grid, prvs, next_frame,  pyr_scale,
+levels, winsizes.copy(), iterations, poly_n, poly_sigma, pyramid_factor)
 
         if do_cross_correlation:
             print("Initializing cross correlation...")

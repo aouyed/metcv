@@ -33,7 +33,6 @@ def coarse_flow(flow,  pyr_scale, levels, iterations, poly_n, poly_sigma, prvs, 
     resized_flow[:, :, 1] = resized_flowy
 
     factor = 1/factor
-
     resized_prvs, resized_flow = multiscale_farneback(
         resized_flow,  resized_prvs, resized_next, pyr_scale, levels, winsizes_small, iterations, poly_n, poly_sigma, flag)
     shape0 = (flow.shape[1], flow.shape[0])
@@ -56,11 +55,13 @@ def pyramid(flow, grid, coarse_grid, prvs, next_frame,  pyr_scale, levels, winsi
         winsizes.insert(0, int(round(pyramid_factor*winsizes[0])))
         coarse_grid = coarse_grid/pyramid_factor
 
+
+    print('multiscale flow processing ...')
     prvs, flow = multiscale_farneback(
         flow,  prvs, next_frame, pyr_scale, levels, winsizes, iterations, poly_n, poly_sigma, 0)
 
-    flow[:, :, 0] = cv2.blur(flow[:, :, 0], (3, 3))
-    flow[:, :, 1] = cv2.blur(flow[:, :, 1], (3, 3))
+
+
 
     return prvs, flow, winsizes
 
