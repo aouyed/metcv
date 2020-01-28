@@ -63,9 +63,30 @@ def pyramid(flow, grid, coarse_grid, prvs, next_frame,  pyr_scale, levels, winsi
     coarse_grid=0.09375
     winsizes.pop(0)
     winsizes.insert(0, int(round(pyramid_factor*winsizes[0])))
+    
+    prvs, flow = coarse_flow(flow,  pyr_scale, levels, iterations, poly_n, poly_sigma,
+                                prvs, next_frame, grid, coarse_grid, 0, winsizes)
+    pyramid_factor= 0.09375/0.08
+    winsizes.insert(0, int(round(pyramid_factor*winsizes[0])))
     #prvs, flow = coarse_flow(flow,  pyr_scale, levels, iterations, poly_n, poly_sigma,
-     #                            prvs, next_frame, grid, coarse_grid, 0, winsizes)
+     #                           prvs, next_frame, grid, coarse_grid, 0, winsizes)
+    #pyramid_factor= 0.08/0.078
+    #winsizes.insert(0, int(round(pyramid_factor*winsizes[0])))
+   # prvs, flow = coarse_flow(flow,  pyr_scale, levels, iterations, poly_n, poly_sigma,
+                       #         prvs, next_frame, grid, coarse_grid, 0, winsizes)
+   # pyramid_factor= 0.078/0.076
+    # winsizes.insert(0, int(round(pyramid_factor*winsizes[0])))
+    #prvs, flow = coarse_flow(flow,  pyr_scale, levels, iterations, poly_n, poly_sigma,
+     #                           prvs, next_frame, grid, coarse_grid, 0, winsizes)
+   # pyramid_factor= 0.076/0.074
    # winsizes.insert(0, int(round(pyramid_factor*winsizes[0])))
+   # prvs, flow = coarse_flow(flow,  pyr_scale, levels, iterations, poly_n, poly_sigma,
+    #                            prvs, next_frame, grid, coarse_grid, 0, winsizes)
+    # pyramid_factor= 0.076/0.072
+    # winsizes.insert(0, int(round(pyramid_factor*winsizes[0])))
+    #prvs, flow = coarse_flow(flow,  pyr_scale, levels, iterations, poly_n, poly_sigma,
+     #                           prvs, next_frame, grid, coarse_grid, 0, winsizes)
+    #pyramid_factor= 0.072/0.07
     prvs, flow = multiscale_farneback(
         flow,  prvs, next_frame, pyr_scale, levels, winsizes, iterations, poly_n, poly_sigma, 0)
 
