@@ -27,6 +27,8 @@ def optical_flow(start_date, var, pyr_scale, levels, iterations, poly_n, poly_si
     frame1 = ofc.drop_nan(frame1)
     frame1 = cv2.normalize(src=frame1, dst=None,
                            alpha=0, beta=255, norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_8UC1)
+    frame1 = cv2.equalizeHist(frame1)
+
     prvs = frame1
     file_paths_flow = {}
     file_paths.pop(start_date, None)
@@ -39,6 +41,7 @@ def optical_flow(start_date, var, pyr_scale, levels, iterations, poly_n, poly_si
         frame2 = cv2.normalize(src=frame2, dst=None,
                                alpha=0, beta=255, norm_type=cv2.NORM_MINMAX,
                                dtype=cv2.CV_8UC1)
+        frame2 = cv2.equalizeHist(frame2)
         next_frame = frame2
         shape = list(np.shape(frame2))
         shape.append(2)
@@ -48,7 +51,7 @@ def optical_flow(start_date, var, pyr_scale, levels, iterations, poly_n, poly_si
         if farneback:
             print('Initializing Farnebacks algorithm...')
             prvs, flow, winsizes_final = ofc.pyramid(flow, grid, coarse_grid, prvs, next_frame,  pyr_scale,
-levels, winsizes.copy(), iterations, poly_n, poly_sigma, pyramid_factor)
+                                                     levels, winsizes.copy(), iterations, poly_n, poly_sigma, pyramid_factor, Lambda)
 
         if do_cross_correlation:
             print("Initializing cross correlation...")

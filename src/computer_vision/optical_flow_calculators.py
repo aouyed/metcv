@@ -10,7 +10,16 @@ def winsizes_creator(winsizes, pyramid_factor):
         winsizes.append(int(round(winsizes[-1]/pyramid_factor)))
     return winsizes
 
+def tlv1_flow(flow,  prvs,next_frame,  Lambda):
+    print('Initializing TV-L1 algorithm...')
+    optical_flow = cv2.optflow.DualTVL1OpticalFlow_create()
+    optical_flow.setLambda(Lambda)
+    flowd = optical_flow.calc(prvs, next_frame, None)
+    flow=flow+flowd
+    prvs = warp_flow(prvs, flowd)
+    return prvs, flow
 
+            
 def coarse_flow(flow,  pyr_scale, levels, iterations, poly_n, poly_sigma, prvs, next_frame, grid, coarse_grid, flag, winsizes_small):
     flowd = np.zeros(flow.shape)
     factor = grid/coarse_grid
@@ -47,9 +56,9 @@ def coarse_flow(flow,  pyr_scale, levels, iterations, poly_n, poly_sigma, prvs, 
     return prvs, flow
 
 
-def pyramid(flow, grid, coarse_grid, prvs, next_frame,  pyr_scale, levels, winsizes, iterations, poly_n, poly_sigma, pyramid_factor):
+def pyramid(flow, grid, coarse_grid, prvs, next_frame,  pyr_scale, levels, winsizes, iterations, poly_n, poly_sigma, pyramid_factor, Lambda):
 
-    while 0.09375 < coarse_grid:
+    while grid < coarse_grid:
         prvs, flow = coarse_flow(flow,  pyr_scale, levels, iterations, poly_n, poly_sigma,
                                  prvs, next_frame, grid, coarse_grid, 0, winsizes)
        # if coarse_grid > 0.124 and coarse_grid <0.126:
@@ -59,19 +68,22 @@ def pyramid(flow, grid, coarse_grid, prvs, next_frame,  pyr_scale, levels, winsi
 
 ####test pyramid
     print('multiscale flow processing ...')
-    pyramid_factor=0.125/0.09375
-    coarse_grid=0.09375
-    winsizes.pop(0)
-    winsizes.insert(0, int(round(pyramid_factor*winsizes[0])))
+    #pyramid_factor=0.125/0.09375
+    #coarse_grid=0.09375
+    #winsizes.pop(0)
+    #winsizes.insert(0, int(round(pyramid_factor*winsizes[0])))
     
-    prvs, flow = coarse_flow(flow,  pyr_scale, levels, iterations, poly_n, poly_sigma,
-                                prvs, next_frame, grid, coarse_grid, 0, winsizes)
-    pyramid_factor= 0.09375/0.08
-    winsizes.insert(0, int(round(pyramid_factor*winsizes[0])))
     #prvs, flow = coarse_flow(flow,  pyr_scale, levels, iterations, poly_n, poly_sigma,
      #                           prvs, next_frame, grid, coarse_grid, 0, winsizes)
-    #pyramid_factor= 0.08/0.078
+    #pyramid_factor= 0.09375/0.08
     #winsizes.insert(0, int(round(pyramid_factor*winsizes[0])))
+    #prvs, flow = coarse_flow(flow,  pyr_scale, levels, iterations, poly_n, poly_sigma,
+     #                           prvs, next_frame, grid, coarse_grid, 0, winsizes)
+    #pyramid_factor= 0.08/0.068
+    #winsizes=[int(pyramid_factor*winsizes[0])]
+   # prvs, flow = tlv1_flow(flow, prvs,next_frame,  Lambda)
+
+    
    # prvs, flow = coarse_flow(flow,  pyr_scale, levels, iterations, poly_n, poly_sigma,
                        #         prvs, next_frame, grid, coarse_grid, 0, winsizes)
    # pyramid_factor= 0.078/0.076
