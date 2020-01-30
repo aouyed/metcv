@@ -29,17 +29,7 @@ def df_loop(df, grid, dt):
 def parallelize_dataframe(df, grid, dt):
     start_time = time.time()
     print('start parallelization routine')
-
-    #df_split = np.array_split(df, n_cores)
-    #grid = [grid]*len(df_split)
-    #dt = [dt]*len(df_split)
-    #pool = Pool(n_cores)
-    #df = pd.concat(pool.starmap(func, zip(df_split, grid, dt)))
-    # pool.close()
-    # pool.join()
     df = df_loop(df, grid, dt)
-    #print('cores: '+str(n_cores)+' seconds: ' + str(time.time() - start_time))
-
     return df
 
 
@@ -143,9 +133,11 @@ def df_concatenator(dataframes_dict, start_date, end_date, track, jpl):
             if track:
                 df_unit['u_scaled_approx'] = df_unit['utrack']
                 df_unit['v_scaled_approx'] = df_unit['vtrack']
+                #df_unit['u_scaled_approx'] = df_unit['umean']
+                #df_unit['v_scaled_approx'] = df_unit['vmean']
 
                 df_unit = df_unit[['lon', 'lat', 'u', 'v',
-                                   'u_scaled_approx', 'v_scaled_approx', 'utrack', 'vtrack', 'qv']]
+                                   'u_scaled_approx', 'v_scaled_approx', 'utrack', 'vtrack', 'qv', 'umean', 'vmean']]
             if not jpl:
                 df_unit = error_df(df_unit)
                 df_unit = df_unit[['lon', 'lat', 'speed', 'qv', 'speed_approx', 'speed_error',
@@ -156,6 +148,8 @@ def df_concatenator(dataframes_dict, start_date, end_date, track, jpl):
                 else:
                     df = pd.concat([df, df_unit])
             else:
+                #df_unit['u'] = df_unit['umean']
+               # df_unit['v'] = df_unit['vmean']
                 df_unit = df_unit.reset_index(drop=True)
                 if df.empty:
                     df = df_unit
@@ -167,7 +161,7 @@ def df_concatenator(dataframes_dict, start_date, end_date, track, jpl):
         df = df.set_index('datetime')
         df = error_df(df)
         df = df[['lon', 'lat', 'speed', 'qv', 'speed_approx', 'speed_error',
-                 'error_v', 'error_u', 'u_scaled_approx', 'v_scaled_approx', 'u', 'v', 'utrack', 'vtrack']]
+                 'error_v', 'error_u', 'u_scaled_approx', 'v_scaled_approx', 'u', 'v', 'utrack', 'vtrack', 'umean', 'vmean']]
 
     return df
 

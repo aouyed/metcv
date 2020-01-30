@@ -99,16 +99,13 @@ def plotter(df, directory, date):
                 plt.close()
 
 
-def plot_average(deltax, df, directory, xlist, varx, vary):
-    if not os.path.exists(directory):
-        os.makedirs(directory)
+def plot_average(deltax, df, xlist, varx, vary):
     df_mean = pd.DataFrame()
     df_unit = pd.DataFrame(data=[0], columns=[varx])
     print("calculating averages ...")
     for x in tqdm(xlist):
         df_a = df[df[varx] >= x]
         df_a = df_a[df_a[varx] <= x+deltax]
-
         df_unit[varx] = x
         df_unit[vary+'_count'] = df_a[vary].shape[0]
         df_unit[vary + '_std'] = df_a[vary].std()
@@ -117,9 +114,9 @@ def plot_average(deltax, df, directory, xlist, varx, vary):
             df_mean = df_unit
         else:
             df_mean = pd.concat([df_mean, df_unit])
-    print("preparing line plots...")
-    df_mean.to_pickle(directory+'/df_mean_'+varx+'_'+vary+'.pkl')
-    line_plotter(df_mean, directory)
+
+    # df_mean.to_pickle(directory+'/df_mean_'+varx+'_'+vary+'.pkl')
+    return df_mean
 
 
 def line_plotter(df, directory):
@@ -286,6 +283,6 @@ def scaling_lat(lon, lat, dpixel):
 def latlon_converter(df, dtheta):
     """coordinate transform for pixel to angular"""
 
-    df['lat'] = df['y']*dtheta - 90 
-    df['lon'] = df['x']*dtheta - 180 
+    df['lat'] = df['y']*dtheta - 90
+    df['lon'] = df['x']*dtheta - 180
     return df

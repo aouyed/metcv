@@ -91,6 +91,13 @@ def downloader(parameters):
     kwargs = vars(parameters)
     downloader_function(parameters)
 
+    parameters.var = 'umean'
+    kwargs = vars(parameters)
+    downloader_function(parameters)
+    parameters.var = 'vmean'
+    kwargs = vars(parameters)
+    downloader_function(parameters)
+
     # parameters.var = 'AIRDENS'
     # kwargs = vars(parameters)
     # gd.downloader(**kwargs)

@@ -27,7 +27,7 @@ def optical_flow(start_date, var, pyr_scale, levels, iterations, poly_n, poly_si
     frame1 = ofc.drop_nan(frame1)
     frame1 = cv2.normalize(src=frame1, dst=None,
                            alpha=0, beta=255, norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_8UC1)
-    frame1 = cv2.equalizeHist(frame1)
+    #frame1 = cv2.equalizeHist(frame1)
 
     prvs = frame1
     file_paths_flow = {}
@@ -38,20 +38,14 @@ def optical_flow(start_date, var, pyr_scale, levels, iterations, poly_n, poly_si
         frame2 = np.load(file)
         frame2 = ofc.drop_nan(frame2)
 
-        frame2 = cv2.normalize(src=frame2, dst=None,
-                               alpha=0, beta=255, norm_type=cv2.NORM_MINMAX,
-                               dtype=cv2.CV_8UC1)
-        frame2 = cv2.equalizeHist(frame2)
+        frame2 = cv2.normalize(src=frame2, dst=None, alpha=0,
+                               beta=255, norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_8UC1)
+        #frame2 = cv2.equalizeHist(frame2)
         next_frame = frame2
         shape = list(np.shape(frame2))
         shape.append(2)
         shape = tuple(shape)
         flow = np.zeros(shape)
-
-        if farneback:
-            print('Initializing Farnebacks algorithm...')
-            prvs, flow, winsizes_final = ofc.pyramid(flow, grid, coarse_grid, prvs, next_frame,  pyr_scale,
-                                                     levels, winsizes.copy(), iterations, poly_n, poly_sigma, pyramid_factor, Lambda)
 
         if do_cross_correlation:
             print("Initializing cross correlation...")
@@ -60,7 +54,18 @@ def optical_flow(start_date, var, pyr_scale, levels, iterations, poly_n, poly_si
                 flowd0 = cc.amv_calculator(prvs, next_frame, box,
                                            sub_pixel, average_lon, int(stride_n))
                 flow = flow + flowd0
-                prvs = warp_flow(prvs, flowd0)
+                prvs = ofc.warp_flow(prvs, flowd0)
+
+        if farneback:
+            print('Initializing Farnebacks algorithm...')
+           # prvs, flow, winsizes_final = ofc.pyramid(flow, grid, coarse_grid, prvs, next_frame,  pyr_scale,
+            #                                         levels, winsizes.copy(), iterations, poly_n, poly_sigma, pyramid_factor, Lambda)
+
+            prvs, flow = ofc.coarse_flow_deep(
+                flow,  prvs, next_frame, grid, coarse_grid)
+            optical_flow = cv2.optflow.createOptFlow_DeepFlow()
+
+            flow = flow+optical_flow.calc(prvs, next_frame, None)
 
         filename = os.path.basename(file)
         filename = os.path.splitext(filename)[0]

@@ -13,11 +13,11 @@ def loader(var, pressure, start_date, end_date, dt, jpl_disk, level,  **kwargs):
     d1 = end_date
     date_list = gd.daterange(d0, d1, 1)
     file_paths = {}
-    if var.lower() in ('utrack', 'vtrack'):
+    if var.lower() in ('utrack', 'vtrack', 'umean', 'vmean'):
         filenames = glob.glob("../data/raw/jpl/processed_jpl/*")
     else:
         filenames = glob.glob("../data/raw/jpl/raw_jpl/*")
-    if  jpl_disk:
+    if jpl_disk:
         for i, date in enumerate(date_list):
             print('Downloading data for variable ' +
                   var + ' for date: ' + str(date))
@@ -25,7 +25,7 @@ def loader(var, pressure, start_date, end_date, dt, jpl_disk, level,  **kwargs):
             if not os.path.exists(directory_path):
                 os.makedirs(directory_path)
 
-            if var.lower() == 'utrack' or var.lower() == 'vtrack':
+            if var.lower() in ('utrack', 'vtrack', 'umean', 'vmean'):
                 ds = xr.open_dataset(filenames[0])
                 T = ds.get(var.lower())
                 T = T.values
@@ -49,4 +49,4 @@ def loader(var, pressure, start_date, end_date, dt, jpl_disk, level,  **kwargs):
         pickle.dump(file_paths, f)
     else:
        # gd.downloader(start_date, end_date, var, level, False, dt)
-        gd.disk_downloader(start_date,end_date, dt, level,var)
+        gd.disk_downloader(start_date, end_date, dt, level, var)

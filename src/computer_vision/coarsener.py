@@ -57,7 +57,7 @@ def coarsener(grid, track, jpl_disk, **kwargs):
                 # if var in ('utrack', 'vtrack'):
                  #   resized_frame = frame
 
-        if jpl_disk or (var in ('utrack', 'vtrack')) or (not track):
+        if jpl_disk or (var in ('utrack', 'vtrack', 'umean', 'vmean')) or (not track):
             path = '../data/interim/dictionaries/vars'
             if not os.path.exists(path):
                 os.makedirs(path)
