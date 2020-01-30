@@ -61,11 +61,15 @@ def optical_flow(start_date, var, pyr_scale, levels, iterations, poly_n, poly_si
            # prvs, flow, winsizes_final = ofc.pyramid(flow, grid, coarse_grid, prvs, next_frame,  pyr_scale,
             #                                         levels, winsizes.copy(), iterations, poly_n, poly_sigma, pyramid_factor, Lambda)
 
-            prvs, flow = ofc.coarse_flow_deep(
-                flow,  prvs, next_frame, grid, coarse_grid)
-            optical_flow = cv2.optflow.createOptFlow_DeepFlow()
+       #     prvs, flow = ofc.coarse_flow_deep(
+        #        flow,  prvs, next_frame, grid, 4*grid)
 
-            flow = flow+optical_flow.calc(prvs, next_frame, None)
+        prvs, flow = ofc.coarse_flow_deep(
+            flow,  prvs, next_frame, grid, grid)
+
+        optical_flow = cv2.optflow.createOptFlow_DeepFlow()
+
+        flow = flow+optical_flow.calc(prvs, next_frame, None)
 
         filename = os.path.basename(file)
         filename = os.path.splitext(filename)[0]
