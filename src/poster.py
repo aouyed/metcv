@@ -34,7 +34,9 @@ def plotter(df,values):
     ax = plt.axes(projection=ccrs.PlateCarree())
     ax.coastlines()
     ax.quiver(X,Y,U,V)
-    im = ax.imshow(piv, cmap="YlGnBu",extent=[-180,180,-90,90],origin='lower')
+    pmap=matplotlib.cm.get_cmap('YlGnBu')
+    pmap.set_bad(color='black')
+    im = ax.imshow(piv, cmap=pmap,extent=[-180,180,-90,90],origin='lower')
     cbar=fig.colorbar(im, ax=ax)
    
 
