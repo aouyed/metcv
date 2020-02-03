@@ -23,6 +23,7 @@ def df_loop(df, grid, dt):
     dt_inv = 1/dt
     df = dfc.latlon_converter(df, grid)
     df = dfc.scaling_df_approx(df, grid, dt_inv)
+    df = dfc.vorticity(df)
     return df
 
 
@@ -136,12 +137,12 @@ def df_concatenator(dataframes_dict, start_date, end_date, track, jpl):
                 #df_unit['u_scaled_approx'] = df_unit['umean']
                 #df_unit['v_scaled_approx'] = df_unit['vmean']
 
-                df_unit = df_unit[['lon', 'lat', 'u', 'v',
-                                   'u_scaled_approx', 'v_scaled_approx', 'utrack', 'vtrack', 'qv', 'umean', 'vmean']]
+                df_unit = df_unit[['lon', 'lat', 'u', 'v', 'x_m', 'y_m',
+                                   'u_scaled_approx', 'v_scaled_approx', 'utrack', 'vtrack', 'qv', 'umean', 'vmean', 'vorticity']]
             if not jpl:
                 df_unit = error_df(df_unit)
-                df_unit = df_unit[['lon', 'lat', 'speed', 'qv', 'speed_approx', 'speed_error',
-                                   'error_v', 'error_u', 'u_scaled_approx', 'v_scaled_approx', 'u', 'v']]
+                df_unit = df_unit[['lon', 'lat', 'x_m', 'y_m', 'speed', 'qv', 'speed_approx', 'speed_error',
+                                   'error_v', 'error_u', 'u_scaled_approx', 'v_scaled_approx', 'u', 'v', 'vorticity']]
                 df_unit = df_unit.apply(pd.to_numeric, downcast='float')
                 if df.empty:
                     df = df_unit
@@ -160,8 +161,8 @@ def df_concatenator(dataframes_dict, start_date, end_date, track, jpl):
         df['datetime'] = end_date
         df = df.set_index('datetime')
         df = error_df(df)
-        df = df[['lon', 'lat', 'speed', 'qv', 'speed_approx', 'speed_error',
-                 'error_v', 'error_u', 'u_scaled_approx', 'v_scaled_approx', 'u', 'v', 'utrack', 'vtrack', 'umean', 'vmean']]
+        df = df[['lon', 'lat', 'speed', 'x_m', 'y_m', 'qv', 'speed_approx', 'speed_error',
+                 'error_v', 'error_u', 'u_scaled_approx', 'v_scaled_approx', 'u', 'v', 'utrack', 'vtrack', 'umean', 'vmean', 'vorticity']]
 
     return df
 
@@ -185,75 +186,6 @@ def data_analysis(start_date, end_date, var, path, cutoff, track, speed_cutoff, 
 
     if cutoff > 0:
         df = df[df.speed_error <= cutoff]
-
-    # df_printer(df, directory)
-
-    scatter_directory = '../data/processed/scatter_'+path
-    line_directory = '../data/processed/line_'+path
-
-    # dfc.plotter(df[['speed', 'speed_approx']],scatter_directory, end_date)
-    #            scatter_directory, end_date)
-    # dfc.plotter(df[['flow_u', 'u_scaled_approx', 'u', 'error_u']],
-    #            scatter_directory, end_date)
-    # dfc.plotter(df[['lat',  'u', 'v', 'error_u', 'error_v']],
-    #            scatter_directory, end_date)
-
-
-#####
-    deltax = 2
-    xlist = np.arange(-90, 90, deltax)
-   #dfc.plot_average(deltax, df, line_directory, xlist, 'lat', 'speed_error')
-    #dfc.plot_average(deltax, df, line_directory, xlist, 'lat', 'speed')
-    #dfc.plot_average(deltax, df, line_directory, xlist, 'lat', 'speed_approx')
-    # dfc.plot_average(deltax, df, line_directory,
-    #                xlist, 'lat', 'u_scaled_approx')
-    # dfc.plot_average(deltax, df, line_directory,
-    #                 xlist, 'lat', 'v_scaled_approx')
-    #dfc.plot_average(deltax, df, line_directory, xlist, 'lat', 'error_u')
-    # dfc.plot_average(deltax, df, line_directory, xlist, 'lat', 'error_v')
-   # dfc.plot_average(deltax, df, line_directory, xlist, 'lat', 'u')
-    # dfc.plot_average(deltax, df, line_directory, xlist, 'lat', 'v')
-#####
-#    deltax=1
-#    xlist = np.arange(-180, 180, deltax)
-#    dfc.plot_average(deltax, df, line_directory, xlist, 'lon', 'speed_error')
-#    dfc.plot_average(deltax, df, line_directory, xlist, 'lon', 'speed')
-#    dfc.plot_average(deltax, df, line_directory, xlist, 'lon', 'speed_approx')
-#    dfc.plot_average(deltax, df, line_directory, xlist, 'lon', 'u_scaled_approx')
-#    dfc.plot_average(deltax, df, line_directory, xlist, 'lon', 'v_scaled_approx')
-####
-    #deltax = 1
-    #xlist = np.arange(df['speed'].min(), df['speed'].max(), deltax)
-    #dfc.plot_average(deltax, df, line_directory, xlist, 'speed', 'speed_error')
-
-
-####
-   # deltax = 1
-    #xlist = np.arange(df['u'].min(), df['u'].max(), deltax)
-    #dfc.plot_average(deltax, df, line_directory, xlist, 'u', 'error_u')
-
-####
-    #deltax = 1
-    #xlist = np.arange(df['v'].min(), df['v'].max(), deltax)
-    #dfc.plot_average(deltax, df, line_directory, xlist, 'v', 'error_u')
-
-####
-    #deltax = 1
-    #xlist = np.arange(df['u'].min(), df['u'].max(), deltax)
-    #dfc.plot_average(deltax, df, line_directory, xlist, 'u', 'u_scaled_approx')
-
-
-####
-    #deltax = 1
-    #xlist = np.arange(df['v'].min(), df['v'].max(), deltax)
-    #dfc.plot_average(deltax, df, line_directory, xlist, 'v', 'v_scaled_approx')
-
-
-# heatmap_directory = '../data/processed/heatmaps/'+path
-# print(heatmap_directory)
-
- # dfc.heatmap_plotter(
- # df[['lat', 'lon', 'speed_approx', ##'speed', 'qv']], end_date, heatmap_directory)
 
     df_stats = df_summary(df, count)
 

@@ -15,7 +15,8 @@ import os
 import matplotlib.pyplot as plt
 import pandas as pd
 import metpy.calc as mpcalc
-from scipy.interpolate import interpn
+from scipy.interpolate import bisplrep
+from scipy.interpolate import bisplev
 import math
 from tqdm import tqdm
 from numba import jit
@@ -151,6 +152,27 @@ def dataframe_quantum(file, date, dictionary_dict):
     return df
 
 
+def initial_vorticity(frame, grid, dt_inv):
+
+    df = pd.DataFrame(frame[:, :, 0]).stack().rename_axis(
+        ['y', 'x']).reset_index(name='flow_u')
+    df_1 = pd.DataFrame(frame[:, :, 1]).stack().rename_axis(
+        ['y', 'x']).reset_index(name='flow_v')
+    df['flow_v'] = df_1['flow_v']
+    print('done pivoting')
+    df = latlon_converter(df, grid)
+    print('done converting to lat lon')
+    df = scaling_df_approx(df, grid, dt_inv)
+    print('done scaling')
+    df = vorticity(df)
+    print('done vorticity')
+    omega = pd.pivot_table(df, values='vorticity',
+                           index=["lat"], columns=["lon"], fill_value=0)
+    omega = omega.to_numpy()
+
+    return omega
+
+
 def dataframe_pivot(frame, var):
     df = pd.DataFrame(frame).stack().rename_axis(
         ['y', 'x']).reset_index(name=var.lower())
@@ -184,6 +206,36 @@ def scaling_df_approx(df, grid, dt_inv):
         df['lon'], df['lat'], df['flow_u'], grid, dt_inv)
     df['v_scaled_approx'] = scaling_v(
         df['lon'], df['lat'], df['flow_v'], grid, dt_inv)
+    df['x_m'] = scaling_u(
+        df['lon'], df['lat'], 1, grid, 1)
+    df['y_m'] = scaling_v(
+        df['lon'], df['lat'], 1, grid, 1)
+    return df
+
+
+def vorticity(df):
+    print('Calculating vorticity...')
+    u_a = pd.pivot_table(df, values='u_scaled_approx',
+                         index=["lat"], columns=["lon"], fill_value=0)
+    v_a = pd.pivot_table(df, values='v_scaled_approx',
+                         index=["lat"], columns=["lon"], fill_value=0)
+    dx = pd.pivot_table(df, values='x_m',
+                        index=["lat"], columns=["lon"], fill_value=0)
+    dy = pd.pivot_table(df, values='y_m',
+                        index=["lat"], columns=["lon"], fill_value=0)
+
+    u_a = u_a.to_numpy()
+    v_a = v_a.to_numpy()
+    dx = dx.to_numpy()
+    dy = dy.to_numpy()
+    dudy = np.array(np.gradient(u_a))
+    dudy = dudy[0, ...]/dy
+    dvdx = np.array(np.gradient(v_a))
+    dvdx = dvdx[1, ...]/dx
+    omega = dvdx-dudy
+    df_u = pd.DataFrame(omega).stack().rename_axis(
+        ['y', 'x']).reset_index(name='vorticity')
+    df = df.merge(df_u, how='left')
     return df
 
 
