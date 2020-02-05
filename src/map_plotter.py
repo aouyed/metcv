@@ -45,8 +45,8 @@ def plotter(df,values):
     V = cv2.resize(V,None,fx=factor,fy=factor)
     print(U.shape)
     print(V.shape)
-    X=np.arange(-180,180,grid)
-    Y=np.arange(-90,90,grid)
+    X=np.arange(-180,180 -grid,grid)
+    Y=np.arange(-90,90-grid,grid)
     print(len(X))
     print(len(Y))
     fig, ax = plt.subplots()
@@ -56,7 +56,7 @@ def plotter(df,values):
     ax.quiver(X,Y,U,V, scale=250)
     pmap=plt.cm.BuGn
     pmap.set_bad(color='black')
-    im = ax.imshow(piv, cmap=pmap,extent=[-180,180,-90,90],origin='lower')
+    im = ax.imshow(piv, cmap=pmap,extent=[-180,180,-90,90],origin='lower',vmin=-1, vmax=0)
     gl = ax.gridlines(crs=ccrs.PlateCarree(), draw_labels=True,
                   linewidth=2, color='gray', alpha=0, linestyle='--')
     gl.xlabels_top = False
@@ -76,12 +76,13 @@ def plotter(df,values):
 start_date=datetime.datetime(2006,7,1,6,0,0,0)
 end_date=datetime.datetime(2006,7,1,7,0,0,0)
 df = aa.df_concatenator(dataframes_dict, start_date, end_date, False, True)
-df_jpl = aa.df_concatenator(dataframes_dict, start_date, end_date, True, True)
+df=df.dropna()
+#df_jpl = aa.df_concatenator(dataframes_dict, start_date, end_date, True, True)
 
 
-df['delta_error']=-(df['speed_error']-df_jpl['speed_error'])
-df['qv']=1000*df['qv']
-df_jpl['qv']=1000*df_jpl['qv']
-print(df['delta_error'])
-print(df)
-plotter(df,'qv')
+#d#f['delta_error']=-(df['speed_error']-df_jpl['speed_error'])
+#df#['qv']=1000*df['qv']
+
+#df_jpl['qv']=1000*df_jpl['qv']
+df['vorticity']=1e4*df['vorticity']
+plotter(df,'vorticity')

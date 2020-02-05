@@ -23,7 +23,7 @@ def df_loop(df, grid, dt):
     dt_inv = 1/dt
     df = dfc.latlon_converter(df, grid)
     df = dfc.scaling_df_approx(df, grid, dt_inv)
-    df = dfc.vorticity(df)
+    df, _ = dfc.vorticity(df)
     return df
 
 
@@ -188,6 +188,9 @@ def data_analysis(start_date, end_date, var, path, cutoff, track, speed_cutoff, 
         df = df[df.speed_error <= cutoff]
 
     df_stats = df_summary(df, count)
+
+    print('vorticity_mean: ')
+    print(df['vorticity'].mean())
 
     print('Done!')
 

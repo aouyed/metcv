@@ -8,6 +8,8 @@ Created on Sun Nov 17 12:56:34 2019
 
 import glob
 import pickle
+from computer_vision import optical_flow_calculators as ofc
+import cv2
 from datetime import timedelta
 import seaborn as sns
 import numpy as np
@@ -20,6 +22,9 @@ from scipy.interpolate import bisplev
 import math
 from tqdm import tqdm
 from numba import jit
+import metpy
+from metpy.units import units
+import scipy.ndimage as ndimage
 
 
 def density_scatter(x, y, ax=None, sort=True, bins=20, **kwargs):
@@ -153,6 +158,11 @@ def dataframe_quantum(file, date, dictionary_dict):
 
 
 def initial_vorticity(frame, grid, dt_inv):
+    shape0 = (frame.shape[1], frame.shape[0])
+    cg = grid
+    factor = grid/cg
+    # frame = cv2.resize(frame, None, fx=factor,
+    #                  fy=factor, interpolation=cv2.INTER_CUBIC)
 
     df = pd.DataFrame(frame[:, :, 0]).stack().rename_axis(
         ['y', 'x']).reset_index(name='flow_u')
@@ -160,15 +170,15 @@ def initial_vorticity(frame, grid, dt_inv):
         ['y', 'x']).reset_index(name='flow_v')
     df['flow_v'] = df_1['flow_v']
     print('done pivoting')
-    df = latlon_converter(df, grid)
+    df = latlon_converter(df, cg)
     print('done converting to lat lon')
-    df = scaling_df_approx(df, grid, dt_inv)
+    df = scaling_df_approx(df, cg, dt_inv)
     print('done scaling')
-    df = vorticity(df)
+    _, omega = vorticity(df)
     print('done vorticity')
-    omega = pd.pivot_table(df, values='vorticity',
-                           index=["lat"], columns=["lon"], fill_value=0)
-    omega = omega.to_numpy()
+    print('omega shape final:')
+    print(omega.shape)
+    #omega = cv2.resize(omega, shape0)
 
     return omega
 
@@ -219,24 +229,32 @@ def vorticity(df):
                          index=["lat"], columns=["lon"], fill_value=0)
     v_a = pd.pivot_table(df, values='v_scaled_approx',
                          index=["lat"], columns=["lon"], fill_value=0)
-    dx = pd.pivot_table(df, values='x_m',
-                        index=["lat"], columns=["lon"], fill_value=0)
-    dy = pd.pivot_table(df, values='y_m',
-                        index=["lat"], columns=["lon"], fill_value=0)
-
+    lon = pd.pivot_table(df, values='lon',
+                         index=["y"], columns=["x"], fill_value=0)
+    lat = pd.pivot_table(df, values='lat',
+                         index=["y"], columns=["x"], fill_value=0)
     u_a = u_a.to_numpy()
     v_a = v_a.to_numpy()
-    dx = dx.to_numpy()
-    dy = dy.to_numpy()
-    dudy = np.array(np.gradient(u_a))
-    dudy = dudy[0, ...]/dy
-    dvdx = np.array(np.gradient(v_a))
-    dvdx = dvdx[1, ...]/dx
-    omega = dvdx-dudy
+    lon = lon.to_numpy()
+    lat = lat.to_numpy()
+    dx, dy = metpy.calc.lat_lon_grid_deltas(lon, lat)
+    f = metpy.calc.coriolis_parameter(np.deg2rad(lat)).to(units('1/sec'))
+    #f = 2*0.7272e-4*np.sin(np.deg2rad(lat))*units['1/s']
+    omega = metpy.calc.vorticity(u_a * units['m/s'],
+                                 v_a * units['m/s'], dx, dy, dim_order='yx')
+    #omega = ndimage.gaussian_filter(omega, sigma=2, order=0) * units('1/s')
+
+    omega = omega.magnitude
+    omega = np.nan_to_num(omega)
+
+    omega = cv2.blur(omega, (5, 5))
+
+    print('omega shape:')
+    print(omega.shape)
     df_u = pd.DataFrame(omega).stack().rename_axis(
         ['y', 'x']).reset_index(name='vorticity')
     df = df.merge(df_u, how='left')
-    return df
+    return df, omega
 
 
 def scaling_u(df_lon, df_lat, df_flow_u, grid, dt_inv):
