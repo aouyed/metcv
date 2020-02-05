@@ -3,6 +3,81 @@
 import cv2
 from skimage import util
 import numpy as np
+import pickle
+from viz import dataframe_calculators as dfc
+import os
+
+
+def vorticity_correction(start_date, var, pyr_scale, levels, iterations, poly_n, poly_sigma, sub_pixel, target_box_x, target_box_y, average_lon, tvl1, do_cross_correlation, farneback, stride_n, dof_average_x, dof_average_y, cc_average_x, cc_average_y, winsizes, grid, Lambda, coarse_grid, pyramid_factor, dt, file_paths, file_paths_flow, dates, **kwargs):
+
+    ######
+    frame1 = np.load(file_paths_flow[dates[0]])
+    frame1 = drop_nan(frame1)
+    vel = frame1
+    print('calculating vorticity loop')
+    frame1 = dfc.initial_vorticity(frame1, grid, 1/dt)
+    frame1 = cv2.normalize(src=frame1, dst=None,
+                           alpha=0, beta=255, norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_8UC1)
+
+####
+    frame1_qv = np.load(file_paths[dates[0]])
+    frame1_qv = drop_nan(frame1_qv)
+    frame1_qv = cv2.normalize(src=frame1_qv, dst=None,
+                              alpha=0, beta=255, norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_8UC1)
+
+    prvs = frame1
+    prvs_qv = frame1_qv
+    sdate = dates[0]
+    dates.pop(0)
+    for date in dates:
+        print('vorticity flow calculation for date: ' + str(date))
+        file = file_paths_flow[date]
+        frame2 = np.load(file)
+        frame2 = drop_nan(frame2)
+        vel_next = frame2
+        frame2 = dfc.initial_vorticity(frame2, grid, 1/dt)
+
+        frame2 = cv2.normalize(src=frame2, dst=None, alpha=0,
+                               beta=255, norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_8UC1)
+
+        ####
+        frame2_qv = np.load(file_paths[date])
+        frame2_qv = drop_nan(frame2_qv)
+        frame2_qv = cv2.normalize(src=frame2_qv, dst=None,
+                                  alpha=0, beta=255, norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_8UC1)
+        next_frame = frame2
+        next_frame_qv = frame2_qv
+        shape = list(np.shape(frame2))
+        shape.append(2)
+        shape = tuple(shape)
+
+        #flow = vel
+
+        print('Initializing Farnebacks algorithm...')
+
+        optical_flow = cv2.optflow.createOptFlow_DeepFlow()
+        flowd = optical_flow.calc(prvs, next_frame, None)
+        flow = flowd
+        prvs_qv = warp_flow(prvs_qv, flow)
+        flowd = optical_flow.calc(prvs_qv, next_frame_qv, None)
+        flow = flow+flowd
+
+        file = file_paths[date]
+        filename = os.path.basename(file)
+        filename = os.path.splitext(filename)[0]
+        file_path = '../data/processed/flow_frames/'+var+'_'+filename+'.npy'
+        np.save(file_path, flow)
+        file_paths_flow[date] = file_path
+        prvs = next_frame
+        prvs_qv = next_frame_qv
+        vel = vel_next
+    path = '../data/interim/dictionaries_optical_flow'
+
+    if not os.path.exists(path):
+        os.makedirs(path)
+
+    file_dictionary = open(path+'/'+var+'.pkl', "wb")
+    pickle.dump(file_paths_flow, file_dictionary)
 
 
 def winsizes_creator(winsizes, pyramid_factor):
@@ -106,36 +181,7 @@ def pyramid(flow, grid, coarse_grid, prvs, next_frame,  pyr_scale, levels, winsi
 
 # test pyramid
     print('multiscale flow processing ...')
-    # pyramid_factor=0.125/0.09375
-    # coarse_grid=0.09375
-    # winsizes.pop(0)
-    #winsizes.insert(0, int(round(pyramid_factor*winsizes[0])))
 
-    # prvs, flow = coarse_flow(flow,  pyr_scale, levels, iterations, poly_n, poly_sigma,
-    #                           prvs, next_frame, grid, coarse_grid, 0, winsizes)
-    #pyramid_factor= 0.09375/0.08
-    #winsizes.insert(0, int(round(pyramid_factor*winsizes[0])))
-    # prvs, flow = coarse_flow(flow,  pyr_scale, levels, iterations, poly_n, poly_sigma,
-    #                           prvs, next_frame, grid, coarse_grid, 0, winsizes)
-    #pyramid_factor= 0.08/0.068
-    # winsizes=[int(pyramid_factor*winsizes[0])]
-   # prvs, flow = tlv1_flow(flow, prvs,next_frame,  Lambda)
-
-   # prvs, flow = coarse_flow(flow,  pyr_scale, levels, iterations, poly_n, poly_sigma,
-    #         prvs, next_frame, grid, coarse_grid, 0, winsizes)
-   # pyramid_factor= 0.078/0.076
-    # winsizes.insert(0, int(round(pyramid_factor*winsizes[0])))
-    # prvs, flow = coarse_flow(flow,  pyr_scale, levels, iterations, poly_n, poly_sigma,
-    #                           prvs, next_frame, grid, coarse_grid, 0, winsizes)
-   # pyramid_factor= 0.076/0.074
-   # winsizes.insert(0, int(round(pyramid_factor*winsizes[0])))
-   # prvs, flow = coarse_flow(flow,  pyr_scale, levels, iterations, poly_n, poly_sigma,
-    #                            prvs, next_frame, grid, coarse_grid, 0, winsizes)
-    # pyramid_factor= 0.076/0.072
-    # winsizes.insert(0, int(round(pyramid_factor*winsizes[0])))
-    # prvs, flow = coarse_flow(flow,  pyr_scale, levels, iterations, poly_n, poly_sigma,
-    #                           prvs, next_frame, grid, coarse_grid, 0, winsizes)
-    #pyramid_factor= 0.072/0.07
     prvs, flow = multiscale_farneback(
         flow,  prvs, next_frame, pyr_scale, levels, winsizes, iterations, poly_n, poly_sigma, 0)
 
@@ -159,7 +205,7 @@ def warp_flow(img, flow):
     flow[:, :, 0] += np.arange(w)
     flow[:, :, 1] += np.arange(h)[:, np.newaxis]
     flow = flow.astype(np.float32)
-    res = cv2.remap(img, flow, None, cv2.INTER_CUBIC)
+    res = cv2.remap(img, flow, None, cv2.INTER_LINEAR)
     return res
 
 

@@ -158,15 +158,10 @@ def dataframe_quantum(file, date, dictionary_dict):
 
 
 def initial_vorticity(frame, grid, dt_inv):
-    shape0 = (frame.shape[1], frame.shape[0])
     cg = grid
-    factor = grid/cg
-    # frame = cv2.resize(frame, None, fx=factor,
-    #                  fy=factor, interpolation=cv2.INTER_CUBIC)
-
-    df = pd.DataFrame(frame[:, :, 0]).stack().rename_axis(
+    df = pd.DataFrame(frame[:, :, 0]).stack(dropna=False).rename_axis(
         ['y', 'x']).reset_index(name='flow_u')
-    df_1 = pd.DataFrame(frame[:, :, 1]).stack().rename_axis(
+    df_1 = pd.DataFrame(frame[:, :, 1]).stack(dropna=False).rename_axis(
         ['y', 'x']).reset_index(name='flow_v')
     df['flow_v'] = df_1['flow_v']
     print('done pivoting')
@@ -178,34 +173,29 @@ def initial_vorticity(frame, grid, dt_inv):
     print('done vorticity')
     print('omega shape final:')
     print(omega.shape)
-    #omega = cv2.resize(omega, shape0)
 
     return omega
+
+
+def initial_flow(frame, grid, dt_inv):
+    cg = grid
+    df = pd.DataFrame(frame[:, :, 0]).stack(dropna=False).rename_axis(
+        ['y', 'x']).reset_index(name='flow_u')
+    df_1 = pd.DataFrame(frame[:, :, 1]).stack(dropna=False).rename_axis(
+        ['y', 'x']).reset_index(name='flow_v')
+    df['flow_v'] = df_1['flow_v']
+    print('done pivoting')
+    df = latlon_converter(df, cg)
+    print('done converting to lat lon')
+    print(frame.shape)
+    frame[:, :, 0], frame[:, :, 1] = scaling_df_approx_inv(df, cg, dt_inv)
+
+    return frame
 
 
 def dataframe_pivot(frame, var):
     df = pd.DataFrame(frame).stack().rename_axis(
         ['y', 'x']).reset_index(name=var.lower())
-    return df
-
-
-def scaling_df(df):
-    """coordinate transforms vels from angle/pixel to metric exactly"""
-
-    df['u_scaled_approx'] = df.apply(
-        lambda x: scaling_lon(x.lon, x.lat, x.flow_u), axis=1)
-    df['v_scaled_approx'] = df.apply(
-        lambda x: scaling_lat(x.lon, x.lat, x.flow_v), axis=1)
-    df.to_pickle('dataframes/scales.pkl')
-    return df
-
-
-def scaling_df_approx_0(df, grid, dt_inv):
-    """coordinate transforms vels from angle/pixel to metric, approximately"""
-    df['u_scaled_approx'] = df.apply(
-        lambda x: scaling_lon_approx(x.lon, x.lat, x.flow_u, grid, dt_inv), axis=1)
-    df['v_scaled_approx'] = df.apply(
-        lambda x: scaling_lat_approx(x.lon, x.lat, x.flow_v, grid, dt_inv), axis=1)
     return df
 
 
@@ -223,12 +213,28 @@ def scaling_df_approx(df, grid, dt_inv):
     return df
 
 
+def scaling_df_approx_inv(df, grid, dt_inv):
+    """coordinate transforms vels from angle/pixel to metric, approximately"""
+
+    df['flow_u'] = scaling_u_inv(
+        df['lon'], df['lat'], df['flow_u'], grid, dt_inv)
+    df['flow_v'] = scaling_v_inv(
+        df['lon'], df['lat'], df['flow_v'], grid, dt_inv)
+    flowx = df.pivot('y', 'x', 'flow_u').values
+    flowy = df.pivot('y', 'x', 'flow_v').values
+    print('flowx shape')
+    print(df.shape)
+    print(flowx.shape)
+
+    return flowx, flowy
+
+
 def vorticity(df):
     print('Calculating vorticity...')
     u_a = pd.pivot_table(df, values='u_scaled_approx',
-                         index=["lat"], columns=["lon"], fill_value=0)
+                         index=["y"], columns=["x"], fill_value=0)
     v_a = pd.pivot_table(df, values='v_scaled_approx',
-                         index=["lat"], columns=["lon"], fill_value=0)
+                         index=["y"], columns=["x"], fill_value=0)
     lon = pd.pivot_table(df, values='lon',
                          index=["y"], columns=["x"], fill_value=0)
     lat = pd.pivot_table(df, values='lat',
@@ -239,10 +245,10 @@ def vorticity(df):
     lat = lat.to_numpy()
     dx, dy = metpy.calc.lat_lon_grid_deltas(lon, lat)
     f = metpy.calc.coriolis_parameter(np.deg2rad(lat)).to(units('1/sec'))
-    #f = 2*0.7272e-4*np.sin(np.deg2rad(lat))*units['1/s']
+    # f = 2*0.7272e-4*np.sin(np.deg2rad(lat))*units['1/s']
     omega = metpy.calc.vorticity(u_a * units['m/s'],
                                  v_a * units['m/s'], dx, dy, dim_order='yx')
-    #omega = ndimage.gaussian_filter(omega, sigma=2, order=0) * units('1/s')
+    # omega = ndimage.gaussian_filter(omega, sigma=2, order=0) * units('1/s')
 
     omega = omega.magnitude
     omega = np.nan_to_num(omega)
@@ -270,17 +276,39 @@ def scaling_u(df_lon, df_lat, df_flow_u, grid, dt_inv):
     return scale
 
 
+def scaling_u_inv(df_lon, df_lat, df_flow_u, grid, dt_inv):
+    dtheta = grid
+    drads = dtheta * math.pi / 180
+    lat = df_lat*math.pi/90/2
+    # dt_hr = 1
+    # dt_s = 3600
+    R = 6371000
+    scaleConstant = dt_inv
+    dx = R*abs(np.cos(lat))*drads
+    scale = dx*scaleConstant
+    return df_flow_u/scale
+
+
 def scaling_v(df_lon, df_lat, df_flow_v, grid, dt_inv):
     """coordinate transform for v from pixel/angular to metric, approximate"""
     dtheta = grid*df_flow_v
     drads = dtheta * math.pi / 180
-    # dt_hr = 1
-    # dt_s = 3600
     R = 6371000
     scaleConstant = dt_inv
     dx = R*drads
     scale = dx*scaleConstant
     return scale
+
+
+def scaling_v_inv(df_lon, df_lat, df_flow_v, grid, dt_inv):
+    """coordinate transform for v from pixel/angular to metric, approximate"""
+    dtheta = grid
+    drads = dtheta * math.pi / 180
+    R = 6371000
+    scaleConstant = dt_inv
+    dx = R*drads
+    scale = dx*scaleConstant
+    return df_flow_v/scale
 
 
 def error_calculator(df):
@@ -291,63 +319,6 @@ def error_calculator(df):
     df["error_v_norm"] = df["error_v"]/df['v']
 
     return df
-
-
-def scaling_lon(lon, lat, dpixel):
-    """coordinate transform for u from pixel/angular to metric, exact"""
-    dtheta = 0.5*dpixel
-    dt_hr = 1
-    dt_s = 3600
-    scaleConstant = (dt_hr/dt_s)
-    lons = np.array([lon, lon+dtheta])
-    lats = np.array([lat, lat])
-    dx, _ = mpcalc.lat_lon_grid_deltas(lons, lats)
-    dx = dx.magnitude
-    scale = dx[0][0]*scaleConstant
-    return scale
-
-
-def scaling_lon_approx(lon, lat, dpixel, grid, dt_inv):
-    """coordinate transform for u from pixel/angular to metric, approximate"""
-
-    dtheta = grid*dpixel
-    drads = dtheta * math.pi / 180
-    lat = lat*math.pi/90/2
-    # dt_hr = 1
-    # dt_s = 3600
-    R = 6371000
-    scaleConstant = dt_inv
-    dx = R*abs(math.cos(lat))*drads
-    scale = dx*scaleConstant
-    return scale
-
-
-def scaling_lat_approx(lon, lat, dpixel, grid, dt_inv):
-    """coordinate transform for v from pixel/angular to metric, approximate"""
-    dtheta = grid*dpixel
-    drads = dtheta * math.pi / 180
-    # dt_hr = 1
-    # dt_s = 3600
-    R = 6371000
-    scaleConstant = dt_inv
-    dx = R*drads
-    scale = dx*scaleConstant
-    return scale
-
-
-def scaling_lat(lon, lat, dpixel):
-    """coordinate transform for v from pixel/angular to metric, exact"""
-
-    dtheta = 0.5*dpixel
-    dt_hr = 1
-    dt_s = 3600
-    scaleConstant = (dt_hr/dt_s)
-    lons = np.array([lon, lon])
-    lats = np.array([lat, lat+dtheta])
-    _, dy = mpcalc.lat_lon_grid_deltas(lons, lats)
-    dy = dy.magnitude
-    scale = dy[0][0]*scaleConstant
-    return scale
 
 
 def latlon_converter(df, dtheta):
