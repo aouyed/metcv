@@ -19,7 +19,10 @@ from tqdm import trange
 from computer_vision import optical_flow_calculators as ofc
 from viz import dataframe_calculators as dfc
 
-def vorticity_correction(start_date, var, pyr_scale, levels, iterations, poly_n, poly_sigma, sub_pixel, target_box_x, target_box_y, average_lon, tvl1, do_cross_correlation, farneback, stride_n, dof_average_x, dof_average_y, cc_average_x, cc_average_y, winsizes, grid, Lambda, coarse_grid, pyramid_factor, dt,file_paths, file_paths_flow, dates, **kwargs):    
+
+def vorticity_correction(start_date, var, pyr_scale, levels, iterations, poly_n, poly_sigma, sub_pixel, target_box_x, target_box_y, average_lon, tvl1, do_cross_correlation, farneback, stride_n, dof_average_x, dof_average_y, cc_average_x, cc_average_y, winsizes, grid, Lambda, coarse_grid, pyramid_factor, dt, file_paths, file_paths_flow, dates, **kwargs):
+
+######
     frame1 = np.load(file_paths_flow[dates[0]])
     frame1 = ofc.drop_nan(frame1)
     vel = frame1
@@ -27,9 +30,19 @@ def vorticity_correction(start_date, var, pyr_scale, levels, iterations, poly_n,
     frame1 = dfc.initial_vorticity(frame1, grid, 1/dt)
     frame1 = cv2.normalize(src=frame1, dst=None,
                            alpha=0, beta=255, norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_8UC1)
+
+####
+    frame1_qv = np.load(file_paths[dates[0]])
+    frame1_qv = ofc.drop_nan(frame1_qv)
+    frame1_qv = cv2.normalize(src=frame1_qv, dst=None,
+                           alpha=0, beta=255, norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_8UC1)
+
+
+
    # frame1 = cv2.equalizeHist(frame1)
 
     prvs = frame1
+    prvs_qv=frame1_qv
     sdate = dates[0]
     dates.pop(0)
     for date in dates:
@@ -42,19 +55,34 @@ def vorticity_correction(start_date, var, pyr_scale, levels, iterations, poly_n,
 
         frame2 = cv2.normalize(src=frame2, dst=None, alpha=0,
                                beta=255, norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_8UC1)
+
+        ####
+        frame2_qv = np.load(file_paths[date])
+        frame2_qv = ofc.drop_nan(frame2_qv)
+        frame2_qv = cv2.normalize(src=frame2_qv, dst=None,
+                           alpha=0, beta=255, norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_8UC1)
         # frame2 = cv2.equalizeHist(frame2)
         next_frame = frame2
+        next_frame_qv=frame2_qv
         shape = list(np.shape(frame2))
         shape.append(2)
         shape = tuple(shape)
-        flow = vel
-        prvs = ofc.warp_flow(prvs, flow)
+
+        
+        #flow = vel
 
         print('Initializing Farnebacks algorithm...')
 
         optical_flow = cv2.optflow.createOptFlow_DeepFlow()
-
-        flow = flow+optical_flow.calc(prvs, next_frame, None)
+        flowd = optical_flow.calc(prvs, next_frame, None)
+        flow = flowd
+        prvs_qv = ofc.warp_flow(prvs_qv, flow)
+        flowd = optical_flow.calc(prvs_qv, next_frame_qv, None)
+        flow = flow+flowd
+        prvs_qv = ofc.warp_flow(prvs_qv, flow)
+        flowd = optical_flow.calc(prvs_qv, next_frame_qv, None)
+        flow = flow+flowd
+        
         file = file_paths[date]
         filename = os.path.basename(file)
         filename = os.path.splitext(filename)[0]
@@ -62,6 +90,7 @@ def vorticity_correction(start_date, var, pyr_scale, levels, iterations, poly_n,
         np.save(file_path, flow)
         file_paths_flow[date] = file_path
         prvs = next_frame
+        prvs_qv=next_frame_qv
         vel = vel_next
     path = '../data/interim/dictionaries_optical_flow'
 
@@ -70,7 +99,6 @@ def vorticity_correction(start_date, var, pyr_scale, levels, iterations, poly_n,
 
     file_dictionary = open(path+'/'+var+'.pkl', "wb")
     pickle.dump(file_paths_flow, file_dictionary)
-
 
 
 def optical_flow(start_date, var, pyr_scale, levels, iterations, poly_n, poly_sigma, sub_pixel, target_box_x, target_box_y, average_lon, tvl1, do_cross_correlation, farneback, stride_n, dof_average_x, dof_average_y, cc_average_x, cc_average_y, winsizes, grid, Lambda, coarse_grid, pyramid_factor, dt, **kwargs):
@@ -128,5 +156,5 @@ def optical_flow(start_date, var, pyr_scale, levels, iterations, poly_n, poly_si
 
 #######
 
-    vorticity_correction(start_date, var, pyr_scale, levels, iterations, poly_n, poly_sigma, sub_pixel, target_box_x, target_box_y, average_lon, tvl1, do_cross_correlation, farneback, stride_n, dof_average_x, dof_average_y, cc_average_x, cc_average_y, winsizes, grid, Lambda, coarse_grid, pyramid_factor, dt,file_paths, file_paths_flow, dates, **kwargs)
-
+    vorticity_correction(start_date, var, pyr_scale, levels, iterations, poly_n, poly_sigma, sub_pixel, target_box_x, target_box_y, average_lon, tvl1, do_cross_correlation, farneback,
+                        stride_n, dof_average_x, dof_average_y, cc_average_x, cc_average_y, winsizes, grid, Lambda, coarse_grid, pyramid_factor, dt, file_paths, file_paths_flow, dates, **kwargs)

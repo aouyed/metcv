@@ -247,7 +247,7 @@ def vorticity(df):
     omega = omega.magnitude
     omega = np.nan_to_num(omega)
 
-    omega = cv2.blur(omega, (5, 5))
+    omega = cv2.blur(omega, (3, 3))
 
     print('omega shape:')
     print(omega.shape)
