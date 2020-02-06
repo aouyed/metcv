@@ -44,13 +44,17 @@ def optical_flow(start_date, var, pyr_scale, levels, iterations, poly_n, poly_si
     flow = np.zeros(shape)
     flow[:, :, 0] = frame1_u
     flow[:, :, 1] = frame1_v
-    flow = dfc.initial_flow(flow, grid, 1/dt)
+    flow = 0.3*dfc.initial_flow(flow, grid, 1/dt)
+    flow=np.nan_to_num(flow)
 
     prvs = frame1
     file_paths_flow = {}
     dates = []
     file_paths.pop(start_date, None)
     for date in file_paths:
+        prvs0=np.copy(prvs)
+        prvs = ofc.warp_flow(prvs, flow)  
+
         dates.append(date)
         print('flow calculation for date: ' + str(date))
         file = file_paths[date]
@@ -59,20 +63,20 @@ def optical_flow(start_date, var, pyr_scale, levels, iterations, poly_n, poly_si
 
         frame2 = cv2.normalize(src=frame2, dst=None, alpha=0,
                                beta=255, norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_8UC1)
-        # frame2 = cv2.equalizeHist(frame2)
         next_frame = frame2
 
         print('Initializing Farnebacks algorithm...')
 
-        prvs = ofc.warp_flow(prvs, flow)
         print('segmentation fault?')
 
-        # prvs, flow = ofc.coarse_flow_deep(
-        #   flow,  prvs, next_frame, grid, grid)
-
         optical_flow = cv2.optflow.createOptFlow_DeepFlow()
+        flowd=optical_flow.calc(prvs, next_frame, None)
 
-        flow = flow+optical_flow.calc(prvs, next_frame, None)
+        flow = flow+flowd
+        
+        #optical_flow = cv2.optflow.createOptFlow_DeepFlow()
+       # flowv=optical_flow.calc(prvs0, next_frame, None)
+    
         print('done with deep flow')
         filename = os.path.basename(file)
         filename = os.path.splitext(filename)[0]
@@ -81,15 +85,16 @@ def optical_flow(start_date, var, pyr_scale, levels, iterations, poly_n, poly_si
         file_paths_flow[date] = file_path
         prvs = next_frame
         frame1_u = np.load(file_paths_u[start_date])
-    frame1_v = np.load(file_paths_v[date])
-    # frame1 = cv2.equalizeHist(frame1)
-    shape = list(np.shape(frame2))
-    shape.append(2)
-    shape = tuple(shape)
-    flow = np.zeros(shape)
-    flow[:, :, 0] = frame1_u
-    flow[:, :, 1] = frame1_v
-    flow = dfc.initial_flow(flow, grid, 1/dt)
+        frame1_v = np.load(file_paths_v[date])
+        # frame1 = cv2.equalizeHist(frame1)
+        shape = list(np.shape(frame2))
+        shape.append(2)
+        shape = tuple(shape)
+        flow = np.zeros(shape)
+        flow[:, :, 0] = frame1_u
+        flow[:, :, 1] = frame1_v
+        flow =0.3* dfc.initial_flow(flow, grid, 1/dt)
+        flow=np.nan_to_num(flow)
 
     path = '../data/interim/dictionaries_optical_flow'
     if not os.path.exists(path):

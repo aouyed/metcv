@@ -178,6 +178,14 @@ def initial_vorticity(frame, grid, dt_inv):
 
 
 def initial_flow(frame, grid, dt_inv):
+    mean=0
+    sigma=0.1
+    gaussianx = np.random.normal(mean, sigma, (frame.shape[0],frame.shape[1]))
+    gaussiany = np.random.normal(mean, sigma, (frame.shape[0],frame.shape[1])) 
+    frame[:,:,0]=frame[:,:,0]+gaussianx
+    frame[:,:,1]=frame[:,:,1]+gaussiany
+    #frame[:,:,1]-cv2.blur(frame[:,:,1],(3,3))
+    #frame[:,:,0]-cv2.blur(frame[:,:,0],(3,3))
     cg = grid
     df = pd.DataFrame(frame[:, :, 0]).stack(dropna=False).rename_axis(
         ['y', 'x']).reset_index(name='flow_u')
@@ -189,6 +197,8 @@ def initial_flow(frame, grid, dt_inv):
     print('done converting to lat lon')
     print(frame.shape)
     frame[:, :, 0], frame[:, :, 1] = scaling_df_approx_inv(df, cg, dt_inv)
+   
+    
 
     return frame
 
