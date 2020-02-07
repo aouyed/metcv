@@ -205,7 +205,7 @@ def warp_flow(img, flow):
     flow[:, :, 0] += np.arange(w)
     flow[:, :, 1] += np.arange(h)[:, np.newaxis]
     flow = flow.astype(np.float32)
-    res = cv2.remap(img, flow, None, cv2.INTER_LINEAR)
+    res = cv2.remap(img, flow, None, cv2.INTER_CUBIC)
     return res
 
 

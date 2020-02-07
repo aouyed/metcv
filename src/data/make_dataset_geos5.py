@@ -104,9 +104,9 @@ def pressure_interpolation(date, levelp):
 
     print(df)
 
-def disk_downloader(start_date,end_date,dt, levelp, var):
+def disk_downloader(start_date,end_date,dt, level, var, **kwargs):
 
-    level=levelp
+
     d0 = start_date
     d1 = end_date
     date_list = daterange(d0, d1, (dt/3600))
@@ -116,11 +116,12 @@ def disk_downloader(start_date,end_date,dt, levelp, var):
         directory_path = '../data/raw/'+var.lower()
         if not os.path.exists(directory_path):
             os.makedirs(directory_path)
-        filenames=glob.glob("../data/raw/ganymede/"+var+'/*')
-        ds = xr.open_dataset(filenames[i])
+        filenames=glob.glob("../data/raw/july/inst30mn_3d_"+var.upper()+'*')
+        ds = xr.open_dataset(filenames[0])
+
         print('downloading frame for var: ' + str(var) + ' in date ' + str(date))
-        frame = ds.sel(lev=level)
-        frame = frame.get(var.upper())
+        frame = ds.sel(time=date, method='nearest')
+        frame = frame.to_array()
         frame=frame.values
         frame=np.squeeze(frame)
         print('shape of downloaded array: ' + str(frame.shape))

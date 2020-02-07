@@ -66,7 +66,7 @@ def downloader_function(parameters):
     if parameters.jpl_loader:
         jl.loader(**kwargs)
     else:
-        gd.downloader(**kwargs)
+        gd.disk_downloader(**kwargs)
 
 
 def downloader(parameters):
@@ -83,27 +83,22 @@ def downloader(parameters):
     kwargs = vars(parameters)
     downloader_function(parameters)
 
-    parameters.var = 'vtrack'
-    kwargs = vars(parameters)
-    downloader_function(parameters)
+    
+    if parameters.jpl_loader:
+        parameters.var = 'vtrack'
+        kwargs = vars(parameters)
+        downloader_function(parameters)
 
-    parameters.var = 'utrack'
-    kwargs = vars(parameters)
-    downloader_function(parameters)
+        parameters.var = 'utrack'
+        kwargs = vars(parameters)
+        downloader_function(parameters)
 
-    parameters.var = 'umean'
-    kwargs = vars(parameters)
-    downloader_function(parameters)
-    parameters.var = 'vmean'
-    kwargs = vars(parameters)
-    downloader_function(parameters)
-
-    # parameters.var = 'AIRDENS'
-    # kwargs = vars(parameters)
-    # gd.downloader(**kwargs)
-
-    # parameters.var = 'QVDENS'
-    # qvd.builder(parameters.var)
+        parameters.var = 'umean'
+        kwargs = vars(parameters)
+        downloader_function(parameters)
+        parameters.var = 'vmean'
+        kwargs = vars(parameters)
+        downloader_function(parameters)
 
     if parameters.grid > 0.0625:
         dc.coarsener(parameters)

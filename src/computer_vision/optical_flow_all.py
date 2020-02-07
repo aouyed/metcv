@@ -18,9 +18,10 @@ from skimage.feature import register_translation
 from tqdm import trange
 from computer_vision import optical_flow_calculators as ofc
 from viz import dataframe_calculators as dfc
+from datetime import timedelta
 
 
-def optical_flow(start_date, var, pyr_scale, levels, iterations, poly_n, poly_sigma, sub_pixel, target_box_x, target_box_y, average_lon, tvl1, do_cross_correlation, farneback, stride_n, dof_average_x, dof_average_y, cc_average_x, cc_average_y, winsizes, grid, Lambda, coarse_grid, pyramid_factor, dt, **kwargs):
+def optical_flow(start_date, end_date, var, pyr_scale, levels, iterations, poly_n, poly_sigma, sub_pixel, target_box_x, target_box_y, average_lon, tvl1, do_cross_correlation, farneback, stride_n, dof_average_x, dof_average_y, cc_average_x, cc_average_y, winsizes, grid, Lambda, coarse_grid, pyramid_factor, dt, **kwargs):
     """Implements cross correlation algorithm for calculating AMVs."""
 
     file_paths = pickle.load(
@@ -29,7 +30,11 @@ def optical_flow(start_date, var, pyr_scale, levels, iterations, poly_n, poly_si
         open('../data/interim/dictionaries/vars/u.pkl', 'rb'))
     file_paths_v = pickle.load(
         open('../data/interim/dictionaries/vars/v.pkl', 'rb'))
+    prvs_date=end_date - timedelta(hours=1)
+
     frame1 = np.load(file_paths[start_date])
+    frame1 = np.load(file_paths[prvs_date])
+
     frame1 = ofc.drop_nan(frame1)
     frame1 = cv2.normalize(src=frame1, dst=None,
                            alpha=0, beta=255, norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_8UC1)
@@ -44,15 +49,17 @@ def optical_flow(start_date, var, pyr_scale, levels, iterations, poly_n, poly_si
     flow = np.zeros(shape)
     flow[:, :, 0] = frame1_u
     flow[:, :, 1] = frame1_v
-    flow = 0.3*dfc.initial_flow(flow, grid, 1/dt)
+    flow = dfc.initial_flow(flow, grid, 1/dt)
     flow=np.nan_to_num(flow)
 
     prvs = frame1
     file_paths_flow = {}
     dates = []
     file_paths.pop(start_date, None)
-    for date in file_paths:
-        prvs0=np.copy(prvs)
+    file_paths_e={}
+    file_paths_e[end_date]=file_paths[end_date]
+        
+    for date in file_paths_e:
         prvs = ofc.warp_flow(prvs, flow)  
 
         dates.append(date)
@@ -74,7 +81,7 @@ def optical_flow(start_date, var, pyr_scale, levels, iterations, poly_n, poly_si
 
         flow = flow+flowd
         
-        #optical_flow = cv2.optflow.createOptFlow_DeepFlow()
+       # optical_flow = cv2.optflow.createOptFlow_DeepFlow()
        # flowv=optical_flow.calc(prvs0, next_frame, None)
     
         print('done with deep flow')
@@ -93,7 +100,7 @@ def optical_flow(start_date, var, pyr_scale, levels, iterations, poly_n, poly_si
         flow = np.zeros(shape)
         flow[:, :, 0] = frame1_u
         flow[:, :, 1] = frame1_v
-        flow =0.3* dfc.initial_flow(flow, grid, 1/dt)
+        flow =dfc.initial_flow(flow, grid, 1/dt)
         flow=np.nan_to_num(flow)
 
     path = '../data/interim/dictionaries_optical_flow'
