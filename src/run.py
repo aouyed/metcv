@@ -113,6 +113,10 @@ def parser(process_parameters, parameters):
         "-t1", "--tvl1", help="Whether we use tvl1 for optical flow", action="store_true")
     parser.add_argument(
         "-fb", "--farneback", help="Whether we use Farneback's algorithm for optical flow", action="store_true")
+    parser.add_argument(
+        "-df", "--deep_flow", help="Whether we use DeepFlow' algorithm for optical flow", action="store_true")
+    parser.add_argument(
+        "-nu", "--nudger", help="Whether we nudge the optical flow algorithm with ground truth data", action="store_true")
 
     args = parser.parse_args()
 
@@ -137,6 +141,8 @@ def parser(process_parameters, parameters):
     parameters.average_lon = args.average_lon
     parameters.speed_cutoff = args.speed_cutoff
     parameters.tvl1 = args.tvl1
+    parameters.deep_flow = args.deep_flow
+    parameters.nudger = args.nudger
     parameters.farneback = args.farneback
     parameters.jpl_disk = args.jpl_disk
     if args.start_date is not None:

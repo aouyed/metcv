@@ -11,6 +11,8 @@ import pandas as pd
 from data import make_dataset_geos5 as gd
 from features import build_features as qvd
 from data import jpl_loader as jl
+import shutil
+import os
 
 
 class Parameters:
@@ -54,7 +56,9 @@ class Parameters:
             'cc_average_y': 720,
             'Lambda': 0.0025,
             'coarse_grid': 1.0,
-            'pyramid_factor': 2
+            'pyramid_factor': 2,
+            'nudger': True,
+            'deep_flow': True
 
         }
         for (prop, default) in prop_defaults.items():
@@ -71,6 +75,7 @@ def downloader_function(parameters):
 
 def downloader(parameters):
     print('initializing  downloader...')
+
     parameters.var = 'u'
     kwargs = vars(parameters)
     downloader_function(parameters)
@@ -83,7 +88,6 @@ def downloader(parameters):
     kwargs = vars(parameters)
     downloader_function(parameters)
 
-    
     if parameters.jpl_loader:
         parameters.var = 'vtrack'
         kwargs = vars(parameters)

@@ -90,9 +90,7 @@ def optical_flow(start_date, end_date, var, pyr_scale, levels, iterations, poly_
 
             flow = flow+flowd
             prvs = ofc.warp_flow(prvs, flow)
-            flowd = optical_flow.calc(prvs, next_frame, None)
-            flow = flow+flowd
-
+     
        # optical_flow = cv2.optflow.createOptFlow_DeepFlow()
        # flowv=optical_flow.calc(prvs0, next_frame, None)
 

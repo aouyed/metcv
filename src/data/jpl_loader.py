@@ -8,6 +8,7 @@ from data import make_dataset_geos5 as gd
 
 
 def loader(var, pressure, start_date, end_date, dt, jpl_disk, level,  **kwargs):
+    print('JPL loader running...')
     date = start_date
     d0 = start_date
     d1 = end_date
@@ -17,6 +18,7 @@ def loader(var, pressure, start_date, end_date, dt, jpl_disk, level,  **kwargs):
         filenames = glob.glob("../data/raw/jpl/processed_jpl/*")
     else:
         filenames = glob.glob("../data/raw/jpl/raw_jpl/*")
+        print(filenames)
     if jpl_disk:
         for i, date in enumerate(date_list):
             print('Downloading data for variable ' +
