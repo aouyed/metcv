@@ -48,12 +48,14 @@ def optical_flow(start_date, end_date, var, pyr_scale, levels, iterations, poly_
     shape.append(2)
     shape = tuple(shape)
     flow = np.zeros(shape)
-    if nudger:
+   # if nudger:
 
-        flow[:, :, 0] = frame1_u
-        flow[:, :, 1] = frame1_v
-        flow = dfc.initial_flow(flow, grid, 1/dt)
-        flow = np.nan_to_num(flow)
+    flow[:, :, 0] = frame1_u
+    flow[:, :, 1] = frame1_v
+    flow = dfc.initial_flow(flow, grid, 1/dt)
+    flow = np.nan_to_num(flow)
+    flow[:, :, 0] = 0.5*flow[:, :, 0]
+    flow[:, :, 1] = 0.6*flow[:, :, 1]
 
     prvs = frame1
     prvs = np.nan_to_num(prvs)
@@ -69,13 +71,14 @@ def optical_flow(start_date, end_date, var, pyr_scale, levels, iterations, poly_
         print('warping...')
         if nudger:
             prvs = ofc.warp_flow(prvs, flow)
+        prvs = ofc.warp_flow(prvs, flow)
 
         dates.append(date)
         print('flow calculation for date: ' + str(date))
         file = file_paths[date]
         frame2 = np.load(file)
         frame2 = ofc.drop_nan(frame2)
-        #frame2 = np.nan_to_num(frame2)
+        # frame2 = np.nan_to_num(frame2)
         frame2 = cv2.normalize(src=frame2, dst=None, alpha=0,
                                beta=255, norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_8UC1)
         next_frame = frame2
@@ -89,9 +92,9 @@ def optical_flow(start_date, end_date, var, pyr_scale, levels, iterations, poly_
             flowd = optical_flow.calc(prvs, next_frame, None)
 
             flow = flow+flowd
-            prvs = ofc.warp_flow(prvs, flow)
-            flowd = optical_flow.calc(prvs, next_frame, None)
-            flow = flow+flowd
+            # prvs = ofc.warp_flow(prvs, flow)
+            # flowd = optical_flow.calc(prvs, next_frame, None)
+            # flow = flow+flowd
 
        # optical_flow = cv2.optflow.createOptFlow_DeepFlow()
        # flowv=optical_flow.calc(prvs0, next_frame, None)
@@ -109,7 +112,7 @@ def optical_flow(start_date, end_date, var, pyr_scale, levels, iterations, poly_
         shape = list(np.shape(frame2))
         shape.append(2)
         shape = tuple(shape)
-        flow = np.zeros(shape)
+       # flow = np.zeros(shape)
         if nudger:
             flow[:, :, 0] = frame1_u
             flow[:, :, 1] = frame1_v
