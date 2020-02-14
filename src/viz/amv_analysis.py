@@ -137,11 +137,11 @@ def df_concatenator(dataframes_dict, start_date, end_date, track, jpl):
                 #df_unit['u_scaled_approx'] = df_unit['umean']
                 #df_unit['v_scaled_approx'] = df_unit['vmean']
 
-                df_unit = df_unit[['lon', 'lat', 'u', 'v', 'x_m', 'y_m',
+                df_unit = df_unit[['lon', 'lat', 'u', 'v',
                                    'u_scaled_approx', 'v_scaled_approx', 'utrack', 'vtrack', 'qv', 'umean', 'vmean', 'vorticity']]
             if not jpl:
                 df_unit = error_df(df_unit)
-                df_unit = df_unit[['lon', 'lat', 'x_m', 'y_m', 'speed', 'qv', 'speed_approx', 'speed_error',
+                df_unit = df_unit[['lon', 'lat', 'speed', 'qv', 'speed_approx', 'speed_error',
                                    'error_v', 'error_u', 'u_scaled_approx', 'v_scaled_approx', 'u', 'v', 'vorticity']]
                 df_unit = df_unit.apply(pd.to_numeric, downcast='float')
                 if df.empty:
@@ -161,7 +161,7 @@ def df_concatenator(dataframes_dict, start_date, end_date, track, jpl):
         df['datetime'] = end_date
         df = df.set_index('datetime')
         df = error_df(df)
-        df = df[['lon', 'lat', 'speed', 'x_m', 'y_m', 'qv', 'speed_approx', 'speed_error',
+        df = df[['lon', 'lat', 'speed', 'qv', 'speed_approx', 'speed_error',
                  'error_v', 'error_u', 'u_scaled_approx', 'v_scaled_approx', 'u', 'v', 'utrack', 'vtrack', 'umean', 'vmean', 'vorticity']]
 
     return df

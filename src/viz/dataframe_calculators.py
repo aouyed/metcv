@@ -178,14 +178,14 @@ def initial_vorticity(frame, grid, dt_inv):
 
 
 def initial_flow(frame, grid, dt_inv):
-    mean=0
-    sigma=0.1
-    gaussianx = np.random.normal(mean, sigma, (frame.shape[0],frame.shape[1]))
-    gaussiany = np.random.normal(mean, sigma, (frame.shape[0],frame.shape[1])) 
-    frame[:,:,0]=frame[:,:,0]+gaussianx
-    frame[:,:,1]=frame[:,:,1]+gaussiany
-    #frame[:,:,1]-cv2.blur(frame[:,:,1],(3,3))
-    #frame[:,:,0]-cv2.blur(frame[:,:,0],(3,3))
+    mean = 0
+    sigma = 0.1
+    gaussianx = np.random.normal(mean, sigma, (frame.shape[0], frame.shape[1]))
+    gaussiany = np.random.normal(mean, sigma, (frame.shape[0], frame.shape[1]))
+    frame[:, :, 0] = frame[:, :, 0]+gaussianx
+    frame[:, :, 1] = frame[:, :, 1]+gaussiany
+    # frame[:,:,1]-cv2.blur(frame[:,:,1],(3,3))
+    # frame[:,:,0]-cv2.blur(frame[:,:,0],(3,3))
     cg = grid
     df = pd.DataFrame(frame[:, :, 0]).stack(dropna=False).rename_axis(
         ['y', 'x']).reset_index(name='flow_u')
@@ -197,8 +197,6 @@ def initial_flow(frame, grid, dt_inv):
     print('done converting to lat lon')
     print(frame.shape)
     frame[:, :, 0], frame[:, :, 1] = scaling_df_approx_inv(df, cg, dt_inv)
-   
-    
 
     return frame
 
@@ -209,34 +207,49 @@ def dataframe_pivot(frame, var):
     return df
 
 
-def scaling_df_approx00(df, grid, dt_inv):
+def scaling_df_approx(df, grid, dt_inv):
     """coordinate transforms vels from angle/pixel to metric, approximately"""
 
     df['u_scaled_approx'] = scaling_u(
         df['lon'], df['lat'], df['flow_u'], grid, dt_inv)
     df['v_scaled_approx'] = scaling_v(
         df['lon'], df['lat'], df['flow_v'], grid, dt_inv)
-    
+
     return df
 
 
+def scaling_u(df_lon, df_lat, df_flow_u, grid, dt_inv):
+    dtheta = grid*df_flow_u
+    drads = dtheta * math.pi / 180
+    lat = df_lat*math.pi/90/2
+    # dt_hr = 1
+    # dt_s = 3600
+    R = 6371000
+    scaleConstant = dt_inv
+    dx = R*abs(np.cos(lat))*drads
+    scale = dx*scaleConstant
+    return scale
+
+
 def scaling_df_approx_inv(df, grid, dt_inv):
-   """coordinate transforms vels from angle/pixel to metric, approximately"""
+    """coordinate transforms vels from angle/pixel to metric, approximately"""
 
-   df['flow_u'] = scaling_u_inv(df['lon'], df['lat'], df['flow_u'], grid, dt_inv)
-   df['flow_v'] = scaling_v_inv( df['lon'], df['lat'], df['flow_v'], grid, dt_inv)
-   flowx = df.pivot('y', 'x', 'flow_u').values
-   flowy = df.pivot('y', 'x', 'flow_v').values
-   print('flowx shape')
-   print(df.shape)
-   print(flowx.shape)
+    df['flow_u'] = scaling_u_inv(
+        df['lon'], df['lat'], df['flow_u'], grid, dt_inv)
+    df['flow_v'] = scaling_v_inv(
+        df['lon'], df['lat'], df['flow_v'], grid, dt_inv)
+    flowx = df.pivot('y', 'x', 'flow_u').values
+    flowy = df.pivot('y', 'x', 'flow_v').values
+    print('flowx shape')
+    print(df.shape)
+    print(flowx.shape)
 
-   return flowx, flowy
+    return flowx, flowy
 
 
 def vorticity(df):
     print('Calculating vorticity...')
-    
+
     u_a = pd.pivot_table(df, values='u_scaled_approx',
                          index=["y"], columns=["x"], fill_value=0)
     v_a = pd.pivot_table(df, values='v_scaled_approx',
@@ -267,28 +280,27 @@ def vorticity(df):
     return df, omega
 
 
-def scaling_df_approx(df, grid, dt_inv):
+def scaling_df_approx00(df, grid, dt_inv):
 
-    
-    
-   
-    lon = pd.pivot_table(df, values='lon',
-                         index=["y"], columns=["x"], fill_value=0)
-    lat = pd.pivot_table(df, values='lat',
-                         index=["y"], columns=["x"], fill_value=0)
+    lon = df.pivot('y', 'x', 'lon').values
+    lat = df.pivot('y', 'x', 'lat').values
 
-    lon = lon.to_numpy()
-    lat = lat.to_numpy()
     dx, dy = metpy.calc.lat_lon_grid_deltas(lon, lat)
 
-    dx = pd.DataFrame(dx.magnitude).stack().rename_axis(
-        ['y', 'x']).reset_index(name='dx')
-    dy = pd.DataFrame(dy.magnitude).stack().rename_axis(
-        ['y', 'x']).reset_index(name='dy')
-    df['u_scaled_approx']=dt_inv*dx['dx']*df['flow_u']
-    df['v_scaled_approx']=dt_inv*dy['dy']*df['flow_v']
+    shape = (lon.shape[1], lon.shape[0])
 
- 
+    dx = dx.magnitude
+    dy = dy.magnitude
+    dx = cv2.resize(dx, shape)
+    dy = cv2.resize(dy, shape)
+
+    dx = pd.DataFrame(dx).stack().rename_axis(
+        ['y', 'x']).reset_index(name='dx')
+    dy = pd.DataFrame(dy).stack().rename_axis(
+        ['y', 'x']).reset_index(name='dy')
+    df['u_scaled_approx'] = dt_inv*dx['dx']*df['flow_u']
+    df['v_scaled_approx'] = dt_inv*dy['dy']*df['flow_v']
+
     return df
 
 
