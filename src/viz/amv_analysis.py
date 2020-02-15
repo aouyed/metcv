@@ -125,8 +125,10 @@ def error_df(df):
 
 def df_concatenator(dataframes_dict, start_date, end_date, track, jpl):
     df = pd.DataFrame()
+    print('hello world')
     print('concatenating dataframes for all dates for further analysis:')
-    for date in tqdm(dataframes_dict):
+    for date in (dataframes_dict):
+        print(date)
         if date >= start_date and date <= end_date:
             df_path = dataframes_dict[date]
             df_unit = pd.read_pickle(df_path)
@@ -139,30 +141,31 @@ def df_concatenator(dataframes_dict, start_date, end_date, track, jpl):
 
                 df_unit = df_unit[['lon', 'lat', 'u', 'v',
                                    'u_scaled_approx', 'v_scaled_approx', 'utrack', 'vtrack', 'qv', 'umean', 'vmean', 'vorticity']]
-            if not jpl:
-                df_unit = error_df(df_unit)
-                df_unit = df_unit[['lon', 'lat', 'speed', 'qv', 'speed_approx', 'speed_error',
-                                   'error_v', 'error_u', 'u_scaled_approx', 'v_scaled_approx', 'u', 'v', 'vorticity']]
-                df_unit = df_unit.apply(pd.to_numeric, downcast='float')
-                if df.empty:
-                    df = df_unit
-                else:
-                    df = pd.concat([df, df_unit])
+            #if not jpl:
+            df_unit = error_df(df_unit)
+            df_unit = df_unit[['lon', 'lat', 'speed', 'qv', 'speed_approx', 'speed_error',
+                                   'error_v', 'error_u', 'u_scaled_approx', 'v_scaled_approx', 'u', 'v', 'vorticity','x','y']]
+            df_unit = df_unit.apply(pd.to_numeric, downcast='float')
+            print(date)
+            if df.empty:
+                df = df_unit
             else:
+                df = pd.concat([df, df_unit])
+            #else:
                 #df_unit['u'] = df_unit['umean']
                # df_unit['v'] = df_unit['vmean']
-                df_unit = df_unit.reset_index(drop=True)
-                if df.empty:
-                    df = df_unit
-                else:
-                    df = df + df_unit
-    if jpl:
-        df = df/2
-        df['datetime'] = end_date
-        df = df.set_index('datetime')
-        df = error_df(df)
-        df = df[['lon', 'lat', 'speed', 'qv', 'speed_approx', 'speed_error',
-                 'error_v', 'error_u', 'u_scaled_approx', 'v_scaled_approx', 'u', 'v', 'utrack', 'vtrack', 'umean', 'vmean', 'vorticity']]
+             #   df_unit = df_unit.reset_index(drop=True)
+              #  if df.empty:
+               #     df = df_unit
+               # else:
+                #    df = df + df_unit
+    #if jpl:
+     #   df = df/2
+      #  df['datetime'] = end_date
+       # df = df.set_index('datetime')
+       # df = error_df(df)
+       # df = df[['lon', 'lat', 'speed', 'qv', 'speed_approx', 'speed_error',
+        #         'error_v', 'error_u', 'u_scaled_approx', 'v_scaled_approx', 'u', 'v', 'utrack', 'vtrack', 'umean', 'vmean', 'vorticity']]
 
     return df
 
