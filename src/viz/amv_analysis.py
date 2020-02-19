@@ -123,12 +123,10 @@ def error_df(df):
     return df
 
 
-def df_concatenator(dataframes_dict, start_date, end_date, track, jpl):
+def df_concatenator(dataframes_dict, start_date, end_date, track, jpl, nudger):
     df = pd.DataFrame()
-    print('hello world')
     print('concatenating dataframes for all dates for further analysis:')
-    for date in (dataframes_dict):
-        print(date)
+    for date in tqdm(dataframes_dict):
         if date >= start_date and date <= end_date:
             df_path = dataframes_dict[date]
             df_unit = pd.read_pickle(df_path)
@@ -139,38 +137,37 @@ def df_concatenator(dataframes_dict, start_date, end_date, track, jpl):
                 #df_unit['u_scaled_approx'] = df_unit['umean']
                 #df_unit['v_scaled_approx'] = df_unit['vmean']
 
-                df_unit = df_unit[['lon', 'lat', 'u', 'v',
+                df_unit = df_unit[['lon', 'lat', 'u', 'v', 'x', 'y',
                                    'u_scaled_approx', 'v_scaled_approx', 'utrack', 'vtrack', 'qv', 'umean', 'vmean', 'vorticity']]
-            #if not jpl:
-            df_unit = error_df(df_unit)
-            df_unit = df_unit[['lon', 'lat', 'speed', 'qv', 'speed_approx', 'speed_error',
-                                   'error_v', 'error_u', 'u_scaled_approx', 'v_scaled_approx', 'u', 'v', 'vorticity','x','y']]
-            df_unit = df_unit.apply(pd.to_numeric, downcast='float')
-            print(date)
-            if df.empty:
-                df = df_unit
+            if not jpl or nudger:
+                df_unit = error_df(df_unit)
+                df_unit = df_unit[['lon', 'lat', 'x', 'y', 'speed', 'qv', 'speed_approx', 'speed_error',
+                                   'error_v', 'error_u', 'u_scaled_approx', 'v_scaled_approx', 'u', 'v', 'vorticity']]
+                df_unit = df_unit.apply(pd.to_numeric, downcast='float')
+                if df.empty:
+                    df = df_unit
+                else:
+                    df = pd.concat([df, df_unit])
             else:
-                df = pd.concat([df, df_unit])
-            #else:
                 #df_unit['u'] = df_unit['umean']
                # df_unit['v'] = df_unit['vmean']
-             #   df_unit = df_unit.reset_index(drop=True)
-              #  if df.empty:
-               #     df = df_unit
-               # else:
-                #    df = df + df_unit
-    #if jpl:
-     #   df = df/2
-      #  df['datetime'] = end_date
-       # df = df.set_index('datetime')
-       # df = error_df(df)
-       # df = df[['lon', 'lat', 'speed', 'qv', 'speed_approx', 'speed_error',
-        #         'error_v', 'error_u', 'u_scaled_approx', 'v_scaled_approx', 'u', 'v', 'utrack', 'vtrack', 'umean', 'vmean', 'vorticity']]
+                df_unit = df_unit.reset_index(drop=True)
+                if df.empty:
+                    df = df_unit
+                else:
+                    df = df + df_unit
+    if jpl and not nudger:
+        df = df/2
+        df['datetime'] = end_date
+        df = df.set_index('datetime')
+        df = error_df(df)
+        df = df[['lon', 'lat', 'speed',  'x', 'y', 'qv', 'speed_approx', 'speed_error',
+                 'error_v', 'error_u', 'u_scaled_approx', 'v_scaled_approx', 'u', 'v', 'utrack', 'vtrack', 'umean', 'vmean', 'vorticity']]
 
     return df
 
 
-def data_analysis(start_date, end_date, var, path, cutoff, track, speed_cutoff, up_speed, low_speed, jpl_loader, **kwargs):
+def data_analysis(start_date, end_date, var, path, cutoff, track, speed_cutoff, up_speed, low_speed, jpl_loader, nudger, **kwargs):
     """perform analytics on the dataframe"""
 
     pd.set_option('display.max_colwidth', -1)
@@ -178,7 +175,7 @@ def data_analysis(start_date, end_date, var, path, cutoff, track, speed_cutoff, 
     dict_path = '../data/interim/dictionaries/dataframes.pkl'
     dataframes_dict = pickle.load(open(dict_path, 'rb'))
     df = df_concatenator(dataframes_dict, start_date,
-                         end_date, track, jpl_loader)
+                         end_date, track, jpl_loader, nudger)
 
     if speed_cutoff:
         df = df[df.speed >= low_speed]
@@ -186,9 +183,6 @@ def data_analysis(start_date, end_date, var, path, cutoff, track, speed_cutoff, 
     count = df.shape[0]
 
     df = df.dropna()
-
-    if cutoff > 0:
-        df = df[df.speed_error <= cutoff]
 
     df_stats = df_summary(df, count)
 
