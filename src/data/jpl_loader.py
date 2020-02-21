@@ -15,9 +15,9 @@ def loader(var, pressure, start_date, end_date, dt, jpl_disk, level,  **kwargs):
     date_list = gd.daterange(d0, d1, 1)
     file_paths = {}
     if var.lower() in ('utrack', 'vtrack', 'umean', 'vmean'):
-        filenames = glob.glob("../data/raw/jpl/processed_jpl/0z/*")
+        filenames = glob.glob("../data/raw/jpl/processed_jpl/*")
     else:
-        filenames = glob.glob("../data/raw/jpl/raw_jpl/0z/*")
+        filenames = glob.glob("../data/raw/jpl/raw_jpl/*")
         print(filenames)
     if jpl_disk:
         for i, date in enumerate(date_list):

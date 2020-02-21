@@ -39,6 +39,7 @@ def optical_flow(start_date, end_date, var, pyr_scale, levels, iterations, poly_
     frame1 = np.load(file_paths[prvs_date])
 
     frame1 = ofc.drop_nan(frame1)
+    frame1=np.nan_to_num(frame1)
     frame1 = cv2.normalize(src=frame1, dst=None,
                            alpha=0, beta=255, norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_8UC1)
 
