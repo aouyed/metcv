@@ -10,3 +10,4 @@
 *.mpg
 *.mpeg
 *.pkl
+*.joblib
