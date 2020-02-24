@@ -58,7 +58,8 @@ class Parameters:
             'coarse_grid': 1.0,
             'pyramid_factor': 2,
             'nudger': True,
-            'deep_flow': True
+            'deep_flow': True,
+            'triplet': 0
 
         }
         for (prop, default) in prop_defaults.items():

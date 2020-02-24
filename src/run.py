@@ -81,6 +81,8 @@ def parser(process_parameters, parameters):
     parser.add_argument(
         "-levs", "--levels", help="pyramid scheme levels for DOF", type=int)
     parser.add_argument(
+        "-tri", "--triplet", help="triplet number", type=int)
+    parser.add_argument(
         "-b", "--builder", help="Whether we build the dataframe", action="store_true")
     parser.add_argument(
         "-a", "--analysis", help="Whether we analyze the dataframe", action="store_true")
@@ -167,6 +169,8 @@ def parser(process_parameters, parameters):
         parameters.cc_average_y = args.cc_average_y
     if args.cores is not None:
         parameters.cores = args.cores
+    if args.triplet is not None:
+        parameters.triplet = args.triplet
     if args.poly_n is not None:
         parameters.poly_n = args.poly_n
     if args.stride_n is not None:

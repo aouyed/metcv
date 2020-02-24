@@ -5,6 +5,7 @@ Created on Sat Jan  4 15:47:22 2020
 
 @author: amirouyed
 """
+from joblib import dump, load
 from viz import amv_analysis as aa
 from viz import dataframe_calculators as dfc
 import matplotlib.pyplot as plt
@@ -68,14 +69,36 @@ def plotter(df, values):
     cbar.set_label('g/kg')
     ax.set_xlabel("lon")
     ax.set_ylabel("lat")
-    ax.set_title('ground truth')
+    ax.set_title('Random Forest')
     directory = '../data/processed/density_plots'
     plt.savefig(values+'.png', bbox_inches='tight', dpi=300)
+
+
+#dump(regressor, 'rf.joblib')
+regressor = load('rf18z.joblib')
+
+hours = [0, 6, 12, 18]
+rf = [1.7586713731304384, 1.726020203541099,
+      1.6928669580211007, 1.7820237982951816]
+df = [3.6631614734470275, 3.4773337409477305,
+      3.334056116612048, 3.407287241359475]
+jpl = [4.156905961438292, 3.8803614780320803,
+       3.7962046843918125, 3.7449323108703165]
 
 
 start_date = datetime.datetime(2006, 7, 1, 6, 0, 0, 0)
 end_date = datetime.datetime(2006, 7, 1, 7, 0, 0, 0)
 df = aa.df_concatenator(dataframes_dict, start_date,
                         end_date, False, True, False)
+
+X = df[['lat', 'lon', 'u_scaled_approx', 'v_scaled_approx']]
+Y = df[['u', 'v']]
+
+print('predicting...')
+y_pred = regressor.predict(X)
+
+df['u'] = y_pred[:, 0]
+df['v'] = y_pred[:, 1]
+
 df['qv'] = 1000*df['qv']
 plotter(df, 'qv')

@@ -7,7 +7,7 @@ import pickle
 from data import make_dataset_geos5 as gd
 
 
-def loader(var, pressure, start_date, end_date, dt, jpl_disk, level,  **kwargs):
+def loader(var, pressure, start_date, end_date, dt, jpl_disk, level, triplet,  **kwargs):
     print('JPL loader running...')
     date = start_date
     d0 = start_date
@@ -15,9 +15,10 @@ def loader(var, pressure, start_date, end_date, dt, jpl_disk, level,  **kwargs):
     date_list = gd.daterange(d0, d1, 1)
     file_paths = {}
     if var.lower() in ('utrack', 'vtrack', 'umean', 'vmean'):
-        filenames = glob.glob("../data/raw/jpl/processed_jpl/6z/*")
+        filenames = glob.glob(
+            "../data/raw/jpl/processed_jpl/"+str(triplet)+"z/*")
     else:
-        filenames = glob.glob("../data/raw/jpl/raw_jpl/6z/*")
+        filenames = glob.glob("../data/raw/jpl/raw_jpl/"+str(triplet)+"z/*")
         print(filenames)
     if jpl_disk:
         for i, date in enumerate(date_list):
