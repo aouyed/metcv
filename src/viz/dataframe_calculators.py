@@ -113,9 +113,14 @@ def plot_average(deltax, df, xlist, varx, vary):
         df_a = df[df[varx] >= x]
         df_a = df_a[df_a[varx] <= x+deltax]
         df_unit[varx] = x
+        df_a['weighted_'+vary] = df_a[vary]*df_a['cos_weight']
         df_unit[vary+'_count'] = df_a[vary].shape[0]
-        df_unit[vary + '_std'] = df_a[vary].std()
-        df_unit[vary] = df_a[vary].mean()
+        df_unit[vary] = df_a['weighted_'+vary].sum()/df_a['cos_weight'].sum()
+        df_a['variance'] = (df_a[vary]-df_unit[vary][0]) ** 2
+        df_a['variance'] = df_a['variance']*df_a['cos_weight']
+        df_unit[vary + '_std'] = np.sqrt(df_a['variance'].sum() /
+                                         df_a['cos_weight'].sum())
+
         if df_mean.empty:
             df_mean = df_unit
         else:

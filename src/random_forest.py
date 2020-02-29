@@ -46,7 +46,7 @@ print('fitting')
 regressor.fit(X_train, y_train)
 y_pred = regressor.predict(X_test)
 
-hr = '18z'
+hr = '0z'
 dump(regressor, 'rf'+hr+'.joblib')
 dump(X_train, 'xtr' + hr+'.joblib')
 dump(X_test, 'xte'+hr+'.joblib')
@@ -58,32 +58,26 @@ dft = aa.df_concatenator(dataframes_dict, start_date,
                          end_date, True, True, False)
 dft = dft.dropna()
 
-error_u = y_test['u'] - y_pred[:, 0]
-error_v = y_test['v'] - y_pred[:, 1]
 
-speed_error = error_u**2+error_v**2
+X_test['cos_weight'] = np.cos(X_test['lat']/180*np.pi)
+error_u = (y_test['u'] - y_pred[:, 0])
+error_v = (y_test['v'] - y_pred[:, 1])
+
+speed_error = (error_u**2+error_v**2)*X_test['cos_weight']
 print("rmsvd for rf")
-print(np.sqrt(speed_error.mean()))
-
-error_ut = y_test['u'] - X_test['u_scaled_approx']
-error_vt = y_test['v'] - X_test['v_scaled_approx']
-
-speed_errort = error_ut**2+error_vt**2
-print('rmsvd for df')
-print(np.sqrt(speed_errort.mean()))
+print(np.sqrt(speed_error.sum()/X_test['cos_weight'].sum()))
 
 
-error_uj = df['u'] - df['u_scaled_approx']
-error_vj = df['v'] - df['v_scaled_approx']
-speed_errorj = error_uj**2+error_vj**2
+error_uj = (df['u'] - df['u_scaled_approx'])
+error_vj = (df['v'] - df['v_scaled_approx'])
+speed_errorj = (error_uj**2+error_vj**2)*df['cos_weight']
 print('rmsvd for deepflow and whole dataset')
-print(np.sqrt(speed_errorj.mean()))
-
-error_ujt = dft['u'] - dft['u_scaled_approx']
-error_vjt = dft['v'] - dft['v_scaled_approx']
-speed_errorjt = error_ujt**2+error_vjt**2
+print(np.sqrt(speed_errorj.sum()/df['cos_weight'].sum()))
+error_ujt = (dft['u'] - dft['u_scaled_approx'])
+error_vjt = (dft['v'] - dft['v_scaled_approx'])
+speed_errorjt = (error_ujt**2+error_vjt**2)*dft['cos_weight']
 print('rmsvd for jpl')
-print(np.sqrt(speed_errorjt.mean()))
+print(np.sqrt(speed_errorjt.sum()/dft['cos_weight'].sum()))
 
 
 print('done!')

@@ -51,7 +51,7 @@ def df_summary(df, count):
     # df_total['initial_count']=count
     df_total['ratio_count'] = df.shape[0]/count
     df_total['count'] = count
-    df_total['mean_speed_error'] = df['speed_error'].mean()
+    df_total['mean_speed_error'] = np.sqrt(df['speed_error'].mean())
     return df_total
 
 
@@ -117,8 +117,7 @@ def error_df(df):
     df['speed'] = np.sqrt(df['u']*df['u']+df['v']*df['v'])
     df['speed_approx'] = np.sqrt(
         df['u_scaled_approx']*df['u_scaled_approx']+df['v_scaled_approx']*df['v_scaled_approx'])
-    df['speed_error'] = np.sqrt(
-        df['error_u']*df['error_u']+df['error_v']*df['error_v'])
+    df['speed_error'] = df['error_u']*df['error_u']+df['error_v']*df['error_v']
 
     return df
 
@@ -164,6 +163,7 @@ def df_concatenator(dataframes_dict, start_date, end_date, track, jpl, nudger):
         df = df[['lon', 'lat', 'speed',  'x', 'y', 'qv', 'speed_approx', 'speed_error',
                  'error_v', 'error_u', 'u_scaled_approx', 'v_scaled_approx', 'u', 'v', 'utrack', 'vtrack', 'umean', 'vmean', 'vorticity']]
 
+    df['cos_weight'] = np.cos(df['lat']/180*np.pi)
     return df
 
 

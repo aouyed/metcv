@@ -94,13 +94,15 @@ def scatter_plotter(X, values):
     plt.savefig(values+'.png', bbox_inches='tight', dpi=300)
 
 
-def line_plotter(X, X_2, values):
+def line_plotter(X, X_2, X_3, values):
     fig, ax = plt.subplots()
     # ax = plt.axes(projection=ccrs.PlateCarree())
     # ax.coastlines()
 
     sns.lineplot(X['speed'], X['speed_approx'], label='jpl', ax=ax)
     sns.lineplot(X_2['speed'], X_2['speed_approx'], label='physics', ax=ax)
+    sns.lineplot(X_3['speed'], X_3['speed_approx'], label='vem', ax=ax)
+
     sns.lineplot(X['speed'], X['speed'], label='truth', ax=ax)
     # ax.legend()
 
@@ -110,7 +112,50 @@ def line_plotter(X, X_2, values):
     # gl.ylabels_right = False
     ax.set_xlabel("ground truth [m/s]")
     ax.set_ylabel("AMV [m/s]")
-    ax.set_title('Physics corrected speeds')
+    ax.set_title('Wind Speeds')
+    directory = '../data/processed/density_plots'
+    plt.savefig(values+'.png', bbox_inches='tight', dpi=300)
+
+    fig, ax = plt.subplots()
+    # ax = plt.axes(projection=ccrs.PlateCarree())
+    # ax.coastlines()
+
+    sns.lineplot(X['speed'], X['speed_approx_std'], label='jpl', ax=ax)
+    sns.lineplot(X_2['speed'], X_2['speed_approx_std'], label='physics', ax=ax)
+    sns.lineplot(X_3['speed'], X_3['speed_approx_std'], label='vem', ax=ax)
+
+    # ax.legend()
+
+    # gl = ax.gridlines(crs=ccrs.PlateCarree(), draw_labels=True,
+    #                 linewidth=2, color='gray', alpha=0, linestyle='--')
+    # gl.xlabels_top = False
+    # gl.ylabels_right = False
+    ax.set_xlabel("ground truth [m/s]")
+    ax.set_ylabel("stdev [m/s]")
+    ax.set_title('weighted standard deviations')
+    directory = '../data/processed/density_plots'
+    plt.savefig('stdev.png', bbox_inches='tight', dpi=300)
+
+
+def line_plotter_1(X, X_2, X_3, values):
+    fig, ax = plt.subplots()
+    # ax = plt.axes(projection=ccrs.PlateCarree())
+    # ax.coastlines()
+
+    sns.lineplot(X['speed'], X['speed_error'], label='jpl', ax=ax)
+    sns.lineplot(X_2['speed'], X_2['speed_error'], label='physics', ax=ax)
+    sns.lineplot(X_3['speed'], X_3['speed_error'], label='vem', ax=ax)
+
+    #sns.lineplot(X['speed'], X['speed'], label='truth', ax=ax)
+    # ax.legend()
+
+    # gl = ax.gridlines(crs=ccrs.PlateCarree(), draw_labels=True,
+    #                 linewidth=2, color='gray', alpha=0, linestyle='--')
+    # gl.xlabels_top = False
+    # gl.ylabels_right = False
+    ax.set_xlabel("ground truth [m/s]")
+    ax.set_ylabel("RMSVD [m/s]")
+    ax.set_title('RMSVD')
     directory = '../data/processed/density_plots'
     plt.savefig(values+'.png', bbox_inches='tight', dpi=300)
 
@@ -134,7 +179,7 @@ def line_plotter_0(df, values):
     # gl.xlabels_top = False
     # gl.ylabels_right = False
     ax.set_xlabel("hour")
-    ax.set_ylabel("RMSVD")
+    ax.set_ylabel("RMSVD [m/s]")
     ax.set_title('Results')
     directory = '../data/processed/density_plots'
     plt.savefig(values+'.png', bbox_inches='tight', dpi=300)
@@ -144,12 +189,12 @@ def line_plotter_0(df, values):
 regressor = load('rf18z.joblib')
 
 hours = [0, 6, 12, 18]
-rf = [1.7586713731304384, 1.726020203541099,
-      1.6928669580211007, 1.7820237982951816]
-deepf = [3.6631614734470275, 3.4773337409477305,
-         3.334056116612048, 3.407287241359475]
-jpl = [4.156905961438292, 3.8803614780320803,
-       3.7962046843918125, 3.7449323108703165]
+rf = [1.7122288824810241, 1.6554113125780026,
+      1.614328436366025, 1.7043883044378514]
+deepf = [3.0814844441258487, 2.8653066164477585,
+         2.7922954295197595, 2.9260425156666905]
+jpl = [3.7132896180961383, 3.412857290296869,
+       3.363429985554871, 3.440039715662562]
 
 
 d = {'hours': hours, 'df': deepf, 'jpl': jpl, 'rf': rf}
@@ -160,6 +205,8 @@ start_date = datetime.datetime(2006, 7, 1, 6, 0, 0, 0)
 end_date = datetime.datetime(2006, 7, 1, 7, 0, 0, 0)
 df = aa.df_concatenator(dataframes_dict, start_date,
                         end_date, False, True, False)
+
+df = df.dropna()
 
 X = df[['lat', 'lon', 'u_scaled_approx', 'v_scaled_approx']]
 Y = df[['u', 'v']]
@@ -177,19 +224,38 @@ y_pred = regressor.predict(X)
 
 df_jpl = aa.df_concatenator(dataframes_dict, start_date,
                             end_date, True, True, False)
+df_jpl = df_jpl.dropna()
 # df['speed_approx'] = np.sqrt(df['u_scaled_approx']**2+df['v_scaled_approx']**2)
 
 xlistv = np.arange(df['speed'].min(), df['speed'].max(), 1)
 print('averaging...')
 df_mean = dfc.plot_average(
     deltax=1, df=df_jpl, xlist=xlistv, varx='speed', vary='speed_approx')
-df['speed_approx'] = np.sqrt(y_pred[:, 0]**2 + y_pred[:, 0]**2)
+df_mean_e = dfc.plot_average(
+    deltax=1, df=df_jpl, xlist=xlistv, varx='speed', vary='speed_error')
+df_mean_vem = dfc.plot_average(
+    deltax=1, df=df, xlist=xlistv, varx='speed', vary='speed_approx')
+df_mean_vem_e = dfc.plot_average(
+    deltax=1, df=df, xlist=xlistv, varx='speed', vary='speed_error')
+df['speed_approx'] = np.sqrt(y_pred[:, 0]**2 + y_pred[:, 1]**2)
+df['speed_error'] = np.sqrt(
+    (y_pred[:, 0]-df['u'])**2 + (y_pred[:, 1]-df['v'])**2)
 df_mean_rf = dfc.plot_average(
     deltax=1, df=df, xlist=xlistv, varx='speed', vary='speed_approx')
-
+df_mean_rf_e = dfc.plot_average(
+    deltax=1, df=df, xlist=xlistv, varx='speed', vary='speed_error')
+print('avg error')
+print(df['speed_error'].mean())
 
 df['qv'] = 1000*df['qv']
 # plotter(df, 'qv')
+
+df_mean_e['speed_error'] = np.sqrt(df_mean_e['speed_error'])
+df_mean_vem_e['speed_error'] = np.sqrt(df_mean_vem_e['speed_error'])
+df_mean_rf_e['speed_error'] = np.sqrt(df_mean_rf_e['speed_error'])
+
 print('plotting...')
-line_plotter(df_mean, df_mean_rf, 'speed')
+line_plotter(df_mean, df_mean_rf, df_mean_vem, 'speed')
+line_plotter_1(df_mean_e, df_mean_rf_e, df_mean_vem_e, 'speed_error')
+
 line_plotter_0(df_results, 'results')
