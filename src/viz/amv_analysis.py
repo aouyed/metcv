@@ -158,6 +158,8 @@ def df_concatenator(dataframes_dict, start_date, end_date, track, jpl, nudger):
     if jpl and not nudger:
         df = df/2
         df['datetime'] = end_date
+        #df['u'] = df_unit['umean']
+        #df['v'] = df_unit['vmean']
         df = df.set_index('datetime')
         df = error_df(df)
         df = df[['lon', 'lat', 'speed',  'x', 'y', 'qv', 'speed_approx', 'speed_error',

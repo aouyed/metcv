@@ -86,7 +86,5 @@ def df_sumnmary(df, coarse):
         os.makedirs(plot_path)
     df.to_pickle(df_path+'/c'+str(coarse)+'.pkl')
     print(df[["corr_speed", "corr_u", "corr_v", "ratio_count", "mean", "std"]])
-    import pdb
-    pdb.set_trace()
    # dfc.line_plotter(df[['cutoff', 'corr_speed',
    #                      'mean_speed_error', 'initial_count', 'ratio_count']], plot_path)

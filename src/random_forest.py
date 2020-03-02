@@ -25,6 +25,9 @@ mpl.rcParams['figure.dpi'] = 150
 sns.set_context("paper")
 # sns.set_context('poster')
 pd.set_option('display.expand_frame_repr', False)
+
+
+
 dict_path = '../data/interim/dictionaries/dataframes.pkl'
 dataframes_dict = pickle.load(open(dict_path, 'rb'))
 
@@ -47,16 +50,19 @@ regressor.fit(X_train, y_train)
 y_pred = regressor.predict(X_test)
 
 hr = '0z'
-dump(regressor, 'rf'+hr+'.joblib')
-dump(X_train, 'xtr' + hr+'.joblib')
-dump(X_test, 'xte'+hr+'.joblib')
-dump(y_test, 'yte'+hr+'.joblib')
-dump(y_train, 'ytr'+hr+'.joblib')
+dump(regressor, 'rf.joblib')
+dump(X_train, 'xtr.joblib')
+dump(X_test, 'xte.joblib')
+dump(y_test, 'yte.joblib')
+dump(y_train, 'ytr.joblib')
 
 
 dft = aa.df_concatenator(dataframes_dict, start_date,
                          end_date, True, True, False)
 dft = dft.dropna()
+
+
+f = open("errors.txt", "w+")
 
 
 X_test['cos_weight'] = np.cos(X_test['lat']/180*np.pi)
@@ -65,19 +71,27 @@ error_v = (y_test['v'] - y_pred[:, 1])
 
 speed_error = (error_u**2+error_v**2)*X_test['cos_weight']
 print("rmsvd for rf")
-print(np.sqrt(speed_error.sum()/X_test['cos_weight'].sum()))
+f.write("rmsvd for rf\n")
+rmsvd = np.sqrt(speed_error.sum()/X_test['cos_weight'].sum())
+print(rmsvd)
+f.write(str(rmsvd)+'\n')
 
 
 error_uj = (df['u'] - df['u_scaled_approx'])
 error_vj = (df['v'] - df['v_scaled_approx'])
 speed_errorj = (error_uj**2+error_vj**2)*df['cos_weight']
 print('rmsvd for deepflow and whole dataset')
-print(np.sqrt(speed_errorj.sum()/df['cos_weight'].sum()))
+f.write('rmsvd for deepflow and whole dataset\n')
+rmsvd = np.sqrt(speed_errorj.sum()/df['cos_weight'].sum())
+print(rmsvd)
+f.write(str(rmsvd)+'\n')
 error_ujt = (dft['u'] - dft['u_scaled_approx'])
 error_vjt = (dft['v'] - dft['v_scaled_approx'])
 speed_errorjt = (error_ujt**2+error_vjt**2)*dft['cos_weight']
 print('rmsvd for jpl')
-print(np.sqrt(speed_errorjt.sum()/dft['cos_weight'].sum()))
-
-
+f.write('rmsvd for jpl\n')
+rmsvd = np.sqrt(speed_errorjt.sum()/dft['cos_weight'].sum())
+print(rmsvd)
+f.write(str(rmsvd)+'\n')
+f.close()
 print('done!')
