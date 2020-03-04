@@ -4,7 +4,7 @@
 Created on Sat Jan  4 15:47:22 2020
 
 @author: amirouyed
-"""
+,"""
 from viz import amv_analysis as aa
 from viz import dataframe_calculators as dfc
 import matplotlib.pyplot as plt
@@ -21,11 +21,64 @@ from sklearn.model_selection import train_test_split
 from joblib import dump, load
 
 
+def rf(X, Y, name, f):
+    regressor = RandomForestRegressor(
+        n_estimators=100, random_state=0, n_jobs=-1)
+    # X = df[[ 'lat', 'lon', 'u_scaled_approx', 'v_scaled_approx']]
+    # X = df[['lat', 'lon', 'qv']]
+    # Y = df[['u', 'v']]
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, Y, test_size=0.99, random_state=1)
+
+    print('train size:')
+    print(X_train.shape)
+    print('test size')
+    print(X_test.shape)
+    print('fitting')
+    regressor.fit(X_train, y_train)
+    y_pred = regressor.predict(X_test)
+
+    hr = '0z'
+    dump(regressor, 'rf_'+name+'.joblib')
+    dump(X_train, 'xtr_'+name+'.joblib')
+    dump(X_test, 'xte_'+name+'.joblib')
+    dump(y_test, 'yte_'+name+'.joblib')
+    dump(y_train, 'ytr_'+name+'.joblib')
+
+    X_test['cos_weight'] = np.cos(X_test['lat']/180*np.pi)
+    error_u = (y_test['u'] - y_pred[:, 0])
+    error_v = (y_test['v'] - y_pred[:, 1])
+
+    speed_error = (error_u**2+error_v**2)*X_test['cos_weight']
+    print("rmsvd for rf_"+name)
+    f.write("rmsvd for rf_"+name+"\n")
+    rmsvd = np.sqrt(speed_error.sum()/X_test['cos_weight'].sum())
+    print(rmsvd)
+    f.write(str(rmsvd)+'\n')
+
+
+def diff_qv(df):
+    qv = df.pivot('y', 'x', 'qv').values
+    qv = np.nan_to_num(qv)
+    diff_qv = np.gradient(qv)
+    print(np.mean(diff_qv))
+    diff_qv = np.array(diff_qv)
+    diff_qv = np.nan_to_num(diff_qv)
+    df_1 = pd.DataFrame(diff_qv[0, :, :]).stack().rename_axis(
+        ['y', 'x']).reset_index(name='dqv_dy')
+    df = df.reset_index()
+
+    df['dqv_dy'] = df_1['dqv_dy']
+    df_1 = pd.DataFrame(diff_qv[1, :, :]).stack().rename_axis(
+        ['y', 'x']).reset_index(name='dqv_dx')
+    df['dqv_dx'] = df_1['dqv_dx']
+    return df
+
+
 mpl.rcParams['figure.dpi'] = 150
 sns.set_context("paper")
 # sns.set_context('poster')
 pd.set_option('display.expand_frame_repr', False)
-
 
 
 dict_path = '../data/interim/dictionaries/dataframes.pkl'
@@ -36,46 +89,21 @@ start_date = datetime.datetime(2006, 7, 1, 6, 0, 0, 0)
 end_date = datetime.datetime(2006, 7, 1, 7, 0, 0, 0)
 df = aa.df_concatenator(dataframes_dict, start_date,
                         end_date, False, True, False)
+# df = df.dropna()
+df = diff_qv(df)
 df = df.dropna()
-print(df)
-regressor = RandomForestRegressor(n_estimators=100, random_state=0, n_jobs=-1)
-
-X = df[['lat', 'lon', 'u_scaled_approx', 'v_scaled_approx']]
-Y = df[['u', 'v']]
-X_train, X_test, y_train, y_test = train_test_split(
-    X, Y, test_size=0.99, random_state=1)
-
-print('fitting')
-regressor.fit(X_train, y_train)
-y_pred = regressor.predict(X_test)
-
-hr = '0z'
-dump(regressor, 'rf.joblib')
-dump(X_train, 'xtr.joblib')
-dump(X_test, 'xte.joblib')
-dump(y_test, 'yte.joblib')
-dump(y_train, 'ytr.joblib')
-
-
 dft = aa.df_concatenator(dataframes_dict, start_date,
                          end_date, True, True, False)
 dft = dft.dropna()
-
-
 f = open("errors.txt", "w+")
 
-
-X_test['cos_weight'] = np.cos(X_test['lat']/180*np.pi)
-error_u = (y_test['u'] - y_pred[:, 0])
-error_v = (y_test['v'] - y_pred[:, 1])
-
-speed_error = (error_u**2+error_v**2)*X_test['cos_weight']
-print("rmsvd for rf")
-f.write("rmsvd for rf\n")
-rmsvd = np.sqrt(speed_error.sum()/X_test['cos_weight'].sum())
-print(rmsvd)
-f.write(str(rmsvd)+'\n')
-
+X = df[['lat', 'lon', 'u_scaled_approx', 'v_scaled_approx']]
+Y = df[['u', 'v']]
+rf(X, Y, 'uv', f)
+X = df[['lat', 'lon', 'qv']]
+rf(X, Y, 'qv', f)
+#X = df[['lat', 'lon', 'qv', 'dqv_dx', 'dqv_dy']]
+#rf(X, Y, 'dqv', f)
 
 error_uj = (df['u'] - df['u_scaled_approx'])
 error_vj = (df['v'] - df['v_scaled_approx'])

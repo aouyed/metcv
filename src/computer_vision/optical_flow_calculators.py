@@ -286,9 +286,9 @@ def drop_nan(frame):
     #row_mean = np.nanmean(frame, axis=1)
     #inds = np.where(np.isnan(frame))
     #frame[inds] = np.take(row_mean, inds[0])
-    mask=np.ma.masked_invalid(frame)
-    mask=np.uint8(mask.mask)
-    frame=np.nan_to_num(frame)
+    mask = np.ma.masked_invalid(frame)
+    mask = np.uint8(mask.mask)
+    frame = np.nan_to_num(frame)
 
     frame = cv2.inpaint(frame, mask, inpaintRadius=10, flags=cv2.INPAINT_NS)
     print('inpainted')

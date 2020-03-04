@@ -7,7 +7,7 @@ import pickle
 from data import make_dataset_geos5 as gd
 
 
-def loader(var, pressure, start_date, end_date, dt, jpl_disk, level, triplet,  **kwargs):
+def loader(var, pressure, start_date, end_date, dt, jpl_disk, level, triplet, sigma_random,   **kwargs):
     print('JPL loader running...')
     date = start_date
     d0 = start_date
@@ -39,7 +39,10 @@ def loader(var, pressure, start_date, end_date, dt, jpl_disk, level, triplet,  *
                 T = ds.sel(pressure=pressure, method='nearest')
                 T = T.get(var.lower())
                 T = T.values
-                #T = np.nan_to_num(T, nan=0)
+
+            if var is 'qv' and sigma_random > 0:
+                T = np.nan_to_num(T, nan=0)
+                T = T+np.random.normal(scale=sigma_random*abs(T))
 
             print('shape of downloaded array: ' + str(T.shape))
             file_path = str(directory_path+'/'+str(date)+".npy")

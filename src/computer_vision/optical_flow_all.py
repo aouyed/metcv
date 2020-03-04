@@ -22,7 +22,7 @@ from datetime import timedelta
 import gc
 
 
-def optical_flow(start_date, end_date, var, pyr_scale, levels, iterations, poly_n, poly_sigma, sub_pixel, target_box_x, target_box_y, average_lon, tvl1, do_cross_correlation, farneback, stride_n, dof_average_x, dof_average_y, cc_average_x, cc_average_y, winsizes, grid, Lambda, coarse_grid, pyramid_factor, dt, nudger, deep_flow, jpl_loader,   **kwargs):
+def optical_flow(start_date, end_date, var, pyr_scale, levels, iterations, poly_n, poly_sigma, sub_pixel, target_box_x, target_box_y, average_lon, tvl1, do_cross_correlation, farneback, stride_n, dof_average_x, dof_average_y, cc_average_x, cc_average_y, winsizes, grid, Lambda, coarse_grid, pyramid_factor, dt, nudger, deep_flow, jpl_loader, sigma_random,    **kwargs):
     """Implements cross correlation algorithm for calculating AMVs."""
 
     file_paths = pickle.load(
@@ -38,8 +38,13 @@ def optical_flow(start_date, end_date, var, pyr_scale, levels, iterations, poly_
         prvs_date = start_date
     frame1 = np.load(file_paths[prvs_date])
 
-    frame1 = ofc.drop_nan(frame1)
-    frame1=np.nan_to_num(frame1)
+    if sigma_random == 0:
+        frame1 = ofc.drop_nan(frame1)
+    else:
+        frame1 = np.nan_to_num(frame1)
+    if sigma_random > 0:
+        frame1 = frame1 + np.random.normal(scale=sigma_random*frame1)
+    frame1 = np.nan_to_num(frame1)
     frame1 = cv2.normalize(src=frame1, dst=None,
                            alpha=0, beta=255, norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_8UC1)
 
@@ -88,7 +93,11 @@ def optical_flow(start_date, end_date, var, pyr_scale, levels, iterations, poly_
         print('flow calculation for date: ' + str(date))
         file = file_paths[date]
         frame2 = np.load(file)
-        frame2 = ofc.drop_nan(frame2)
+        if sigma_random == 0:
+            frame2 = ofc.drop_nan(frame2)
+        else:
+            frame2 = np.nan_to_num(frame2)
+
         # frame2 = np.nan_to_num(frame2)
         frame2 = cv2.normalize(src=frame2, dst=None, alpha=0,
                                beta=255, norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_8UC1)

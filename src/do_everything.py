@@ -59,7 +59,8 @@ class Parameters:
             'pyramid_factor': 2,
             'nudger': True,
             'deep_flow': True,
-            'triplet': 0
+            'triplet': 0,
+            'sigma_random': 0
 
         }
         for (prop, default) in prop_defaults.items():

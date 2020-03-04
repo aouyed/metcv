@@ -79,6 +79,8 @@ def parser(process_parameters, parameters):
     parser.add_argument(
         "-pf", "--pyramid_factor", help="factor used to divide pyramid", type=float)
     parser.add_argument(
+        "-sr", "--sigma_random", help="stdev factor for gaussian noise ror humidity", type=float)
+    parser.add_argument(
         "-levs", "--levels", help="pyramid scheme levels for DOF", type=int)
     parser.add_argument(
         "-tri", "--triplet", help="triplet number", type=int)
@@ -155,6 +157,8 @@ def parser(process_parameters, parameters):
         parameters.var = args.variable
     if args.timestep is not None:
         parameters.dt = args.timestep
+    if args.sigma_random is not None:
+        parameters.sigma_random = args.sigma_random
     if args.low_speed is not None:
         parameters.low_speed = args.low_speed
     if args.up_speed is not None:
