@@ -1,7 +1,7 @@
 import os
 
 
-noises = [0.1]
+noises = [0.5, 0.1]
 for noise in noises:
     print('computing for noise: ' + str(noise))
     os.system("python3 run.py  -a -p -of -fb -b -sd 2006-07-01-05:00 -ed 2006-07-01-07:00 -v 'qv'  -jd -dt 3600 -d -al   -jl  -df -tri 12 -sr " + str(noise))

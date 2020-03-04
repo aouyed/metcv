@@ -42,9 +42,7 @@ def optical_flow(start_date, end_date, var, pyr_scale, levels, iterations, poly_
         frame1 = ofc.drop_nan(frame1)
     else:
         frame1 = np.nan_to_num(frame1)
-    if sigma_random > 0:
-        frame1 = frame1 + np.random.normal(scale=sigma_random*frame1)
-    frame1 = np.nan_to_num(frame1)
+
     frame1 = cv2.normalize(src=frame1, dst=None,
                            alpha=0, beta=255, norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_8UC1)
 
@@ -55,19 +53,6 @@ def optical_flow(start_date, end_date, var, pyr_scale, levels, iterations, poly_
     shape.append(2)
     shape = tuple(shape)
     flow = np.zeros(shape)
-    if nudger:
-        frame1_u = np.load(file_paths_u[start_date])
-        frame1_v = np.load(file_paths_v[start_date])
-        flow[:, :, 0] = frame1_u
-        flow[:, :, 1] = frame1_v
-        flow[:, :, 0] = 0.25
-        flow[:, :, 1] = 0.25
-        flow = dfc.initial_flow(flow, grid, 1/dt)
-        flow = np.nan_to_num(flow)
-        #flow[:, :, 0] = 0.5*flow[:, :, 0]
-        #flow[:, :, 1] = 0.6*flow[:, :, 1]
-        flow[:, :, 0] = factor_flowu*flow[:, :, 0]
-        flow[:, :, 1] = factor_flowv*flow[:, :, 1]
 
     prvs = frame1
     prvs = np.nan_to_num(prvs)
@@ -80,14 +65,6 @@ def optical_flow(start_date, end_date, var, pyr_scale, levels, iterations, poly_
         file_paths = file_paths_e
 
     for date in file_paths:
-        print('warping...')
-        print('nudger value')
-        print(nudger)
-        if nudger:
-            # helper variable to avoid random segfault
-            prvsh = ofc.warp_flow(prvs, flow)
-            prvs = prvsh
-       # prvs = ofc.warp_flow(prvs, flow)
 
         dates.append(date)
         print('flow calculation for date: ' + str(date))
@@ -112,16 +89,10 @@ def optical_flow(start_date, end_date, var, pyr_scale, levels, iterations, poly_
             flowd = optical_flow.calc(prvs, next_frame, None)
 
             flow = flow+flowd
-            if not nudger:
-                prvs = ofc.warp_flow(prvs, flow)
-                flowd = optical_flow.calc(prvs, next_frame, None)
-                flow = flow+flowd
-            #flow = np.zeros(shape)
-
-       # optical_flow = cv2.optflow.createOptFlow_DeepFlow()
-       # flowv=optical_flow.calc(prvs0, next_frame, None)
-
-        print('done with deep flow')
+            prvs = ofc.warp_flow(prvs, flow)
+            flowd = optical_flow.calc(prvs, next_frame, None)
+            flow = flow+flowd
+            print('done with deep flow')
         filename = os.path.basename(file)
         filename = os.path.splitext(filename)[0]
         file_path = '../data/processed/flow_frames/'+var+'_'+filename+'.npy'
@@ -135,13 +106,6 @@ def optical_flow(start_date, end_date, var, pyr_scale, levels, iterations, poly_
         shape.append(2)
         shape = tuple(shape)
         flow = np.zeros(shape)
-        if nudger:
-           # flow[:, :, 0] = factor_flowu*frame1_u
-            #flow[:, :, 1] = factor_flowv*frame1_v
-            flow[:, :, 0] = 0.25
-            flow[:, :, 1] = 0.25
-            flow = dfc.initial_flow(flow, grid, 1/dt)
-            flow = np.nan_to_num(flow)
 
     path = '../data/interim/dictionaries_optical_flow'
     if not os.path.exists(path):

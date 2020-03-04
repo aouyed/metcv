@@ -99,14 +99,10 @@ def plotter_res(df,  values, title):
 
 def scatter_plotter(X, values):
     fig, ax = plt.subplots()
-    # ax = plt.axes(projection=ccrs.PlateCarree())
-    # ax.coastlines()
+ 
 
     ax.scatter(X['lon'], X['lat'], s=0.1)
-    # gl = ax.gridlines(crs=ccrs.PlateCarree(), draw_labels=True,
-    #                 linewidth=2, color='gray', alpha=0, linestyle='--')
-    # gl.xlabels_top = False
-    # gl.ylabels_right = False
+
     ax.set_xlabel("lon")
     ax.set_ylabel("lat")
     ax.set_title('Training Data')
@@ -116,8 +112,7 @@ def scatter_plotter(X, values):
 
 def line_plotter(X, X_2, X_3, X_4, values):
     fig, ax = plt.subplots()
-    # ax = plt.axes(projection=ccrs.PlateCarree())
-    # ax.coastlines()
+
 
     sns.lineplot(X['speed'], X['speed_approx'], label='jpl', ax=ax)
     sns.lineplot(X_2['speed'], X_2['speed_approx'], label='physics', ax=ax)
@@ -125,33 +120,23 @@ def line_plotter(X, X_2, X_3, X_4, values):
     sns.lineplot(X_4['speed'], X_4['speed_approx'], label='physics_qv', ax=ax)
 
     sns.lineplot(X['speed'], X['speed'], label='truth', ax=ax)
-    # ax.legend()
 
-    # gl = ax.gridlines(crs=ccrs.PlateCarree(), draw_labels=True,
-    #                 linewidth=2, color='gray', alpha=0, linestyle='--')
-    # gl.xlabels_top = False
-    # gl.ylabels_right = False
     ax.set_xlabel("ground truth [m/s]")
     ax.set_ylabel("AMV [m/s]")
     ax.set_title('Wind Speeds')
     directory = '../data/processed/density_plots'
+
     plt.savefig(values+'.png', bbox_inches='tight', dpi=300)
 
     fig, ax = plt.subplots()
-    # ax = plt.axes(projection=ccrs.PlateCarree())
-    # ax.coastlines()
+
 
     sns.lineplot(X['speed'], X['speed_approx_std'], label='jpl', ax=ax)
     sns.lineplot(X_2['speed'], X_2['speed_approx_std'], label='physics', ax=ax)
     sns.lineplot(X_3['speed'], X_3['speed_approx_std'], label='vem', ax=ax)
     sns.lineplot(X_4['speed'], X_4['speed_approx_std'],
                  label='physics_qv', ax=ax)
-    # ax.legend()
 
-    # gl = ax.gridlines(crs=ccrs.PlateCarree(), draw_labels=True,
-    #                 linewidth=2, color='gray', alpha=0, linestyle='--')
-    # gl.xlabels_top = False
-    # gl.ylabels_right = False
     ax.set_xlabel("ground truth [m/s]")
     ax.set_ylabel("stdev [m/s]")
     ax.set_title('weighted standard deviations')
@@ -161,21 +146,11 @@ def line_plotter(X, X_2, X_3, X_4, values):
 
 def line_plotter_1(X, X_2, X_3, X_4,  values):
     fig, ax = plt.subplots()
-    # ax = plt.axes(projection=ccrs.PlateCarree())
-    # ax.coastlines()
-
     sns.lineplot(X['speed'], X['speed_error'], label='jpl', ax=ax)
     sns.lineplot(X_2['speed'], X_2['speed_error'], label='physics', ax=ax)
     sns.lineplot(X_3['speed'], X_3['speed_error'], label='vem', ax=ax)
     sns.lineplot(X_4['speed'], X_4['speed_error'], label='physics_qv', ax=ax)
 
-    # sns.lineplot(X['speed'], X['speed'], label='truth', ax=ax)
-    # ax.legend()
-
-    # gl = ax.gridlines(crs=ccrs.PlateCarree(), draw_labels=True,
-    #                 linewidth=2, color='gray', alpha=0, linestyle='--')
-    # gl.xlabels_top = False
-    # gl.ylabels_right = False
     ax.set_xlabel("ground truth [m/s]")
     ax.set_ylabel("RMSVD [m/s]")
     ax.set_title('RMSVD')
@@ -185,23 +160,21 @@ def line_plotter_1(X, X_2, X_3, X_4,  values):
 
 def line_plotter_0(df, values):
     fig, ax = plt.subplots()
-    # ax = plt.axes(projection=ccrs.PlateCarree())
-    # ax.coastlines()
 
-    sns.lineplot(df['hours'], df['jpl'], label='jpl',
+
+    sns.lineplot(df['factor'], df['jpl'], label='jpl',
                  linestyle='--', marker='o', ax=ax)
-    sns.lineplot(df['hours'], df['df'], label='vem',
+    sns.lineplot(df['factor'], df['df'], label='vem',
                  linestyle='--', marker='o', ax=ax)
-    sns.lineplot(df['hours'], df['rf'], label='physics',
+    sns.lineplot(df['factor'], df['rf'], label='physics',
+                 linestyle='--', marker='o', ax=ax)
+    sns.lineplot(df['factor'], df['rf_qv'], label='physics_qv',
                  linestyle='--', marker='o', ax=ax)
 
     ax.legend(frameon=None)
 
-    # gl = ax.gridlines(crs=ccrs.PlateCarree(), draw_labels=True,
-    #                 linewidth=2, color='gray', alpha=0, linestyle='--')
-    # gl.xlabels_top = False
-    # gl.ylabels_right = False
-    ax.set_xlabel("hour")
+
+    ax.set_xlabel("factor")
     ax.set_ylabel("RMSVD [m/s]")
     ax.set_title('Results')
     directory = '../data/processed/density_plots'
@@ -240,18 +213,24 @@ regressor_dqv = load('rf_dqv.joblib')
 y_test_dqv = load('yte_dqv.joblib')
 X_test_dqv = load('xte_dqv.joblib')
 
-hours = [0, 6, 12, 18]
-rf = [1.7122288824810241, 1.6554113125780026,
-      1.614328436366025, 1.7043883044378514]
-deepf = [3.0814844441258487, 2.8653066164477585,
-         2.7922954295197595, 2.9260425156666905]
-jpl = [3.7132896180961383, 3.412857290296869,
-       3.363429985554871, 3.440039715662562]
+factor = [1, 2, 4, 8]
+#rf = [1.614328436366025, 2.103440482943322,2.795093021606374,3.7645751225575257]
+#rf_qv = [1.2538326871052794,1.941077631653232,3.066439053017369,4.707282307659509]
+#deepf = [2.7922954295197595,2.9946532655800517,3.5062301742513893,4.59048106377127]
+#jpl = [3.363429985554871,3.363429985554871,3.363429985554871,3.363429985554871]
+factor = [0, 0.1, 0.5]
+
+rf = [1.6143284363660257, 1.5931060674015964, 1.4173355687285165]
+rf_qv = [1.2538326871052794, 1.3117970383979514,1.2856258349015028]
+deepf = [2.7922954295197595,3.528404147370215 ,5.217598264276706]
+jpl = [3.363429985554871,3.363429985554871,3.363429985554871]
 
 
-d = {'hours': hours, 'df': deepf, 'jpl': jpl, 'rf': rf}
+d = {'factor': factor, 'df': deepf, 'jpl': jpl, 'rf': rf,'rf_qv': rf_qv}
 df_results = pd.DataFrame(data=d)
 print(df_results)
+line_plotter_0(df_results, 'results')
+
 
 start_date = datetime.datetime(2006, 7, 1, 6, 0, 0, 0)
 end_date = datetime.datetime(2006, 7, 1, 7, 0, 0, 0)
@@ -293,4 +272,3 @@ line_plotter(df_mean, df_mean_rf, df_mean_vem, df_mean_rf_qv, 'speed')
 line_plotter_1(df_mean_e, df_mean_rf_e, df_mean_vem_e,
                df_mean_rf_qv_e, 'speed_error')
 
-line_plotter_0(df_results, 'results')
