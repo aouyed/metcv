@@ -85,8 +85,8 @@ def loader(var, pressure, start_date, end_date, dt, jpl_disk, level, triplet, si
 
             if var is 'qv' and sigma_random > 0:
                 print('adding noise..')
-                T = np.nan_to_num(T, nan=0)
-                T = T+np.random.normal(scale=sigma_random*abs(T))
+               # T = np.nan_to_num(T, nan=0)
+                #T = T+np.random.normal(scale=sigma_random*abs(T))
 
             print('shape of downloaded array: ' + str(T.shape))
             file_path = str(directory_path+'/'+str(date)+".npy")

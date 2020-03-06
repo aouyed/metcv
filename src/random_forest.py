@@ -46,8 +46,8 @@ def rf(X, Y, name, f):
     dump(y_train, 'ytr_'+name+'.joblib')
 
     X_test['cos_weight'] = np.cos(X_test['lat']/180*np.pi)
-    error_u = (y_test['u'] - y_pred[:, 0])
-    error_v = (y_test['v'] - y_pred[:, 1])
+    error_u = (y_test['umeanh'] - y_pred[:, 0])
+    error_v = (y_test['vmeanh'] - y_pred[:, 1])
 
     speed_error = (error_u**2+error_v**2)*X_test['cos_weight']
     print("rmsvd for rf_"+name)
@@ -89,8 +89,7 @@ start_date = datetime.datetime(2006, 7, 1, 6, 0, 0, 0)
 end_date = datetime.datetime(2006, 7, 1, 7, 0, 0, 0)
 df = aa.df_concatenator(dataframes_dict, start_date,
                         end_date, False, True, False)
-# df = df.dropna()
-df = diff_qv(df)
+
 df = df.dropna()
 dft = aa.df_concatenator(dataframes_dict, start_date,
                          end_date, True, True, False)
@@ -98,23 +97,20 @@ dft = dft.dropna()
 f = open("errors.txt", "w+")
 
 X = df[['lat', 'lon', 'u_scaled_approx', 'v_scaled_approx']]
-Y = df[['u', 'v']]
+Y = df[['umeanh', 'vmeanh']]
 rf(X, Y, 'uv', f)
-X = df[['lat', 'lon', 'qv']]
-rf(X, Y, 'qv', f)
-#X = df[['lat', 'lon', 'qv', 'dqv_dx', 'dqv_dy']]
-#rf(X, Y, 'dqv', f)
 
-error_uj = (df['u'] - df['u_scaled_approx'])
-error_vj = (df['v'] - df['v_scaled_approx'])
+
+error_uj = (df['umeanh'] - df['u_scaled_approx'])
+error_vj = (df['vmeanh'] - df['v_scaled_approx'])
 speed_errorj = (error_uj**2+error_vj**2)*df['cos_weight']
 print('rmsvd for deepflow and whole dataset')
 f.write('rmsvd for deepflow and whole dataset\n')
 rmsvd = np.sqrt(speed_errorj.sum()/df['cos_weight'].sum())
 print(rmsvd)
 f.write(str(rmsvd)+'\n')
-error_ujt = (dft['u'] - dft['u_scaled_approx'])
-error_vjt = (dft['v'] - dft['v_scaled_approx'])
+error_ujt = (dft['umeanh'] - dft['u_scaled_approx'])
+error_vjt = (dft['vmeanh'] - dft['v_scaled_approx'])
 speed_errorjt = (error_ujt**2+error_vjt**2)*dft['cos_weight']
 print('rmsvd for jpl')
 f.write('rmsvd for jpl\n')

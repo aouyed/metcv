@@ -16,6 +16,7 @@ import pandas as pd
 from viz import dataframe_calculators as dfc
 from itertools import product
 import time
+import gc
 from tqdm import tqdm
 
 
@@ -46,8 +47,8 @@ def df_summary(df, count):
         else:
             df_total = pd.concat([df_total, df_unit])
     df_total['corr_speed'] = df['speed'].corr(df['speed_approx'])
-    df_total['corr_u'] = df['u'].corr(df['u_scaled_approx'])
-    df_total['corr_v'] = df['v'].corr(df['v_scaled_approx'])
+    df_total['corr_u'] = df['umeanh'].corr(df['u_scaled_approx'])
+    df_total['corr_v'] = df['vmeanh'].corr(df['v_scaled_approx'])
     # df_total['initial_count']=count
     df_total['ratio_count'] = df.shape[0]/count
     df_total['count'] = count
@@ -112,9 +113,9 @@ def df_printer(df, directory):
 
 def error_df(df):
     """calculates error and its absolute values"""
-    df["error_u"] = df['u']-df['u_scaled_approx']
-    df["error_v"] = df['v']-df['v_scaled_approx']
-    df['speed'] = np.sqrt(df['u']*df['u']+df['v']*df['v'])
+    df["error_u"] = df['umeanh']-df['u_scaled_approx']
+    df["error_v"] = df['vmeanh']-df['v_scaled_approx']
+    df['speed'] = np.sqrt(df['umeanh']*df['umeanh']+df['vmeanh']*df['vmeanh'])
     df['speed_approx'] = np.sqrt(
         df['u_scaled_approx']*df['u_scaled_approx']+df['v_scaled_approx']*df['v_scaled_approx'])
     df['speed_error'] = df['error_u']*df['error_u']+df['error_v']*df['error_v']
@@ -127,43 +128,27 @@ def df_concatenator(dataframes_dict, start_date, end_date, track, jpl, nudger):
     print('concatenating dataframes for all dates for further analysis:')
     for date in tqdm(dataframes_dict):
         if date >= start_date and date <= end_date:
+            gc.collect()
             df_path = dataframes_dict[date]
             df_unit = pd.read_pickle(df_path)
 
             if track:
                 df_unit['u_scaled_approx'] = df_unit['utrack']
                 df_unit['v_scaled_approx'] = df_unit['vtrack']
-                #df_unit['u_scaled_approx'] = df_unit['umean']
-                #df_unit['v_scaled_approx'] = df_unit['vmean']
+            gc.collect()
+            df_unit = df_unit.reset_index(drop=True)
 
-                df_unit = df_unit[['lon', 'lat', 'u', 'v', 'x', 'y',
-                                   'u_scaled_approx', 'v_scaled_approx', 'utrack', 'vtrack', 'qv', 'umean', 'vmean', 'vorticity', 'vmeanh', 'umeanh']]
-            if not jpl or nudger:
-                df_unit = error_df(df_unit)
-                df_unit = df_unit[['lon', 'lat', 'x', 'y', 'speed', 'qv', 'speed_approx', 'speed_error',
-                                   'error_v', 'error_u', 'u_scaled_approx', 'v_scaled_approx', 'u', 'v', 'vorticity', 'vmeanh', 'umeanh']]
-                df_unit = df_unit.apply(pd.to_numeric, downcast='float')
-                if df.empty:
-                    df = df_unit
-                else:
-                    df = pd.concat([df, df_unit])
+            if df.empty:
+                df = df_unit
             else:
-                #df_unit['u'] = df_unit['umean']
-               # df_unit['v'] = df_unit['vmean']
-                df_unit = df_unit.reset_index(drop=True)
-                if df.empty:
-                    df = df_unit
-                else:
-                    df = df + df_unit
-    if jpl and not nudger:
-        df = df/2
-        df['datetime'] = end_date
-        #df['u'] = df_unit['umean']
-        #df['v'] = df_unit['vmean']
-        df = df.set_index('datetime')
-        df = error_df(df)
-        df = df[['lon', 'lat', 'speed',  'x', 'y', 'qv', 'speed_approx', 'speed_error',
-                 'error_v', 'error_u', 'u_scaled_approx', 'v_scaled_approx', 'u', 'v', 'utrack', 'vtrack', 'umean', 'vmean', 'vorticity', 'vmeanh', 'umeanh']]
+                df = df + df_unit
+
+    df = df/2
+    df['datetime'] = end_date
+
+    df = error_df(df)
+    df = df[['lon', 'lat', 'speed',  'qv', 'speed_approx', 'speed_error',
+             'error_v', 'error_u', 'u_scaled_approx', 'v_scaled_approx', 'utrack', 'vtrack',  'vmeanh', 'umeanh']]
 
     df['cos_weight'] = np.cos(df['lat']/180*np.pi)
     return df
@@ -187,9 +172,6 @@ def data_analysis(start_date, end_date, var, path, cutoff, track, speed_cutoff, 
     df = df.dropna()
 
     df_stats = df_summary(df, count)
-
-    print('vorticity_mean: ')
-    print(df['vorticity'].mean())
 
     print('Done!')
 

@@ -11,6 +11,7 @@ import numpy as np
 import pandas as pd
 import cv2
 import matplotlib as mpl
+import gc
 from sklearn.model_selection import train_test_split
 
 sns.set_style('white', {'legend.frameon': None})
@@ -99,7 +100,6 @@ def plotter_res(df,  values, title):
 
 def scatter_plotter(X, values):
     fig, ax = plt.subplots()
- 
 
     ax.scatter(X['lon'], X['lat'], s=0.1)
 
@@ -113,11 +113,10 @@ def scatter_plotter(X, values):
 def line_plotter(X, X_2, X_3, X_4, values):
     fig, ax = plt.subplots()
 
-
     sns.lineplot(X['speed'], X['speed_approx'], label='jpl', ax=ax)
     sns.lineplot(X_2['speed'], X_2['speed_approx'], label='physics', ax=ax)
     sns.lineplot(X_3['speed'], X_3['speed_approx'], label='vem', ax=ax)
-    sns.lineplot(X_4['speed'], X_4['speed_approx'], label='physics_qv', ax=ax)
+   # sns.lineplot(X_4['speed'], X_4['speed_approx'], label='physics_qv', ax=ax)
 
     sns.lineplot(X['speed'], X['speed'], label='truth', ax=ax)
 
@@ -130,12 +129,11 @@ def line_plotter(X, X_2, X_3, X_4, values):
 
     fig, ax = plt.subplots()
 
-
     sns.lineplot(X['speed'], X['speed_approx_std'], label='jpl', ax=ax)
     sns.lineplot(X_2['speed'], X_2['speed_approx_std'], label='physics', ax=ax)
     sns.lineplot(X_3['speed'], X_3['speed_approx_std'], label='vem', ax=ax)
-    sns.lineplot(X_4['speed'], X_4['speed_approx_std'],
-                 label='physics_qv', ax=ax)
+   # sns.lineplot(X_4['speed'], X_4['speed_approx_std'],
+    #             label='physics_qv', ax=ax)
 
     ax.set_xlabel("ground truth [m/s]")
     ax.set_ylabel("stdev [m/s]")
@@ -161,7 +159,6 @@ def line_plotter_1(X, X_2, X_3, X_4,  values):
 def line_plotter_0(df, values):
     fig, ax = plt.subplots()
 
-
     sns.lineplot(df['factor'], df['jpl'], label='jpl',
                  linestyle='--', marker='o', ax=ax)
     sns.lineplot(df['factor'], df['df'], label='vem',
@@ -172,7 +169,6 @@ def line_plotter_0(df, values):
                  linestyle='--', marker='o', ax=ax)
 
     ax.legend(frameon=None)
-
 
     ax.set_xlabel("factor")
     ax.set_ylabel("RMSVD [m/s]")
@@ -194,61 +190,84 @@ def X_test_init(X_test, regressor):
     print('predicting...')
     y_pred = regressor.predict(X_test)
     X_test['speed_approx'] = np.sqrt(y_pred[:, 0]**2 + y_pred[:, 1]**2)
-    X_test['speed_error'] = (y_pred[:, 0]-y_test['u'])**2 + \
-        (y_pred[:, 1]-y_test['v'])**2
-    X_test['speed'] = np.sqrt(y_test['u']**2 + y_test['v']**2)
+    X_test['speed_error'] = (y_pred[:, 0]-y_test['umeanh'])**2 + \
+        (y_pred[:, 1]-y_test['vmeanh'])**2
+    X_test['speed'] = np.sqrt(y_test['umeanh']**2 + y_test['vmeanh']**2)
     X_test['cos_weight'] = np.cos(X_test['lat']/180*np.pi)
     return X_test, y_pred
+
+
+def X_test_init_rf(X_test, regressor):
+    print('predicting...')
+    y_pred = regressor.predict(X_test)
+    X_test['speed_approx'] = np.sqrt(y_pred[:, 0]**2 + y_pred[:, 1]**2)
+    X_test['cos_weight'] = np.cos(X_test['lat']/180*np.pi)
+    return X_test, y_pred
+
+
+def error_calc(df_trop):
+    df_trop = df_trop[df_trop.lat <= 30]
+    df_trop = df_trop[df_trop.lat >= -30]
+
+    error_uj = (df_trop['umeanh'] - df_trop['u_scaled_approx'])
+    error_vj = (df_trop['vmeanh'] - df_trop['v_scaled_approx'])
+    speed_errorj = (error_uj**2+error_vj**2)*df_trop['cos_weight']
+    rmsvd = np.sqrt(speed_errorj.sum()/df_trop['cos_weight'].sum())
+    print('tropics')
+    print(rmsvd)
+
+
+def error_calc_rf(X, regressor):
+
+    X_test = X[X.lat <= 30]
+    X_test = X_test[X_test.lat >= -30]
+    X_test, y_pred = X_test_init_rf(X_test, regressor)
+
+    error_uj = X_test['umeanh'] - y_pred[:, 0]
+    error_vj = X_test['vmeanh']-y_pred[:, 1]
+    X_test['cos_weight'] = np.cos(X_test['lat']/180*np.pi)
+    speed_errorj = (error_uj**2+error_vj**2)*X_test['cos_weight']
+    rmsvd = np.sqrt(speed_errorj.sum()/X_test['cos_weight'].sum())
+    print('tropics for rf')
+    print(rmsvd)
+
 
     # dump(regressor, 'rf.joblib')
 regressor = load('rf_uv.joblib')
 y_test = load('yte_uv.joblib')
 X_test = load('xte_uv.joblib')
 
-regressor_qv = load('rf_qv.joblib')
-y_test_qv = load('yte_qv.joblib')
-X_test_qv = load('xte_qv.joblib')
-
-regressor_dqv = load('rf_dqv.joblib')
-y_test_dqv = load('yte_dqv.joblib')
-X_test_dqv = load('xte_dqv.joblib')
-
-factor = [1, 2, 4, 8]
-#rf = [1.614328436366025, 2.103440482943322,2.795093021606374,3.7645751225575257]
-#rf_qv = [1.2538326871052794,1.941077631653232,3.066439053017369,4.707282307659509]
-#deepf = [2.7922954295197595,2.9946532655800517,3.5062301742513893,4.59048106377127]
-#jpl = [3.363429985554871,3.363429985554871,3.363429985554871,3.363429985554871]
-factor = [0, 0.1, 0.5]
-
-rf = [1.6143284363660257, 1.5931060674015964, 1.4173355687285165]
-rf_qv = [1.2538326871052794, 1.3117970383979514,1.2856258349015028]
-deepf = [2.7922954295197595,3.528404147370215 ,5.217598264276706]
-jpl = [3.363429985554871,3.363429985554871,3.363429985554871]
-
-
-d = {'factor': factor, 'df': deepf, 'jpl': jpl, 'rf': rf,'rf_qv': rf_qv}
-df_results = pd.DataFrame(data=d)
-print(df_results)
-line_plotter_0(df_results, 'results')
-
-
 start_date = datetime.datetime(2006, 7, 1, 6, 0, 0, 0)
 end_date = datetime.datetime(2006, 7, 1, 7, 0, 0, 0)
 df = aa.df_concatenator(dataframes_dict, start_date,
                         end_date, False, True, False)
 
-df = df.dropna()
+
+df = df.dropna(subset=['qv'])
 
 # df['qv'] = 1000*df['qv']
 # plotter(df, 'qv')
 
+df_trop = df[df['utrack'].isna()]
 
-X_test, y_pred = X_test_init(X_test, regressor)
-X_test_qv, y_pred_qv = X_test_init(X_test_qv, regressor_qv)
-X_test_dqv, y_pred_dqv = X_test_init(X_test_dqv, regressor_dqv)
+error_calc(df_trop)
+
+
+error_calc(df.dropna())
+
 
 df_jpl = aa.df_concatenator(dataframes_dict, start_date,
                             end_date, True, True, False)
+df_jpl = df_jpl.dropna()
+error_calc(df_jpl)
+
+X = df[df['utrack'].isna()]
+X = X[['lon', 'lat', 'umeanh', 'vmeanh']].dropna()
+
+error_calc_rf(df[['lon', 'lat', 'umeanh', 'vmeanh']].dropna(), regressor)
+error_calc_rf(X, regressor)
+# X_test_qv, y_pred_qv = X_test_init(X_test_qv, regressor_qv)
+# X_test_dqv, y_pred_dqv = X_test_init(X_test_dqv, regressor_dqv)
 
 
 plotter_res(df_jpl.copy(), 'speed_error_jpl', 'jpl')
@@ -262,6 +281,7 @@ df_mean_rf, df_mean_rf_e = averager(X_test, xlistv)
 df_mean_rf_qv, df_mean_rf_qv_e = averager(X_test_qv, xlistv)
 df_mean_rf_dqv, df_mean_rf_dqv_e = averager(X_test_qv, xlistv)
 
+
 plotter_res(df_jpl.copy(), 'speed_error_jpl', 'jpl')
 plotter_res(X_test.copy(), 'speed_error_rf', 'physics')
 plotter_res(X_test_qv.copy(), 'speed_error_rf', 'physics_qv')
@@ -271,4 +291,3 @@ print('plotting...')
 line_plotter(df_mean, df_mean_rf, df_mean_vem, df_mean_rf_qv, 'speed')
 line_plotter_1(df_mean_e, df_mean_rf_e, df_mean_vem_e,
                df_mean_rf_qv_e, 'speed_error')
-
