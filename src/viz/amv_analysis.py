@@ -137,11 +137,11 @@ def df_concatenator(dataframes_dict, start_date, end_date, track, jpl, nudger):
                 #df_unit['v_scaled_approx'] = df_unit['vmean']
 
                 df_unit = df_unit[['lon', 'lat', 'u', 'v', 'x', 'y',
-                                   'u_scaled_approx', 'v_scaled_approx', 'utrack', 'vtrack', 'qv', 'umean', 'vmean', 'vorticity']]
+                                   'u_scaled_approx', 'v_scaled_approx', 'utrack', 'vtrack', 'qv', 'umean', 'vmean', 'vorticity', 'vmeanh', 'umeanh']]
             if not jpl or nudger:
                 df_unit = error_df(df_unit)
                 df_unit = df_unit[['lon', 'lat', 'x', 'y', 'speed', 'qv', 'speed_approx', 'speed_error',
-                                   'error_v', 'error_u', 'u_scaled_approx', 'v_scaled_approx', 'u', 'v', 'vorticity']]
+                                   'error_v', 'error_u', 'u_scaled_approx', 'v_scaled_approx', 'u', 'v', 'vorticity', 'vmeanh', 'umeanh']]
                 df_unit = df_unit.apply(pd.to_numeric, downcast='float')
                 if df.empty:
                     df = df_unit
@@ -163,7 +163,7 @@ def df_concatenator(dataframes_dict, start_date, end_date, track, jpl, nudger):
         df = df.set_index('datetime')
         df = error_df(df)
         df = df[['lon', 'lat', 'speed',  'x', 'y', 'qv', 'speed_approx', 'speed_error',
-                 'error_v', 'error_u', 'u_scaled_approx', 'v_scaled_approx', 'u', 'v', 'utrack', 'vtrack', 'umean', 'vmean', 'vorticity']]
+                 'error_v', 'error_u', 'u_scaled_approx', 'v_scaled_approx', 'u', 'v', 'utrack', 'vtrack', 'umean', 'vmean', 'vorticity', 'vmeanh', 'umeanh']]
 
     df['cos_weight'] = np.cos(df['lat']/180*np.pi)
     return df

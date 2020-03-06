@@ -106,6 +106,13 @@ def downloader(parameters):
         kwargs = vars(parameters)
         downloader_function(parameters)
 
+        parameters.var = 'umeanh'
+        kwargs = vars(parameters)
+        downloader_function(parameters)
+        parameters.var = 'vmeanh'
+        kwargs = vars(parameters)
+        downloader_function(parameters)
+
     if parameters.grid > 0.0625:
         dc.coarsener(parameters)
 
