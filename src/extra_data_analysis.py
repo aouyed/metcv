@@ -24,7 +24,7 @@ from sklearn.model_selection import train_test_split
 from joblib import dump, load
 
 
-def error_calc(df, f, name):
+def error_calc(df, f, name, category, rmse):
     error_uj = (df['umeanh'] - df['u_scaled_approx'])
     error_vj = (df['vmeanh'] - df['v_scaled_approx'])
     speed_errorj = (error_uj**2+error_vj**2)*df['cos_weight']
@@ -32,10 +32,12 @@ def error_calc(df, f, name):
     f.write('rmsvd for '+name+'\n')
     rmsvd = np.sqrt(speed_errorj.sum()/df['cos_weight'].sum())
     print(rmsvd)
+    category.append(name)
+    rmse.append(rmsvd)
     f.write(str(rmsvd)+'\n')
 
 
-def ml(X, Y, name, f, df, extra, alg):
+def ml(X, Y, name, f, df, extra, alg, category, rmse):
 
     # model = LinearRegression()
     # model.fit(x_poly, y)
@@ -86,13 +88,16 @@ def ml(X, Y, name, f, df, extra, alg):
 
     speed_error = (error_u**2+error_v**2)*X_test0['cos_weight']
     print("rmsvd for "+alg+"_"+name)
+
     f.write("rmsvd for" + alg+"_"+name+"\n")
     rmsvd = np.sqrt(speed_error.sum()/X_test0['cos_weight'].sum())
     print(rmsvd)
     f.write(str(rmsvd)+'\n')
+    category.append(alg)
+    rmse.append(rmsvd)
 
 
-def latitude_selector(df, dft, lowlat, uplat, extra):
+def latitude_selector(df, dft, lowlat, uplat, extra, category, rmse, latlon, extras):
     print('processing data for latitudes between: ' +
           str(lowlat)+',' + str(uplat))
     print("Extra data?: " + str(extra))
@@ -104,15 +109,33 @@ def latitude_selector(df, dft, lowlat, uplat, extra):
 
     X = dfm[['lat', 'lon', 'u_scaled_approx', 'v_scaled_approx']]
     Y = dfm[['umeanh', 'vmeanh']]
-    ml(X, Y, 'uv', f, dfm.copy(), extra, 'poly')
-    ml(X, Y, 'uv', f, dfm.copy(), extra, 'rf')
+
+    if lowlat < 0:
+        lowlat = str(abs(lowlat)) + '°S'
+    else:
+        lowlat = str(lowlat) + '°N'
+
+    if uplat < 0:
+        uplat = str(abs(uplat)) + '°S'
+    else:
+        uplat = str(uplat) + '°N'
+
+    latlon.append(str(str(lowlat)+',' + str(uplat)))
+    extras.append(extra)
+    ml(X, Y, 'uv', f, dfm.copy(), extra, 'poly', category, rmse)
+    latlon.append(str(str(lowlat)+',' + str(uplat)))
+    extras.append(extra)
+    ml(X, Y, 'uv', f, dfm.copy(), extra, 'rf', category, rmse)
     if extra:
         dfm = dfm[dfm['utrack'].isna()]
     else:
         dfm = dfm.dropna()
-
-    error_calc(dfm, f, "df")
-    error_calc(dftm, f, 'jpl')
+    latlon.append(str(str(lowlat)+',' + str(uplat)))
+    extras.append(extra)
+    error_calc(dfm, f, "df", category, rmse)
+    latlon.append(str(str(lowlat)+',' + str(uplat)))
+    extras.append(extra)
+    error_calc(dftm, f, 'jpl', category, rmse)
 
 
 mpl.rcParams['figure.dpi'] = 150
@@ -139,15 +162,37 @@ f = open("errors.txt", "w+")
 
 dft = dft.dropna()
 
-latitude_selector(df.copy(), dft.copy(), -30, 30, True)
-latitude_selector(df.copy(), dft.copy(), 30, 60, True)
-latitude_selector(df.copy(), dft.copy(), 60, 90, True)
-latitude_selector(df.copy(), dft.copy(), -60, -30, True)
-latitude_selector(df.copy(), dft.copy(), -90, -60, True)
-latitude_selector(df.copy(), dft.copy(), -30, 30, True)
-latitude_selector(df.copy(), dft.copy(), 30, 60, False)
-latitude_selector(df.copy(), dft.copy(), 60, 90, False)
-latitude_selector(df.copy(), dft.copy(), -60, -30, False)
-latitude_selector(df.copy(), dft.copy(), -90, -60, False)
+category = []
+rmse = []
+latlon = []
+extras = []
+
+latitude_selector(df.copy(), dft.copy(), -30, 30,
+                  True, category, rmse, latlon, extras)
+latitude_selector(df.copy(), dft.copy(), 30, 60, True,
+                  category, rmse, latlon, extras)
+latitude_selector(df.copy(), dft.copy(), 60, 90, True,
+                  category, rmse, latlon, extras)
+latitude_selector(df.copy(), dft.copy(), -60, -30,
+                  True, category, rmse, latlon, extras)
+latitude_selector(df.copy(), dft.copy(), -90, -60,
+                  True, category, rmse, latlon, extras)
+
+
+latitude_selector(df.copy(), dft.copy(), -30, 30,
+                  False, category, rmse, latlon, extras)
+latitude_selector(df.copy(), dft.copy(), 30, 60, False,
+                  category, rmse, latlon, extras)
+latitude_selector(df.copy(), dft.copy(), 60, 90, False,
+                  category, rmse, latlon, extras)
+latitude_selector(df.copy(), dft.copy(), -60, -30,
+                  False, category, rmse, latlon, extras)
+latitude_selector(df.copy(), dft.copy(), -90, -60,
+                  False, category, rmse, latlon, extras)
 f.close()
+
+d = {'latlon': latlon, 'extra': extras, 'categories': category, 'rmse': rmse}
+df_results = pd.DataFrame(data=d)
 print('done!')
+print(df_results)
+df_results.to_pickle("df_results.pkl")
