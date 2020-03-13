@@ -80,10 +80,6 @@ def optical_flow(start_date, end_date, var, pyr_scale, levels, iterations, poly_
                                beta=255, norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_8UC1)
         next_frame = frame2
 
-        print('Initializing Farnebacks algorithm...')
-
-        print('segmentation fault?')
-
         if deep_flow:
             optical_flow = cv2.optflow.createOptFlow_DeepFlow()
             flowd = optical_flow.calc(prvs, next_frame, None)

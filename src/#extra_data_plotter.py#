@@ -6,6 +6,7 @@ import datetime as datetime
 from viz import amv_analysis as aa
 import pickle
 import cartopy.crs as ccrs
+from global_land_mask import globe
 
 
 def map_plotter(df,  values, title):

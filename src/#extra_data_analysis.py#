@@ -23,6 +23,7 @@ from sklearn.linear_model import LinearRegression
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.model_selection import train_test_split
 from joblib import dump, load
+from global_land_mask import globe
 
 
 def error_calc(df, f, name, category, rmse):
@@ -41,7 +42,7 @@ def error_calc(df, f, name, category, rmse):
 def ml(X, Y, name, f, df0z, df, extra, alg, category, rmse, tsize):
     # change df0z to df for current timestep
     X_train0, X_test0, y_train0, y_test0 = train_test_split(
-        df0z[['lat', 'lon', 'u_scaled_approx', 'v_scaled_approx', 'utrack']], df0z[['umeanh', 'vmeanh', 'utrack']], test_size=tsize, random_state=1)
+        df[['lat', 'lon', 'u_scaled_approx', 'v_scaled_approx', 'utrack']], df[['umeanh', 'vmeanh', 'utrack']], test_size=tsize, random_state=1)
     X_train = X_train0[['lat', 'lon', 'u_scaled_approx', 'v_scaled_approx']]
     y_train = y_train0[['umeanh', 'vmeanh']]
 
@@ -57,9 +58,9 @@ def ml(X, Y, name, f, df0z, df, extra, alg, category, rmse, tsize):
     # print('fitting')
     regressor.fit(X_train, y_train)
    # erase the two lines below the comment for current timestep
-    X_test0 = df[['lat', 'lon', 'u_scaled_approx',
-                  'v_scaled_approx', 'utrack']]
-    y_test0 = df[['umeanh', 'vmeanh', 'utrack']]
+   # X_test0 = df[['lat', 'lon', 'u_scaled_approx',
+   #               'v_scaled_approx', 'utrack']]
+   # y_test0 = df[['umeanh', 'vmeanh', 'utrack']]
 
     X_test0['cos_weight'] = np.cos(X_test0['lat']/180*np.pi)
     if extra:
