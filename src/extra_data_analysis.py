@@ -24,6 +24,8 @@ from sklearn.ensemble import RandomForestRegressor
 from sklearn.model_selection import train_test_split
 from joblib import dump, load
 from global_land_mask import globe
+import reverse_geocoder
+import extra_data_plotter as edp
 
 
 def error_calc(df, f, name, category, rmse):
@@ -39,7 +41,7 @@ def error_calc(df, f, name, category, rmse):
     f.write(str(rmsvd)+'\n')
 
 
-def ml(X, Y, name, f, df, extra, alg, category, rmse, tsize, only_land):
+def ml(X, Y, name, f, df,  alg, category, rmse, tsize, only_land):
     # change df0z to df for current timestep
 
     X_train0, X_test0, y_train0, y_test0 = train_test_split(
@@ -66,19 +68,10 @@ def ml(X, Y, name, f, df, extra, alg, category, rmse, tsize, only_land):
 
     # print('fitting')
     regressor.fit(X_train, y_train)
-   # erase the two lines below the comment for current timestep
-   # X_test0 = df[['lat', 'lon', 'u_scaled_approx',
-   #               'v_scaled_approx', 'utrack']]
-   # y_test0 = df[['umeanh', 'vmeanh', 'utrack']]
 
     X_test0['cos_weight'] = np.cos(X_test0['lat']/180*np.pi)
-    if extra:
-        X_test0 = X_test0[X_test0['utrack'].isna()]
-        y_test0 = y_test0[y_test0['utrack'].isna()]
-    else:
-        X_test0 = X_test0.dropna()
-        y_test0 = y_test0.dropna()
-    i
+    X_test0 = X_test0.dropna()
+    y_test0 = y_test0.dropna()
 
     if alg is 'poly':
         if only_land:
@@ -111,12 +104,9 @@ def ml(X, Y, name, f, df, extra, alg, category, rmse, tsize, only_land):
     rmse.append(rmsvd)
 
 
-def latitude_selector(df, dft, lowlat, uplat, extra, category, rmse, latlon, extras, test_size, test_sizes, only_land):
+def latitude_selector(df, dft, lowlat, uplat,  category, rmse, latlon, test_size, test_sizes, only_land):
     dfm = df[(df.lat) <= uplat]
     dfm = df[(df.lat) >= lowlat]
-
-#    df0zm = df0z[(df0z.lat) <= uplat]
- #   df0zm = df0z[(df0z.lat) >= lowlat]
 
     dftm = dft[(dft.lat) <= uplat]
     dftm = dft[(dft.lat) >= lowlat]
@@ -135,25 +125,17 @@ def latitude_selector(df, dft, lowlat, uplat, extra, category, rmse, latlon, ext
         uplat = str(uplat) + '°N'
 
     latlon.append(str(str(lowlat)+',' + str(uplat)))
-    extras.append(extra)
+    test_sizes.append(test_size)
+    ml(X, Y, 'uv', f,  dfm.copy(), 'poly', category, rmse, test_size, only_land)
+    latlon.append(str(str(lowlat)+',' + str(uplat)))
     test_sizes.append(test_size)
     ml(X, Y, 'uv', f,  dfm.copy(),
-       extra, 'poly', category, rmse, test_size, only_land)
+       'rf', category, rmse, test_size, only_land)
+    dfm = dfm.dropna()
     latlon.append(str(str(lowlat)+',' + str(uplat)))
-    extras.append(extra)
-    test_sizes.append(test_size)
-    ml(X, Y, 'uv', f,  dfm.copy(),
-       extra, 'rf', category, rmse, test_size, only_land)
-    if extra:
-        dfm = dfm[dfm['utrack'].isna()]
-    else:
-        dfm = dfm.dropna()
-    latlon.append(str(str(lowlat)+',' + str(uplat)))
-    extras.append(extra)
     test_sizes.append(test_size)
     error_calc(dfm, f, "df", category, rmse)
     latlon.append(str(str(lowlat)+',' + str(uplat)))
-    extras.append(extra)
     test_sizes.append(test_size)
     error_calc(dftm, f, 'jpl', category, rmse)
 
@@ -183,6 +165,31 @@ df = df.dropna(subset=['umeanh'])
 df['land'] = globe.is_land(df.lat, df.lon)
 # print(df['land'])
 
+df = df.reset_index(drop=True)
+coordinates = np.dstack((df.lat, df.lon))
+coordinates = np.squeeze(coordinates)
+coordinates = tuple(map(tuple, coordinates))
+codes = reverse_geocoder.search(coordinates)
+codes = np.array(codes)
+countries = np.empty(codes.shape, dtype=object)
+admin1 = np.empty(codes.shape, dtype=object)
+
+print('retreiving countries')
+for i, code in enumerate(tqdm(codes)):
+    countries[i] = code['cc']
+    admin1[i] = code['admin1']
+df['country'] = countries
+df['admin1'] = admin1
+radiosonde_cc = np.array(['AT', 'BE', 'HR', 'BG', 'CY', 'CZ', 'DK', 'EE', 'FI', 'FR', 'DE', 'GR', 'HU', 'IE',
+                          'IT', 'LV', 'LT', 'LU', 'MT', 'NL', 'PL', 'PT', 'RO', 'SK', 'SI', 'ES', 'SE', 'GB', 'NO', 'US'])
+
+df['condition'] = (df.country.isin(radiosonde_cc)) & (
+    df.land == True) & (df.admin1 != 'Alaska')
+df['condition_f'] = df['condition'].astype(float)
+#edp.map_plotter(df, 'condition_f', 'condition_f')
+# pdb.set_trace()
+
+df['land'] = df['condition']
 
 dft = aa.df_concatenator(dataframes_dict, start_date,
                          end_date, True, True, False)
@@ -190,27 +197,23 @@ f = open("errors.txt", "w+")
 
 dft = dft.dropna()
 dft['land'] = globe.is_land(dft.lat, dft.lon)
-#
 category = []
 rmse = []
 latlon = []
-extras = []
 test_sizes = []
 
-test_size = 0.99
+test_size = 0.90
 
 only_land = True
 
 latdowns = [-30, 30, 60, -60, -90]
 latups = [30, 60, 90, -30, -60]
-extral = [True, False]
-test_sizel = [0.99, 0.999]
+test_sizel = [0.80]
 print('process data...')
 for i, latdown in enumerate(tqdm(latdowns)):
-    for extra in extral:
-        for test_size in test_sizel:
-            latitude_selector(df.copy(), dft.copy(), latdown, latups[i],
-                              extra, category, rmse, latlon, extras, test_size, test_sizes, only_land)
+    for test_size in test_sizel:
+        latitude_selector(df.copy(), dft.copy(), latdown, latups[i],
+                          category, rmse, latlon,  test_size, test_sizes, only_land)
 
 d = {'latlon': latlon, 'extra': extras, 'categories': category,
      'test_size': test_sizes, 'rmse': rmse}

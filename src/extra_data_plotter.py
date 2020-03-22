@@ -30,19 +30,19 @@ def map_plotter(df,  values, title):
     gl.ylabels_right = False
     cbar = fig.colorbar(im, ax=ax, fraction=0.025, pad=0.04)
 
-    cbar.set_label('m/s ')
+    cbar.set_label('g/kg ')
     plt.xlabel("lon")
     plt.ylabel("lat")
     ax.set_title(title)
     directory = '../data/processed/density_plots'
-    plt.savefig(values+'.png', bbox_inches='tight', dpi=300)
+    plt.savefig(title+'.png', bbox_inches='tight', dpi=300)
 
 
 def line_plotter(df0, values, title):
     fig, ax = plt.subplots()
 
-    df = df0[df0.categories == 'poly']
-    ax.plot(np.array(df['latlon']), df['rmse'], '-o', label='poly')
+    #df = df0[df0.categories == 'poly']
+    #ax.plot(np.array(df['latlon']), df['rmse'], '-o', label='poly')
 
     df = df0[df0.categories == 'rf']
     ax.plot(df['latlon'], df['rmse'], '-o', label='rf')
@@ -62,34 +62,69 @@ def line_plotter(df0, values, title):
     plt.savefig(values+'.png', bbox_inches='tight', dpi=300)
 
 
+def train_plotter(df0, values, title):
+    fig, ax = plt.subplots()
+
+    df = df0[(df0.categories == 'poly') & (df0.test_size == 0.99)]
+    ax.plot(np.array(df['latlon']), df['rmse'],
+            '-o', label='poly, test_size=0.99')
+
+    df = df0[(df0.categories == 'poly') & (df0.test_size == 0.999)]
+    ax.plot(np.array(df['latlon']), df['rmse'],
+            '-o', label='poly, test_size=0.999')
+
+    df = df0[(df0.categories == 'rf') & (df0.test_size == 0.99)]
+    ax.plot(df['latlon'], df['rmse'], '-o', label='rf, test_size=0.99')
+
+    df = df0[(df0.categories == 'rf') & (df0.test_size == 0.999)]
+    ax.plot(df['latlon'], df['rmse'], '-o', label='rf, test_size=0.999')
+
+    df = df0[df0.categories == 'jpl']
+    ax.plot(df['latlon'], df['rmse'], '-o', label='jpl')
+
+    ax.legend(frameon=None)
+
+    ax.set_xlabel("Region")
+    ax.set_ylabel("RMSVD [m/s]")
+    ax.set_title(title)
+    directory = '../data/processed/density_plots'
+    plt.savefig(values+'.png', bbox_inches='tight', dpi=300)
+
+
 dict_path = '../data/interim/dictionaries/dataframes.pkl'
 dataframes_dict = pickle.load(open(dict_path, 'rb'))
 
 start_date = datetime.datetime(2006, 7, 1, 6, 0, 0, 0)
 end_date = datetime.datetime(2006, 7, 1, 7, 0, 0, 0)
-dfc = aa.df_concatenator(dataframes_dict, start_date,
-                         end_date, False, True, False)
+dfc0 = aa.df_concatenator(dataframes_dict, start_date,
+                          end_date, False, True, False)
 
 
-dfc['qv'] = 1000*dfc['qv']
-dfc = dfc.dropna(subset=['qv'])
+dfc0['qv'] = 1000*dfc0['qv']
+dfc = dfc0.dropna(subset=['qv'])
 dfc = dfc.dropna(subset=['umeanh'])
 dfc = dfc[dfc['utrack'].isna()]
 # dfc.to_pickle("df_0z.pkl")
 
 
-map_plotter(dfc, 'qv', 'qv')
+map_plotter(dfc, 'qv', 'non-jpl')
+
+dfc = dfc0.dropna()
+
+map_plotter(dfc, 'qv', 'jpl')
 
 df0 = pd.read_pickle("./df_results.pkl")
 df0.sort_values(by=['latlon'], inplace=True)
 
-df = df0[(df0.extra == True) & (df0.test_size == 0.99)]
-line_plotter(df, 'results_e', 'non-jpl, test_size=0.99')
-df = df0[(df0.extra == False) & (df0.test_size == 0.99)]
-line_plotter(df, 'results',  'jpl, test_size=0.99')
+#df = df0[(df0.extra == True) & (df0.test_size == 0.50)]
+#line_plotter(df, 'results_e', 'non-jpl, test_size=0.5')
+#df = df0[(df0.extra == False) & (df0.test_size == 0.50)]
+#line_plotter(df, 'results',  'jpl, test_size=0.5')
 
-
+df = df0[df0.extra == True]
+train_plotter(df, 'results_test', 'Robustness of ML algorithms')
 df = df0[(df0.extra == True) & (df0.test_size == 0.999)]
+
 line_plotter(df, 'results_e_001', 'non-jpl, test_size=0.999')
 df = df0[(df0.extra == False) & (df0.test_size == 0.999)]
 line_plotter(df, 'results_001',  'jpl, test_size=0.999')
