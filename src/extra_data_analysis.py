@@ -25,7 +25,7 @@ from sklearn.model_selection import train_test_split
 from joblib import dump, load
 from global_land_mask import globe
 import reverse_geocoder
-import extra_data_plotter as edp
+#import extra_data_plotter as edp
 
 
 def error_calc(df, f, name, category, rmse):
@@ -41,17 +41,19 @@ def error_calc(df, f, name, category, rmse):
     f.write(str(rmsvd)+'\n')
 
 
-def ml(X, Y, name, f, df,  alg, category, rmse, tsize, only_land):
+def ml(X, Y, name, f, df,  alg, category, rmse, tsize, only_land, lowlat, uplat):
     # change df0z to df for current timestep
 
     X_train0, X_test0, y_train0, y_test0 = train_test_split(
-        df[['lat', 'lon', 'u_scaled_approx', 'v_scaled_approx', 'utrack', 'land']], df[['umeanh', 'vmeanh', 'utrack', 'land']], test_size=tsize, random_state=1)
+        df[['lat', 'lon', 'u_scaled_approx', 'v_scaled_approx', 'utrack', 'land', 'sample_weight']], df[['umeanh', 'vmeanh', 'utrack', 'land', 'lat']], test_size=tsize, random_state=1)
     if only_land:
+        sample_weight = X_train0['sample_weight']
         X_train0 = X_train0[X_train0.land == True]
-        X_train = X_train0[['lat', 'lon',
-                            'u_scaled_approx', 'v_scaled_approx']]
+        X_train = X_train0[[
+            'u_scaled_approx', 'v_scaled_approx']]
         y_train0 = y_train0[y_train0.land == True]
     else:
+        sample_weight = X_train0['sample_weight']
         X_train = X_train0[['lat', 'lon',
                             'u_scaled_approx', 'v_scaled_approx', 'land']]
 
@@ -67,8 +69,10 @@ def ml(X, Y, name, f, df,  alg, category, rmse, tsize, only_land):
         regressor = LinearRegression()
 
     # print('fitting')
-    regressor.fit(X_train, y_train)
+    regressor.fit(X_train, y_train, sample_weight=sample_weight)
 
+    #X_test0 = X_test0[(X_test0.lat > lowlat) & (X_test0.lat < uplat)]
+    #y_test0 = y_test0[(y_test0.lat > lowlat) & (y_test0.lat < uplat)]
     X_test0['cos_weight'] = np.cos(X_test0['lat']/180*np.pi)
     X_test0 = X_test0.dropna()
     y_test0 = y_test0.dropna()
@@ -82,8 +86,8 @@ def ml(X, Y, name, f, df,  alg, category, rmse, tsize, only_land):
                 X_test0[['lat', 'lon', 'u_scaled_approx', 'v_scaled_approx', 'land']])
     else:
         if only_land:
-            X_test = X_test0[['lat', 'lon',
-                              'u_scaled_approx', 'v_scaled_approx']]
+            X_test = X_test0[[
+                'u_scaled_approx', 'v_scaled_approx']]
         else:
             X_test = X_test0[['lat', 'lon',
                               'u_scaled_approx', 'v_scaled_approx', 'land']]
@@ -110,6 +114,8 @@ def latitude_selector(df, dft, lowlat, uplat,  category, rmse, latlon, test_size
 
     dftm = dft[(dft.lat) <= uplat]
     dftm = dft[(dft.lat) >= lowlat]
+    lowlat0 = lowlat
+    uplat0 = uplat
 
     X = dfm[['lat', 'lon', 'u_scaled_approx', 'v_scaled_approx']]
     Y = dfm[['umeanh', 'vmeanh']]
@@ -124,13 +130,14 @@ def latitude_selector(df, dft, lowlat, uplat,  category, rmse, latlon, test_size
     else:
         uplat = str(uplat) + '°N'
 
-    latlon.append(str(str(lowlat)+',' + str(uplat)))
-    test_sizes.append(test_size)
-    ml(X, Y, 'uv', f,  dfm.copy(), 'poly', category, rmse, test_size, only_land)
+    #latlon.append(str(str(lowlat)+',' + str(uplat)))
+    # test_sizes.append(test_size)
+    # ml(X, Y, 'uv', f,  df.copy(), 'poly', category,
+     #  rmse, test_size, only_land, lowlat0, uplat0)
     latlon.append(str(str(lowlat)+',' + str(uplat)))
     test_sizes.append(test_size)
     ml(X, Y, 'uv', f,  dfm.copy(),
-       'rf', category, rmse, test_size, only_land)
+       'rf', category, rmse, test_size, only_land, lowlat0, uplat0)
     dfm = dfm.dropna()
     latlon.append(str(str(lowlat)+',' + str(uplat)))
     test_sizes.append(test_size)
@@ -180,16 +187,23 @@ for i, code in enumerate(tqdm(codes)):
     admin1[i] = code['admin1']
 df['country'] = countries
 df['admin1'] = admin1
-radiosonde_cc = np.array(['AT', 'BE', 'HR', 'BG', 'CY', 'CZ', 'DK', 'EE', 'FI', 'FR', 'DE', 'GR', 'HU', 'IE',
-                          'IT', 'LV', 'LT', 'LU', 'MT', 'NL', 'PL', 'PT', 'RO', 'SK', 'SI', 'ES', 'SE', 'GB', 'NO', 'US'])
+# radiosonde_cc = np.array(['AT', 'BE', 'HR', 'BG', 'CY', 'CZ', 'DK', 'EE', 'FI', 'FR', 'DE', 'GR', 'HU', 'IE',
+#                         'IT', 'LV', 'LT', 'LU', 'MT', 'NL', 'PL', 'PT', 'RO', 'SK', 'SI', 'ES', 'SE',
+#                        'GB', 'NO', 'US', 'AU', 'CN'])
 
+radiosonde_cc = np.array(['US'])
 df['condition'] = (df.country.isin(radiosonde_cc)) & (
     df.land == True) & (df.admin1 != 'Alaska')
+
+df['sample_weight'] = 1
+df.sample_weight[df.condition == False] = 1e-13
+
+
 df['condition_f'] = df['condition'].astype(float)
 #edp.map_plotter(df, 'condition_f', 'condition_f')
 # pdb.set_trace()
 
-df['land'] = df['condition']
+#df['land'] = df['condition']
 
 dft = aa.df_concatenator(dataframes_dict, start_date,
                          end_date, True, True, False)
@@ -202,20 +216,18 @@ rmse = []
 latlon = []
 test_sizes = []
 
-test_size = 0.90
-
-only_land = True
+only_land = False
 
 latdowns = [-30, 30, 60, -60, -90]
 latups = [30, 60, 90, -30, -60]
-test_sizel = [0.80]
+test_sizel = [0.99]
 print('process data...')
 for i, latdown in enumerate(tqdm(latdowns)):
     for test_size in test_sizel:
         latitude_selector(df.copy(), dft.copy(), latdown, latups[i],
                           category, rmse, latlon,  test_size, test_sizes, only_land)
 
-d = {'latlon': latlon, 'extra': extras, 'categories': category,
+d = {'latlon': latlon,  'categories': category,
      'test_size': test_sizes, 'rmse': rmse}
 df_results = pd.DataFrame(data=d)
 print('done!')
