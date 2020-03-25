@@ -33,6 +33,22 @@ from sklearn.utils import resample
 # import extra_data_plotter as edp
 
 
+def distance(s_lat, s_lng, e_lat, e_lng):
+
+    # approximate radius of earth in km
+    R = 6373.0
+
+    s_lat = s_lat*np.pi/180.0
+    s_lng = np.deg2rad(s_lng)
+    e_lat = np.deg2rad(e_lat)
+    e_lng = np.deg2rad(e_lng)
+
+    d = np.sin((e_lat - s_lat)/2)**2 + np.cos(s_lat) * \
+        np.cos(e_lat) * np.sin((e_lng - s_lng)/2)**2
+
+    return 2 * R * np.arcsin(np.sqrt(d))
+
+
 def error_calc(df, f, name, category, rmse):
     error_uj = (df['umeanh'] - df['u_scaled_approx'])
     error_vj = (df['vmeanh'] - df['v_scaled_approx'])
@@ -49,20 +65,35 @@ def error_calc(df, f, name, category, rmse):
 def ml(name, f, df,  alg, category, rmse, tsize, only_land, lowlat, uplat):
     # change df0z to df for current timestep
     X_train0, X_test0, y_train0, y_test0 = train_test_split(
-        df[['lat', 'lon', 'u_scaled_approx', 'v_scaled_approx', 'utrack', 'land', 'sample_weight', 'condition', 'umeanh', 'vmeanh']], df[['umeanh', 'vmeanh', 'utrack', 'land', 'lat', 'condition']], test_size=tsize, random_state=1)
+        df[['lat', 'lon', 'u_scaled_approx', 'v_scaled_approx', 'utrack', 'land', 'sample_weight', 'condition', 'umeanh', 'vmeanh', 'distance']], df[['umeanh', 'vmeanh', 'utrack', 'land', 'lat', 'condition']], test_size=tsize, random_state=1)
 
-    undersample = RandomUnderSampler(sampling_strategy=0.99999)
-    # X = df[['lat', 'lon', 'u_scaled_approx', 'v_scaled_approx',
-    #       'utrack', 'land', 'sample_weight', 'umeanh', 'vmeanh', 'utrack']]
-   # y = df['condition']
-    # columns = X.columns
-    X_radio = X_train0[X_train0.condition == True]
-    X_nonradio = X_train0[X_train0.condition == False]
-    X_nonradio = resample(X_nonradio, replace=False,
-                          n_samples=1000, random_state=1)
-    X_train0 = pd.concat([X_nonradio, X_radio])
+    deltax = 10
+    distances = np.arange(0, 1800, deltax)
+    X = pd.DataFrame()
+    print('sampling based on distance...')
+    for distance in tqdm(distances):
+        X_sample = X_train0[(X_train0.distance >= distance) & (
+            X_train0.distance <= X_train0.distance + deltax)]
+        n_int = int(round(1e5 *
+                          np.exp(-(distance+0.5*deltax)/18000)))
+        X_sample = resample(X_train0, replace=False,
+                            n_samples=n_int, random_state=1)
+        if X.empty:
+            X = X_sample
+        else:
+            X = pd.concat([X, X_sample])
+    X_train0 = X
+
+    exp_distance = np.exp(X_train0.distance/18000)
+    scale_noise_u = abs(X_train0['umeanh']*exp_distance)
+    scale_noise_v = abs(X_train0['vmeanh']*exp_distance)
+    X_train0['umeanh'] = X_train0.umeanh + \
+        np.random.normal(scale=scale_noise_u)
+    X_train0['vmeanh'] = X_train0.vmeanh + \
+        np.random.normal(scale=scale_noise_v)
+
+    #X_train0 = pd.concat([X_nonradio, X_radio])
     y_train0 = X_train0[['umeanh', 'vmeanh']]
-    # print(df.shape)
 
     if only_land:
         sample_weight = X_train0['sample_weight']
@@ -87,7 +118,7 @@ def ml(name, f, df,  alg, category, rmse, tsize, only_land, lowlat, uplat):
         regressor = LinearRegression()
 
     # print('fitting')
-    regressor.fit(X_train, y_train, sample_weight=sample_weight)
+    regressor.fit(X_train, y_train)
 
     # X_test0 = X_test0[(X_test0.lat > lowlat) & (X_test0.lat < uplat)]
     # y_test0 = y_test0[(y_test0.lat > lowlat) & (y_test0.lat < uplat)]
@@ -154,7 +185,7 @@ def latitude_selector(df, dft, lowlat, uplat,  category, rmse, latlon, test_size
         #  rmse, test_size, only_land, lowlat0, uplat0)
     latlon.append(str(str(lowlat)+',' + str(uplat)))
     test_sizes.append(test_size)
-    ml('uv', f,  df.copy(),
+    ml('uv', f, df,
        'rf', category, rmse, test_size, only_land, lowlat0, uplat0)
     dfm = dfm.dropna()
     latlon.append(str(str(lowlat)+',' + str(uplat)))
@@ -187,6 +218,20 @@ df['land'] = globe.is_land(df.lat, df.lon)
 # print(df['land'])
 
 df = df.reset_index(drop=True)
+
+europe_coord = (54.5260, 15.2551)
+us_coord = (37.0902, -95.7129)
+df['europe_lat'] = europe_coord[0]
+df['europe_lon'] = europe_coord[1]
+df['us_lat'] = us_coord[0]
+df['us_lon'] = us_coord[1]
+
+df['distance'] = np.minimum(distance(df.lat, df.lon, df.europe_lat,
+
+                                     df.europe_lon), distance(df.lat, df.lon, df.us_lat, df.us_lon))
+
+
+df['distance'] = np.maximum(df.distance-1000, 0)
 coordinates = np.dstack((df.lat, df.lon))
 coordinates = np.squeeze(coordinates)
 coordinates = tuple(map(tuple, coordinates))
@@ -195,24 +240,29 @@ codes = np.array(codes)
 countries = np.empty(codes.shape, dtype=object)
 admin1 = np.empty(codes.shape, dtype=object)
 
+
 print('retreiving countries')
 for i, code in enumerate(tqdm(codes)):
     countries[i] = code['cc']
     admin1[i] = code['admin1']
 df['country'] = countries
 df['admin1'] = admin1
-# radiosonde_cc = np.array(['AT', 'BE', 'HR', 'BG', 'CY', 'CZ', 'DK', 'EE', 'FI', 'FR', 'DE', 'GR', 'HU', 'IE',
-#                        'IT', 'LV', 'LT', 'LU', 'MT', 'NL', 'PL', 'PT', 'RO', 'SK', 'SI', 'ES', 'SE',
-#                       'GB', 'NO', 'US'])
+radiosonde_cc = np.array(['AT', 'BE', 'HR', 'BG', 'CY', 'CZ', 'DK', 'EE', 'FI', 'FR', 'DE', 'GR', 'HU', 'IE',
+                          'IT', 'LV', 'LT', 'LU', 'MT', 'NL', 'PL', 'PT', 'RO', 'SK', 'SI', 'ES', 'SE',
+                          'GB', 'NO', 'US', 'UK', 'AU', 'CN'])
 
-radiosonde_cc = np.array(['US', 'UK'])
+
+#radiosonde_cc = np.array(['US', 'UK'])
 df['condition'] = (df.country.isin(radiosonde_cc)) & (
     df.land == True) & (df.admin1 != 'Alaska')
 
-df = df[df.condition == False]
-df['sample_weight'] = 1
+#df = df[df.condition == False]
+#df = df[df.land == True]
+#df['sample_weight'] = 1
+df['sample_weight'] = np.exp(-df.distance/18000)
 # df.sample_weight[df.condition == False] = 1e-13
 
+print(df.sample_weight)
 
 df['condition_f'] = df['condition'].astype(float)
 # edp.map_plotter(df, 'condition_f', 'condition_f')
@@ -233,10 +283,10 @@ test_sizes = []
 
 only_land = False
 
-latdowns = [-30, 30, 60, -60, -90]
-latups = [30, 60, 90, -30, -60]
-#latdowns = [-90]
-#latups = [90]
+#latdowns = [-30, 30, 60, -60, -90]
+#latups = [30, 60, 90, -30, -60]
+latdowns = [-90]
+latups = [90]
 test_sizel = [0.9]
 print('process data...')
 for i, latdown in enumerate(tqdm(latdowns)):
