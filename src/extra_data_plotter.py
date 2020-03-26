@@ -8,7 +8,7 @@ import pickle
 import cartopy.crs as ccrs
 
 
-def map_plotter(df,  values, title):
+def map_plotter(df,  values, title, units):
 
     df['speed_error'] = np.sqrt(df['speed_error'])
     grid = 10
@@ -23,19 +23,19 @@ def map_plotter(df,  values, title):
     pmap = plt.cm.RdPu
     pmap.set_bad(color='grey')
     im = ax.imshow(var, cmap=pmap,
-                   extent=[-180, 180, -90, 90], origin='lower')
+                   extent=[-180, 180, -90, 90], origin='lower', vmin=0, vmax=10)
     gl = ax.gridlines(crs=ccrs.PlateCarree(), draw_labels=True,
                       linewidth=2, color='gray', alpha=0, linestyle='--')
     gl.xlabels_top = False
     gl.ylabels_right = False
     cbar = fig.colorbar(im, ax=ax, fraction=0.025, pad=0.04)
 
-    cbar.set_label('g/kg ')
+    cbar.set_label(units)
     plt.xlabel("lon")
     plt.ylabel("lat")
     ax.set_title(title)
     directory = '../data/processed/density_plots'
-    plt.savefig(title+'.png', bbox_inches='tight', dpi=300)
+    plt.savefig(values+'.png', bbox_inches='tight', dpi=300)
 
 
 def line_plotter(df0, values, title):
@@ -91,40 +91,26 @@ def train_plotter(df0, values, title):
     plt.savefig(values+'.png', bbox_inches='tight', dpi=300)
 
 
-dict_path = '../data/interim/dictionaries/dataframes.pkl'
-dataframes_dict = pickle.load(open(dict_path, 'rb'))
+def main():
+    dict_path = '../data/interim/dictionaries/dataframes.pkl'
+    dataframes_dict = pickle.load(open(dict_path, 'rb'))
 
-start_date = datetime.datetime(2006, 7, 1, 6, 0, 0, 0)
-end_date = datetime.datetime(2006, 7, 1, 7, 0, 0, 0)
-dfc0 = aa.df_concatenator(dataframes_dict, start_date,
-                          end_date, False, True, False)
+    start_date = datetime.datetime(2006, 7, 1, 6, 0, 0, 0)
+    end_date = datetime.datetime(2006, 7, 1, 7, 0, 0, 0)
+    dfc0 = aa.df_concatenator(dataframes_dict, start_date,
+                              end_date, False, True, False)
 
+    dfc0['qv'] = 1000*dfc0['qv']
+    dfc = dfc0.dropna(subset=['qv'])
+    dfc = dfc.dropna(subset=['umeanh'])
+    dfc = dfc[dfc['utrack'].isna()]
 
-dfc0['qv'] = 1000*dfc0['qv']
-dfc = dfc0.dropna(subset=['qv'])
-dfc = dfc.dropna(subset=['umeanh'])
-dfc = dfc[dfc['utrack'].isna()]
-# dfc.to_pickle("df_0z.pkl")
+    map_plotter(dfc, 'qv', 'non-jpl')
 
+    dfc = dfc0.dropna()
 
-map_plotter(dfc, 'qv', 'non-jpl')
+    map_plotter(dfc, 'qv', 'jpl')
 
-dfc = dfc0.dropna()
-
-map_plotter(dfc, 'qv', 'jpl')
-
-df0 = pd.read_pickle("./df_results.pkl")
-df0.sort_values(by=['latlon'], inplace=True)
-
-#df = df0[(df0.extra == True) & (df0.test_size == 0.50)]
-#line_plotter(df, 'results_e', 'non-jpl, test_size=0.5')
-#df = df0[(df0.extra == False) & (df0.test_size == 0.50)]
-#line_plotter(df, 'results',  'jpl, test_size=0.5')
-
-df = df0[df0.extra == True]
-train_plotter(df, 'results_test', 'Robustness of ML algorithms')
-df = df0[(df0.extra == True) & (df0.test_size == 0.999)]
-
-line_plotter(df, 'results_e_001', 'non-jpl, test_size=0.999')
-df = df0[(df0.extra == False) & (df0.test_size == 0.999)]
-line_plotter(df, 'results_001',  'jpl, test_size=0.999')
+    df0 = pd.read_pickle("./df_results.pkl")
+    df0.sort_values(by=['latlon'], inplace=True)
+    train_plotter(df, 'results_test', 'Robustness of ML algorithms')
