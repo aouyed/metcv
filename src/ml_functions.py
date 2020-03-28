@@ -15,6 +15,7 @@ from joblib import dump, load
 from global_land_mask import globe
 from sklearn.utils import resample
 import extra_data_plotter as edp
+import time
 
 R = 6373.0
 
@@ -37,26 +38,46 @@ def ml_fitter(name, f, df,  alg, rmse, tsize, only_land, lowlat, uplat, exp_filt
     X_train0, X_test0, y_train0, y_test0 = train_test_split(df[['lat', 'lon', 'u_scaled_approx', 'v_scaled_approx', 'utrack', 'land', 'sample_weight', 'umeanh', 'vmeanh', 'distance']], df[[
         'umeanh', 'vmeanh', 'utrack', 'land', 'lat']], test_size=tsize, random_state=1)
 
-    deltax = 10
-    distances = np.arange(0, 1800, deltax)
-
+    deltax = 100
+    maxr = np.pi*R
+    distances = np.arange(0, maxr, deltax)
+    # distances = np.array([3000, np.pi*R])
+    # distances=[1]
     if exp_filter:
         X = pd.DataFrame()
         print('sampling based on distance...')
         for distance in tqdm(distances):
             X_sample = X_train0[(X_train0.distance >= distance) & (
-                X_train0.distance <= X_train0.distance + deltax)]
-            n_int = int(round(1e5 *
-                              np.exp(-(distance+0.5*deltax)/18000)))
-            X_sample = resample(X_train0, replace=False,
-                                n_samples=n_int, random_state=1)
+                X_train0.distance <= distance + deltax)]
+            #n_int = 12684773
+            # n_int = int(5e4)
+            n_int = int(round(1.2e5 *
+                              np.exp(-(distance+0.5*deltax)/maxr)))
+            #n_int = int(round(1.5e5*(1-(distance/maxr))))
+            if not X_sample.empty:
+                X_sample = resample(X_sample, replace=True,
+                                    n_samples=n_int, random_state=1)
             if X.empty:
                 X = X_sample
             else:
                 X = pd.concat([X, X_sample])
-                X_train0 = X
 
-    exp_distance = np.exp(X_train0.distance/18000)
+        X_train0 = X
+    print('final shape')
+    print(X_train0.shape[0])
+    freq_group = X_train0[['lat', 'lon']]
+    freq_group = freq_group.groupby(
+        freq_group.columns.tolist()).size()
+    freq_group = freq_group.reset_index()
+    freq_group = freq_group.rename(columns={0: 'freq'})
+    print(freq_group)
+    freq_group['freq'] = freq_group['freq']
+    # print("plotting...")
+    edp.scatter_plotter(freq_group, 'freq', 'freq', ' ')
+    # import pdb
+    # pdb.set_trace()
+
+    exp_distance = np.exp(X_train0.distance/(np.pi*R))
     scale_noise_u = abs(X_train0['umeanh']*exp_distance)
     scale_noise_v = abs(X_train0['vmeanh']*exp_distance)
     X_train0['umeanh'] = X_train0.umeanh + \
@@ -74,13 +95,15 @@ def ml_fitter(name, f, df,  alg, rmse, tsize, only_land, lowlat, uplat, exp_filt
     regressor = RandomForestRegressor(
         n_estimators=100, random_state=0, n_jobs=-1)
 
-    # print('fitting')
+    print('fitting')
+    start_time = time.time()
     regressor.fit(X_train, y_train)
+    print("--- %s seconds ---" % (time.time() - start_time))
     return regressor, X_test0, y_test0
 
 
 def ml_predictor(name, f, alg, category,   rmse, tsize, lowlat, uplat, regressor, X_test0, y_test0):
-     # change df0z to df for current timestep
+        # change df0z to df for current timestep
 
     X_test0['cos_weight'] = np.cos(X_test0['lat']/180*np.pi)
     X_test0 = X_test0.dropna()

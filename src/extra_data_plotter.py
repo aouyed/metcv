@@ -10,7 +10,7 @@ import cartopy.crs as ccrs
 
 def map_plotter(df,  values, title, units):
 
-    df['speed_error'] = np.sqrt(df['speed_error'])
+   # df['speed_error'] = np.sqrt(df['speed_error'])
     grid = 10
     var = df.pivot('lat', 'lon', values).values
 
@@ -23,7 +23,7 @@ def map_plotter(df,  values, title, units):
     pmap = plt.cm.RdPu
     pmap.set_bad(color='grey')
     im = ax.imshow(var, cmap=pmap,
-                   extent=[-180, 180, -90, 90], origin='lower', vmin=0, vmax=10)
+                   extent=[-180, 180, -90, 90], origin='lower')
     gl = ax.gridlines(crs=ccrs.PlateCarree(), draw_labels=True,
                       linewidth=2, color='gray', alpha=0, linestyle='--')
     gl.xlabels_top = False
@@ -31,6 +31,31 @@ def map_plotter(df,  values, title, units):
     cbar = fig.colorbar(im, ax=ax, fraction=0.025, pad=0.04)
 
     cbar.set_label(units)
+    plt.xlabel("lon")
+    plt.ylabel("lat")
+    ax.set_title(title)
+    directory = '../data/processed/density_plots'
+    plt.savefig(values+'.png', bbox_inches='tight', dpi=300)
+
+
+def scatter_plotter(df,  values, title, units):
+    grid = 10
+
+    factor = 0.0625/grid
+
+    fig, ax = plt.subplots()
+    ax = plt.axes(projection=ccrs.PlateCarree())
+    ax.coastlines()
+    pmap = plt.cm.RdPu
+
+    im = ax.scatter(df['lon'], df['lat'], c=df[values],
+                    s=1, cmap=pmap, vmin=0, vmax=100)
+    cbar = fig.colorbar(im, ax=ax, fraction=0.025, pad=0.04)
+
+    gl = ax.gridlines(crs=ccrs.PlateCarree(), draw_labels=True,
+                      linewidth=2, color='gray', alpha=0, linestyle='--')
+    gl.xlabels_top = False
+    gl.ylabels_right = False
     plt.xlabel("lon")
     plt.ylabel("lat")
     ax.set_title(title)
@@ -59,25 +84,20 @@ def line_plotter(df0, values, title):
     ax.set_ylabel("RMSVD [m/s]")
     ax.set_title(title)
     directory = '../data/processed/density_plots'
-    plt.savefig(values+'.png', bbox_inches='tight', dpi=300)
+    plt.savefig('filtr'+'.png', bbox_inches='tight', dpi=300)
 
 
-def train_plotter(df0, values, title):
+def filter_plotter(df0, values, title):
     fig, ax = plt.subplots()
 
-    df = df0[(df0.categories == 'poly') & (df0.test_size == 0.99)]
-    ax.plot(np.array(df['latlon']), df['rmse'],
-            '-o', label='poly, test_size=0.99')
+    df = df0[(df0.categories == 'rf') & (df0.exp_filter == False)]
+    ax.plot(df['latlon'], df['rmse'], '-o', label='rf, no filter')
 
-    df = df0[(df0.categories == 'poly') & (df0.test_size == 0.999)]
-    ax.plot(np.array(df['latlon']), df['rmse'],
-            '-o', label='poly, test_size=0.999')
+    df = df0[(df0.categories == 'rf') & (df0.exp_filter == True)]
+    ax.plot(df['latlon'], df['rmse'], '-o', label='rf, filter')
 
-    df = df0[(df0.categories == 'rf') & (df0.test_size == 0.99)]
-    ax.plot(df['latlon'], df['rmse'], '-o', label='rf, test_size=0.99')
-
-    df = df0[(df0.categories == 'rf') & (df0.test_size == 0.999)]
-    ax.plot(df['latlon'], df['rmse'], '-o', label='rf, test_size=0.999')
+    df = df0[df0.categories == 'df']
+    ax.plot(df['latlon'], df['rmse'], '-o', label='vem')
 
     df = df0[df0.categories == 'jpl']
     ax.plot(df['latlon'], df['rmse'], '-o', label='jpl')
@@ -95,22 +115,16 @@ def main():
     dict_path = '../data/interim/dictionaries/dataframes.pkl'
     dataframes_dict = pickle.load(open(dict_path, 'rb'))
 
-    start_date = datetime.datetime(2006, 7, 1, 6, 0, 0, 0)
-    end_date = datetime.datetime(2006, 7, 1, 7, 0, 0, 0)
-    dfc0 = aa.df_concatenator(dataframes_dict, start_date,
-                              end_date, False, True, False)
-
-    dfc0['qv'] = 1000*dfc0['qv']
-    dfc = dfc0.dropna(subset=['qv'])
-    dfc = dfc.dropna(subset=['umeanh'])
-    dfc = dfc[dfc['utrack'].isna()]
-
-    map_plotter(dfc, 'qv', 'non-jpl')
-
-    dfc = dfc0.dropna()
-
-    map_plotter(dfc, 'qv', 'jpl')
-
     df0 = pd.read_pickle("./df_results.pkl")
+    df0.latlon[df0.latlon == '90°S,60°S'] = '(0) 90°S,60°S'
+    df0.latlon[df0.latlon == '60°S,30°S'] = '(1) 60°S,30°S'
+    df0.latlon[df0.latlon == '30°S,30°N'] = '(2) 30°S,30°N'
+    df0.latlon[df0.latlon == '30°N,60°N'] = '(3) 30°N,60°N'
+    df0.latlon[df0.latlon == '60°N,90°N'] = '(4) 60°S,90°N'
+    print(df0)
     df0.sort_values(by=['latlon'], inplace=True)
-    train_plotter(df, 'results_test', 'Robustness of ML algorithms')
+    filter_plotter(df0, 'results_test', 'Exponential filter')
+
+
+if __name__ == "__main__":
+    main()

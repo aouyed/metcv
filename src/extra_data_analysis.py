@@ -68,10 +68,10 @@ df['distance'] = np.minimum(distance(df.lat, df.lon, df.europe_lat,
 df['distance'] = np.maximum(df.distance-1000, 0)
 print(df['distance'].max())
 df['sample_weight'] = np.exp(-df.distance/(np.pi*R))
-exp_distance = np.exp(df.distance/18000)
+exp_distance = np.exp(df.distance/(np.pi*R))
 scale_noise_u = abs(df['umeanh']*exp_distance)
 scale_noise_v = abs(df['vmeanh']*exp_distance)
-df['error_mag'] = np.sqrt(scale_noise_u**2+scale_noise_v**2)
+df['error_mag'] = exp_distance
 
 edp.map_plotter(df, 'error_mag', "error mag", 'm/s')
 print('done plotting')
@@ -93,7 +93,7 @@ latups = [30, 60, 90, -30, -60]
 #latdowns = [-90]
 #latups = [90]
 test_size = 0.90
-exp_filters = [False, True]
+exp_filters = [True]
 print('process data...')
 
 
