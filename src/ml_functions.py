@@ -33,57 +33,46 @@ def error_calc(df, f, name, category, rmse):
     f.write(str(rmsvd)+'\n')
 
 
+def df_freq(df, values, title):
+    print('calculating frequency...')
+    #freq_group = df[values]
+    freq_group = df.groupby(values).size()
+    freq_group = freq_group.reset_index()
+    freq_group = freq_group.rename(columns={0: 'freq'})
+    print(freq_group)
+  #  freq_group['freq'] = freq_group['freq']
+    # print("plotting...")
+    edp.freq_plotter(freq_group, values, title)
+
+
 def ml_fitter(name, f, df,  alg, rmse, tsize, only_land, lowlat, uplat, exp_filter):
 
     X_train0, X_test0, y_train0, y_test0 = train_test_split(df[['lat', 'lon', 'u_scaled_approx', 'v_scaled_approx', 'utrack', 'land', 'sample_weight', 'umeanh', 'vmeanh', 'distance']], df[[
         'umeanh', 'vmeanh', 'utrack', 'land', 'lat']], test_size=tsize, random_state=1)
 
+    df_freq(X_train0, 'distance', 'nosample')
     deltax = 100
     maxr = np.pi*R
     distances = np.arange(0, maxr, deltax)
-    # distances = np.array([3000, np.pi*R])
-    # distances=[1]
-    if exp_filter:
-        X = pd.DataFrame()
-        print('sampling based on distance...')
-        for distance in tqdm(distances):
-            X_sample = X_train0[(X_train0.distance >= distance) & (
-                X_train0.distance <= distance + deltax)]
-            #n_int = 12684773
-            # n_int = int(5e4)
-            n_int = int(round(1.2e5 *
-                              np.exp(-(distance+0.5*deltax)/maxr)))
-            #n_int = int(round(1.5e5*(1-(distance/maxr))))
-            if not X_sample.empty:
-                X_sample = resample(X_sample, replace=True,
-                                    n_samples=n_int, random_state=1)
-            if X.empty:
-                X = X_sample
-            else:
-                X = pd.concat([X, X_sample])
+    # pdb.set_trace()
+    print('ratio')
+    print(X_train0['vmeanh'].mean()/X_train0['umeanh'].mean())
+    exp_distance = np.exp(X_train0.distance/(np.pi*R))
+    sigma_u = abs(2*exp_distance)
+    sigma_v = abs(0.2*exp_distance)
+    e_u = np.random.normal(scale=sigma_u)
+    e_v = np.random.normal(scale=sigma_v)
+    e_u = np.sign(e_u)*np.minimum(2*sigma_u, abs(e_u))
+    e_v = np.sign(e_v)*np.minimum(2*sigma_v, abs(e_v))
+   # e_u = 0
+   # e_v = 0
+    X_train0['umeanh'] = X_train0.umeanh + e_u
+    X_train0['vmeanh'] = X_train0.vmeanh + e_v
 
-        X_train0 = X
     print('final shape')
     print(X_train0.shape[0])
-    freq_group = X_train0[['lat', 'lon']]
-    freq_group = freq_group.groupby(
-        freq_group.columns.tolist()).size()
-    freq_group = freq_group.reset_index()
-    freq_group = freq_group.rename(columns={0: 'freq'})
-    print(freq_group)
-    freq_group['freq'] = freq_group['freq']
-    # print("plotting...")
-    edp.scatter_plotter(freq_group, 'freq', 'freq', ' ')
+    df_freq(X_train0, 'distance', 'rsample')
     # import pdb
-    # pdb.set_trace()
-
-    exp_distance = np.exp(X_train0.distance/(np.pi*R))
-    scale_noise_u = abs(X_train0['umeanh']*exp_distance)
-    scale_noise_v = abs(X_train0['vmeanh']*exp_distance)
-    X_train0['umeanh'] = X_train0.umeanh + \
-        np.random.normal(scale=scale_noise_u)
-    X_train0['vmeanh'] = X_train0.vmeanh + \
-        np.random.normal(scale=scale_noise_v)
     y_train0 = X_train0[['umeanh', 'vmeanh']]
 
     sample_weight = X_train0['sample_weight']
