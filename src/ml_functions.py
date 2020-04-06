@@ -35,7 +35,7 @@ def error_calc(df, f, name, category, rmse):
 
 def df_freq(df, values, title):
     print('calculating frequency...')
-    #freq_group = df[values]
+    # freq_group = df[values]
     freq_group = df.groupby(values).size()
     freq_group = freq_group.reset_index()
     freq_group = freq_group.rename(columns={0: 'freq'})
@@ -53,32 +53,27 @@ def ml_fitter(name, f, df,  alg, rmse, tsize, only_land, lowlat, uplat, exp_filt
     df_freq(X_train0, 'distance', 'nosample')
     deltax = 100
     maxr = np.pi*R
-    distances = np.arange(0, maxr, deltax)
-    # pdb.set_trace()
-    print('ratio')
-    print(X_train0['vmeanh'].mean()/X_train0['umeanh'].mean())
-    exp_distance = np.exp(X_train0.distance/(np.pi*R))
-    sigma_u = abs(2*exp_distance)
-    sigma_v = abs(0.2*exp_distance)
-    e_u = np.random.normal(scale=sigma_u)
-    e_v = np.random.normal(scale=sigma_v)
-    e_u = np.sign(e_u)*np.minimum(2*sigma_u, abs(e_u))
-    e_v = np.sign(e_v)*np.minimum(2*sigma_v, abs(e_v))
-   # e_u = 0
-   # e_v = 0
-    X_train0['umeanh'] = X_train0.umeanh + e_u
-    X_train0['vmeanh'] = X_train0.vmeanh + e_v
+    if exp_filter in ('exp,exp2'):
+        exp_distance = np.exp(X_train0.distance/(np.pi*R))
+        if (exp_filter is 'exp2'):
+            exp_distance = np.exp((2*X_train0.distance)/(np.pi*R))
+
+        sigma_u = abs(2*exp_distance)
+        sigma_v = abs(0.2*exp_distance)
+        e_u = np.random.normal(scale=sigma_u)
+        e_v = np.random.normal(scale=sigma_v)
+        e_u = np.sign(e_u)*np.minimum(2*sigma_u, abs(e_u))
+        e_v = np.sign(e_v)*np.minimum(2*sigma_v, abs(e_v))
+        X_train0['umeanh'] = X_train0.umeanh + e_u
+        X_train0['vmeanh'] = X_train0.vmeanh + e_v
 
     print('final shape')
     print(X_train0.shape[0])
     df_freq(X_train0, 'distance', 'rsample')
-    # import pdb
     y_train0 = X_train0[['umeanh', 'vmeanh']]
-
     sample_weight = X_train0['sample_weight']
     X_train = X_train0[['lat', 'lon',
                         'u_scaled_approx', 'v_scaled_approx', 'land']]
-
     y_train = y_train0[['umeanh', 'vmeanh']]
 
     regressor = RandomForestRegressor(

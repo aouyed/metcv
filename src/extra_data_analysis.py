@@ -57,14 +57,14 @@ europe_coord = (54.5260, 15.2551)
 us_coord = (37.0902, -95.7129)
 aus_coord = (-25.2744, 133.7751)
 bra_coord = (-14.2350, -51.9253)
-
+jap_coord = (36.2048, 138.2529)
 df['europe_lat'] = europe_coord[0]
 df['europe_lon'] = europe_coord[1]
 df['us_lat'] = us_coord[0]
 df['us_lon'] = us_coord[1]
 
-df['aus_lat'] = aus_coord[0]
-df['aus_lon'] = aus_coord[1]
+df['jap_lat'] = jap_coord[0]
+df['jap_lon'] = jap_coord[1]
 
 df['bra_lat'] = bra_coord[0]
 df['bra_lon'] = bra_coord[1]
@@ -74,18 +74,23 @@ df['distance'] = np.minimum(distance(df.lat, df.lon, df.europe_lat,
                                      df.europe_lon), distance(df.lat, df.lon, df.us_lat, df.us_lon))
 
 df['distance'] = np.minimum(df.distance, distance(
-    df.lat, df.lon, df.aus_lat, df.aus_lon))
+    df.lat, df.lon, df.jap_lat, df.jap_lon))
 df['distance'] = np.minimum(df.distance, distance(
     df.lat, df.lon, df.bra_lat, df.bra_lon))
 #df['distance'] = np.maximum(df.distance-1000, 0)
 print(df['distance'].max())
 df['sample_weight'] = np.exp(-df.distance/(np.pi*R))
-exp_distance = np.exp(df.distance/(np.pi*R))
+
+
+exp_distance = np.exp(2*df.distance/(np.pi*R))
 sigma_u = abs(2*exp_distance)
 sigma_v = abs(0.2*exp_distance)
 df['stdev'] = np.sqrt(sigma_u**2+sigma_v**2)
 
-edp.map_plotter(df, 'stdev', "exponential part of stdev", ' ')
+edp.map_plotter(
+    df, 'stdev', "standard deviation", 'm/s')
+
+
 e_u = np.random.normal(scale=sigma_u)
 e_v = np.random.normal(scale=sigma_v)
 e_u = np.sign(e_u)*np.minimum(2*sigma_u, abs(e_u))
@@ -93,7 +98,7 @@ e_v = np.sign(e_v)*np.minimum(2*sigma_v, abs(e_v))
 
 df['error_mag'] = np.sqrt(e_u**2+e_v**2)
 
-edp.map_plotter(df, 'error_mag', "exponential part of stdev", ' ')
+edp.map_plotter(df, 'error_mag', 'magnitude of error vector', 'm/s ')
 
 
 print('done plotting')
@@ -114,8 +119,8 @@ latdowns = [-30, 30, 60, -60, -90]
 latups = [30, 60, 90, -30, -60]
 #latdowns = [-90]
 #latups = [90]
-test_size = 0.9
-exp_filters = ['rand']
+test_size = 0.99
+exp_filters = ['exp2', 'exp', 'rand']
 #exp_filters = ['rand2']
 print('process data...')
 

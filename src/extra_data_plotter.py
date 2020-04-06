@@ -102,15 +102,15 @@ def line_plotter(df0, values, title):
 def filter_plotter(df0, values, title):
     fig, ax = plt.subplots()
 
-    df = df0[(df0.categories == 'rf') & (df0.exp_filter == False)]
-    ax.plot(df['latlon'], df['rmse'], '-o', label='rf, no filter')
+    #df = df0[(df0.categories == 'rf') & (df0.exp_filter == False)]
+    #ax.plot(df['latlon'], df['rmse'], '-o', label='rf, no filter')
 
-    df = df0[(df0.categories == 'rf') & (df0.exp_filter == 'exp')]
-    ax.plot(df['latlon'], df['rmse'], '-o', label='rf, exponential filter')
+    df = df0[(df0.categories == 'rf') & (df0.exp_filter == 'exp2')]
+    ax.plot(df['latlon'], df['rmse'], '-o', label='rf, exponential noise')
 
     df = df0[(df0.categories == 'rf') & (df0.exp_filter == 'rand')]
     ax.plot(df['latlon'], df['rmse'], '-o',
-            label='rf, random duplication filter')
+            label='rf, no noise')
 
     df = df0[df0.categories == 'df']
     ax.plot(df['latlon'], df['rmse'], '-o', label='vem')
@@ -136,7 +136,7 @@ def main():
     df0.latlon[df0.latlon == '60°S,30°S'] = '(1) 60°S,30°S'
     df0.latlon[df0.latlon == '30°S,30°N'] = '(2) 30°S,30°N'
     df0.latlon[df0.latlon == '30°N,60°N'] = '(3) 30°N,60°N'
-    df0.latlon[df0.latlon == '60°N,90°N'] = '(4) 60°S,90°N'
+    df0.latlon[df0.latlon == '60°N,90°N'] = '(4) 60°N,90°N'
     print(df0)
     df0.sort_values(by=['latlon'], inplace=True)
     filter_plotter(df0, 'results_test', 'Exponential filter')
