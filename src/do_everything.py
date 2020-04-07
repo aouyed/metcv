@@ -69,10 +69,7 @@ class Parameters:
 
 def downloader_function(parameters):
     kwargs = vars(parameters)
-    if parameters.jpl_loader:
-        jl.loader(**kwargs)
-    else:
-        gd.disk_downloader(**kwargs)
+    jl.loader(**kwargs)
 
 
 def downloader(parameters):
@@ -90,28 +87,27 @@ def downloader(parameters):
     kwargs = vars(parameters)
     downloader_function(parameters)
 
-    if parameters.jpl_loader:
-        parameters.var = 'vtrack'
-        kwargs = vars(parameters)
-        downloader_function(parameters)
+    parameters.var = 'vtrack'
+    kwargs = vars(parameters)
+    downloader_function(parameters)
 
-        parameters.var = 'utrack'
-        kwargs = vars(parameters)
-        downloader_function(parameters)
+    parameters.var = 'utrack'
+    kwargs = vars(parameters)
+    downloader_function(parameters)
 
-        parameters.var = 'umean'
-        kwargs = vars(parameters)
-        downloader_function(parameters)
-        parameters.var = 'vmean'
-        kwargs = vars(parameters)
-        downloader_function(parameters)
+    parameters.var = 'umean'
+    kwargs = vars(parameters)
+    downloader_function(parameters)
+    parameters.var = 'vmean'
+    kwargs = vars(parameters)
+    downloader_function(parameters)
 
-        parameters.var = 'umeanh'
-        kwargs = vars(parameters)
-        downloader_function(parameters)
-        parameters.var = 'vmeanh'
-        kwargs = vars(parameters)
-        downloader_function(parameters)
+    parameters.var = 'umeanh'
+    kwargs = vars(parameters)
+    downloader_function(parameters)
+    parameters.var = 'vmeanh'
+    kwargs = vars(parameters)
+    downloader_function(parameters)
 
     if parameters.grid > 0.0625:
         dc.coarsener(parameters)
@@ -122,23 +118,15 @@ def downloader(parameters):
 def processor(parameters, parameters_process):
     """ iteratres through the hyperparameters"""
     print('initializing processor...')
-    cutoffs = parameters.cutoffs
     df = pd.DataFrame()
 
     size_path = dc.path(parameters)
     parameters.path = size_path
-    if parameters_process.do_optical_flow:
-        dc.optical_flow(parameters)
-    if parameters_process.do_builder:
-        dc.builder(parameters)
-    for cutoff in cutoffs:
-        parameters.cutoff = cutoff
-        size_path = dc.path(parameters)
-        parameters.path = size_path
-        if parameters_process.do_analysis:
-            df_unit = dc.analysis(parameters)
-            df = dc.df_parameters(df, df_unit, parameters)
-
-        #mm.frame_maker(var, size_path)
+    dc.optical_flow(parameters)
+    dc.builder(parameters)
+    size_path = dc.path(parameters)
+    parameters.path = size_path
+    df_unit = dc.analysis(parameters)
+    df = dc.df_parameters(df, df_unit, parameters)
     dc.df_sumnmary(df, parameters.coarse)
     print('finished processor.')

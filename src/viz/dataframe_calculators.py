@@ -58,91 +58,6 @@ def daterange(start_date, end_date):
     return date_list
 
 
-def heatmap_plotter(df, date, directory):
-    """createp heatmaps through all dataframes columns"""
-    if not os.path.exists(directory):
-        os.makedirs(directory)
-    df = df.loc[[date]]
-    exclude = ('x', 'y', 'lat', 'lon', 'datetime')
-    for column in df:
-        if not column in exclude:
-            heatmapper(df, column, directory)
-
-
-def heatmapper(df, values, directory):
-    """creates a heatmap from a column"""
-
-    piv = pd.pivot_table(df, values=values,
-                         index=["lat"], columns=["lon"], fill_value=0)
-    fig, ax = plt.subplots()
-    im = ax.imshow(piv, cmap=sns.cm.rocket,
-                   extent=[-180, 180, -90, 90], origin='lower')
-    cbar = fig.colorbar(im, ax=ax)
-    cbar.set_label('m/s')
-    ax.set_xlabel("lon")
-    ax.set_ylabel("lat")
-    ax.set_title(values)
-    plt.tight_layout()
-    plt.savefig(directory + '/'+values+'.png', bbox_inches='tight', dpi=1000)
-    plt.close()
-
-
-def plotter(df, directory, date):
-    """creates scatter plots through various column combinations"""
-    if not os.path.exists(directory):
-        os.makedirs(directory)
-    df = df.loc[[date]]
-    for column_a in df:
-        for column_b in df:
-            if column_a != column_b:
-                # ax = df.plot(kind="scatter", x=column_a, y=column_b)
-                # plt.hist2d(df[column_a], df[column_b], (500, 500), cmap=plt.cm.jet)
-                # plt.colorbar()
-                ax = density_scatter(df[column_a], df[column_b], bins=[
-                                     30, 30], s=1, cmap=sns.cm.rocket)
-                plt.savefig(directory + '/'+column_a+'_' +
-                            column_b+'.png', bbox_inches='tight')
-                plt.close()
-
-
-def plot_average(deltax, df, xlist, varx, vary):
-    df_mean = pd.DataFrame()
-    df_unit = pd.DataFrame(data=[0], columns=[varx])
-    print("calculating averages ...")
-    for x in tqdm(xlist):
-        df_a = df[df[varx] >= x]
-        df_a = df_a[df_a[varx] <= x+deltax]
-        df_unit[varx] = x
-        df_a['weighted_'+vary] = df_a[vary]*df_a['cos_weight']
-        df_unit[vary+'_count'] = df_a[vary].shape[0]
-        df_unit[vary] = df_a['weighted_'+vary].sum()/df_a['cos_weight'].sum()
-        df_a['variance'] = (df_a[vary]-df_unit[vary][0]) ** 2
-        df_a['variance'] = df_a['variance']*df_a['cos_weight']
-        df_unit[vary + '_std'] = np.sqrt(df_a['variance'].sum() /
-                                         df_a['cos_weight'].sum())
-
-        if df_mean.empty:
-            df_mean = df_unit
-        else:
-            df_mean = pd.concat([df_mean, df_unit])
-
-    # df_mean.to_pickle(directory+'/df_mean_'+varx+'_'+vary+'.pkl')
-    return df_mean
-
-
-def line_plotter(df, directory):
-    """creates scatter plots through various column combinations"""
-    if not os.path.exists(directory):
-        os.makedirs(directory)
-    for column_a in df:
-        for column_b in df:
-            if column_a != column_b:
-                ax = df.plot(kind="line", x=column_a, y=column_b)
-                plt.savefig(directory + '/'+column_a+'_' +
-                            column_b+'.png', bbox_inches='tight')
-                plt.close()
-
-
 def dataframe_quantum(file, date, dictionary_dict):
     """creates a datafrane for a particular date meant for being concatenated"""
     frame = np.load(file)
@@ -160,50 +75,6 @@ def dataframe_quantum(file, date, dictionary_dict):
             ['y', 'x']).reset_index(name=state_var.lower())
         df = df.merge(df_1, how='left')
     return df
-
-
-def initial_vorticity(frame, grid, dt_inv):
-    cg = grid
-    df = pd.DataFrame(frame[:, :, 0]).stack(dropna=False).rename_axis(
-        ['y', 'x']).reset_index(name='flow_u')
-    df_1 = pd.DataFrame(frame[:, :, 1]).stack(dropna=False).rename_axis(
-        ['y', 'x']).reset_index(name='flow_v')
-    df['flow_v'] = df_1['flow_v']
-    print('done pivoting')
-    df = latlon_converter(df, cg)
-    print('done converting to lat lon')
-    df = scaling_df_approx(df, cg, dt_inv)
-    print('done scaling')
-    _, omega = vorticity(df)
-    print('done vorticity')
-    print('omega shape final:')
-    print(omega.shape)
-
-    return omega
-
-
-def initial_flow(frame, grid, dt_inv):
-    mean = 0
-    sigma = 0.1
-    gaussianx = np.random.normal(mean, sigma, (frame.shape[0], frame.shape[1]))
-    gaussiany = np.random.normal(mean, sigma, (frame.shape[0], frame.shape[1]))
-    frame[:, :, 0] = frame[:, :, 0]+gaussianx
-    frame[:, :, 1] = frame[:, :, 1]+gaussiany
-    # frame[:,:,1]-cv2.blur(frame[:,:,1],(3,3))
-    # frame[:,:,0]-cv2.blur(frame[:,:,0],(3,3))
-    cg = grid
-    df = pd.DataFrame(frame[:, :, 0]).stack(dropna=False).rename_axis(
-        ['y', 'x']).reset_index(name='flow_u')
-    df_1 = pd.DataFrame(frame[:, :, 1]).stack(dropna=False).rename_axis(
-        ['y', 'x']).reset_index(name='flow_v')
-    df['flow_v'] = df_1['flow_v']
-    print('done pivoting')
-    df = latlon_converter(df, cg)
-    print('done converting to lat lon')
-    print(frame.shape)
-    frame[:, :, 0], frame[:, :, 1] = scaling_df_approx_inv(df, cg, dt_inv)
-
-    return frame
 
 
 def dataframe_pivot(frame, var):
@@ -236,92 +107,6 @@ def scaling_u(df_lon, df_lat, df_flow_u, grid, dt_inv):
     return scale
 
 
-def scaling_df_approx_inv(df, grid, dt_inv):
-    """coordinate transforms vels from angle/pixel to metric, approximately"""
-
-    df['flow_u'] = scaling_u_inv(
-        df['lon'], df['lat'], df['flow_u'], grid, dt_inv)
-    df['flow_v'] = scaling_v_inv(
-        df['lon'], df['lat'], df['flow_v'], grid, dt_inv)
-    flowx = df.pivot('y', 'x', 'flow_u').values
-    flowy = df.pivot('y', 'x', 'flow_v').values
-    print('flowx shape')
-    print(df.shape)
-    print(flowx.shape)
-
-    return flowx, flowy
-
-
-def vorticity(df):
-    print('Calculating vorticity...')
-
-    u_a = pd.pivot_table(df, values='u_scaled_approx',
-                         index=["y"], columns=["x"], fill_value=0)
-    v_a = pd.pivot_table(df, values='v_scaled_approx',
-                         index=["y"], columns=["x"], fill_value=0)
-    lon = pd.pivot_table(df, values='lon',
-                         index=["y"], columns=["x"], fill_value=0)
-    lat = pd.pivot_table(df, values='lat',
-                         index=["y"], columns=["x"], fill_value=0)
-    u_a = u_a.to_numpy()
-    v_a = v_a.to_numpy()
-    lon = lon.to_numpy()
-    lat = lat.to_numpy()
-    dx, dy = metpy.calc.lat_lon_grid_deltas(lon, lat)
-    f = metpy.calc.coriolis_parameter(np.deg2rad(lat)).to(units('1/sec'))
-    omega = metpy.calc.vorticity(u_a * units['m/s'],
-                                 v_a * units['m/s'], dx, dy, dim_order='yx')
-
-    omega = omega.magnitude
-    omega = np.nan_to_num(omega)
-
-    omega = cv2.blur(omega, (3, 3))
-
-    print('omega shape:')
-    print(omega.shape)
-    df_u = pd.DataFrame(omega).stack().rename_axis(
-        ['y', 'x']).reset_index(name='vorticity')
-    df = df.merge(df_u, how='left')
-    return df, omega
-
-
-def scaling_df_approx00(df, grid, dt_inv):
-
-    lon = df.pivot('y', 'x', 'lon').values
-    lat = df.pivot('y', 'x', 'lat').values
-
-    dx, dy = metpy.calc.lat_lon_grid_deltas(lon, lat)
-
-    shape = (lon.shape[1], lon.shape[0])
-
-    dx = dx.magnitude
-    dy = dy.magnitude
-    dx = cv2.resize(dx, shape)
-    dy = cv2.resize(dy, shape)
-
-    dx = pd.DataFrame(dx).stack().rename_axis(
-        ['y', 'x']).reset_index(name='dx')
-    dy = pd.DataFrame(dy).stack().rename_axis(
-        ['y', 'x']).reset_index(name='dy')
-    df['u_scaled_approx'] = dt_inv*dx['dx']*df['flow_u']
-    df['v_scaled_approx'] = dt_inv*dy['dy']*df['flow_v']
-
-    return df
-
-
-def scaling_u_inv(df_lon, df_lat, df_flow_u, grid, dt_inv):
-    dtheta = grid
-    drads = dtheta * math.pi / 180
-    lat = df_lat*math.pi/90/2
-    # dt_hr = 1
-    # dt_s = 3600
-    R = 6371000
-    scaleConstant = dt_inv
-    dx = R*abs(np.cos(lat))*drads
-    scale = dx*scaleConstant
-    return df_flow_u/scale
-
-
 def scaling_v(df_lon, df_lat, df_flow_v, grid, dt_inv):
     """coordinate transform for v from pixel/angular to metric, approximate"""
     dtheta = grid*df_flow_v
@@ -331,17 +116,6 @@ def scaling_v(df_lon, df_lat, df_flow_v, grid, dt_inv):
     dx = R*drads
     scale = dx*scaleConstant
     return scale
-
-
-def scaling_v_inv(df_lon, df_lat, df_flow_v, grid, dt_inv):
-    """coordinate transform for v from pixel/angular to metric, approximate"""
-    dtheta = grid
-    drads = dtheta * math.pi / 180
-    R = 6371000
-    scaleConstant = dt_inv
-    dx = R*drads
-    scale = dx*scaleConstant
-    return df_flow_v/scale
 
 
 def error_calculator(df):

@@ -132,6 +132,7 @@ def main():
     dataframes_dict = pickle.load(open(dict_path, 'rb'))
 
     df0 = pd.read_pickle("./df_results.pkl")
+    print(df0)
     df0.latlon[df0.latlon == '90°S,60°S'] = '(0) 90°S,60°S'
     df0.latlon[df0.latlon == '60°S,30°S'] = '(1) 60°S,30°S'
     df0.latlon[df0.latlon == '30°S,30°N'] = '(2) 30°S,30°N'

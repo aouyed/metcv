@@ -198,11 +198,8 @@ def main():
     process_parameters = ProcessParameters()
 
     parser(process_parameters, parameters)
-
-    if process_parameters.do_downloader:
-        de.downloader(deepcopy(parameters))
-    if process_parameters.do_processor:
-        de.processor(deepcopy(parameters), process_parameters)
+    de.downloader(deepcopy(parameters))
+    de.processor(deepcopy(parameters), process_parameters)
     print('All tasks completed.')
 
 

@@ -24,7 +24,6 @@ def df_loop(df, grid, dt):
     dt_inv = 1/dt
     df = dfc.latlon_converter(df, grid)
     df = dfc.scaling_df_approx(df, grid, dt_inv)
-    df, _ = dfc.vorticity(df)
     return df
 
 
@@ -135,7 +134,7 @@ def df_concatenator(dataframes_dict, start_date, end_date, track, jpl, nudger):
             if track:
                 df_unit['u_scaled_approx'] = df_unit['utrack']
                 df_unit['v_scaled_approx'] = df_unit['vtrack']
-            gc.collect()
+
             df_unit = df_unit.reset_index(drop=True)
 
             if df.empty:
@@ -163,16 +162,9 @@ def data_analysis(start_date, end_date, var, path, cutoff, track, speed_cutoff, 
     dataframes_dict = pickle.load(open(dict_path, 'rb'))
     df = df_concatenator(dataframes_dict, start_date,
                          end_date, track, jpl_loader, nudger)
-
-    if speed_cutoff:
-        df = df[df.speed >= low_speed]
-        df = df[df.speed <= up_speed]
     count = df.shape[0]
-
     df = df.dropna()
-
     df_stats = df_summary(df, count)
-
     print('Done!')
 
     return df_stats
