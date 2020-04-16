@@ -106,8 +106,15 @@ dft = aa.df_concatenator(dataframes_dict, start_date,
                          end_date, True, True, False)
 f = open("errors.txt", "w+")
 
-dft = dft.dropna()
+
 dft['land'] = globe.is_land(dft.lat, dft.lon)
+#df = mlf.vorticity(df)
+dft = mlf.vorticity(dft)
+dft = dft.dropna()
+print('plotting omega_jpl...')
+edp.map_plotter(dft, 'vorticity', 'omega_jpl', '1/s ')
+
+
 category = []
 rmse = []
 latlon = []
@@ -115,20 +122,25 @@ test_sizes = []
 exp_list = []
 only_land = False
 
+
 latdowns = [-30, 30, 60, -60, -90]
 latups = [30, 60, 90, -30, -60]
 #latdowns = [-90]
 #latups = [90]
-test_size = 0.99
-exp_filters = ['exp2', 'exp', 'rand']
+test_size = 0.95
+exp_filters = ['exp2', 'ground_t']
+#exp_filters = ['ground_t']
 #exp_filters = ['rand2']
 print('process data...')
 
 
 for exp_filter in exp_filters:
     print('fitting with filter ' + str(exp_filter))
-    regressor, X_test0, y_test0 = mlf.ml_fitter('uv', f, df,
-                                                'rf', rmse, test_size, only_land, -90, 90, exp_filter)
+    if exp_filter is 'exp2':
+        regressor, X_test0, y_test0 = mlf.ml_fitter('uv', f, df,
+                                                    'rf', rmse, test_size, only_land, -90, 90, exp_filter)
+    else:
+        regressor, X_test0, y_test0 = 0, 0, 0
     print('predicting..')
     for i, latdown in enumerate(tqdm(latdowns)):
         mlf.latitude_selector(f, df, dft, latdown, latups[i], category,  rmse, latlon,  test_size,
