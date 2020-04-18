@@ -20,6 +20,7 @@ from computer_vision import optical_flow_calculators as ofc
 from viz import dataframe_calculators as dfc
 from datetime import timedelta
 import gc
+import time
 
 
 def optical_flow(start_date,  var, **kwargs):
@@ -43,9 +44,11 @@ def optical_flow(start_date,  var, **kwargs):
     for date in file_paths:
         dates.append(date)
         print('flow calculation for date: ' + str(date))
+
         file = file_paths[date]
         frame2 = np.load(file)
         frame2 = ofc.drop_nan(frame2)
+        start_time = time.time()
         frame2 = cv2.normalize(src=frame2, dst=None, alpha=0,
                                beta=255, norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_8UC1)
         next_frame = frame2
@@ -55,6 +58,7 @@ def optical_flow(start_date,  var, **kwargs):
         prvs = ofc.warp_flow(prvs, flow)
         flowd = optical_flow.calc(prvs, next_frame, None)
         flow = flow+flowd
+        print("--- %s seconds ---" % (time.time() - start_time))
         print('done with deep flow')
 
         filename = os.path.basename(file)

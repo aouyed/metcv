@@ -6,6 +6,7 @@ import datetime as datetime
 from viz import amv_analysis as aa
 import pickle
 import cartopy.crs as ccrs
+import cv2
 
 
 def contourf_plotter(df,  values, title, units):
@@ -42,7 +43,38 @@ def contourf_plotter(df,  values, title, units):
     plt.savefig(title+'.png', bbox_inches='tight', dpi=300)
 
 
-def map_plotter(df,  values, title, units):
+def quiver_plotter(df, values):
+    grid = 10
+    U = df.pivot('lat', 'lon', 'umeanh').values
+    V = df.pivot('lat', 'lon', 'vmeanh').values
+
+    factor = 0.0625/grid
+
+    U = cv2.resize(U, None, fx=factor, fy=factor)
+    V = cv2.resize(V, None, fx=factor, fy=factor)
+    X = np.arange(-180, 180 - grid, grid)
+    Y = np.arange(-90, 90 - grid, grid)
+    fig, ax = plt.subplots()
+    fig.tight_layout()
+    ax = plt.axes(projection=ccrs.PlateCarree())
+    ax.coastlines()
+    gridlines = ax.gridlines(alpha=1, draw_labels=True)
+    gridlines.xlabels_top = False
+
+    gridlines.xlines = False
+    gridlines.ylines = False
+    Q = ax.quiver(X, Y, U, V, pivot='middle',
+                  transform=ccrs.PlateCarree(), scale=250)
+    qk = ax.quiverkey(Q, 0.9, 0.825, 10, r'$10 \frac{m}{s}$', labelpos='E',
+                      coordinates='figure')
+
+    ax.set_title('Observed Velocities')
+    directory = '../data/processed/density_plots'
+    plt.savefig(values+'.png', bbox_inches='tight', dpi=300)
+    print('plotted quiver...')
+
+
+def map_plotter(df,  values, title, units, vmin, vmax):
 
    # df['speed_error'] = np.sqrt(df['speed_error'])
     grid = 10
@@ -54,11 +86,16 @@ def map_plotter(df,  values, title, units):
     ax = plt.axes(projection=ccrs.PlateCarree())
     ax.coastlines()
 
-    #pmap = plt.cm.gnuplot
-    pmap = plt.cm.coolwarm
+    pmap = plt.cm.gnuplot
+    #pmap = plt.cm.coolwarm
     pmap.set_bad(color='grey')
-    im = ax.imshow(var, cmap=pmap,
-                   extent=[-180, 180, -90, 90], origin='lower', vmin=-10, vmax=10)
+    if abs(vmax) > 0:
+        im = ax.imshow(var, cmap=pmap,
+                       extent=[-180, 180, -90, 90], origin='lower', vmin=vmin, vmax=vmax)
+    else:
+        im = ax.imshow(var, cmap=pmap,
+                       extent=[-180, 180, -90, 90], origin='lower')
+
     gl = ax.gridlines(crs=ccrs.PlateCarree(), draw_labels=True,
                       linewidth=2, color='gray', alpha=0, linestyle='--')
     gl.xlabels_top = False
@@ -137,17 +174,17 @@ def filter_plotter(df0, values, title):
     fig, ax = plt.subplots()
 
     df = df0[(df0.categories == 'rf') & (df0.exp_filter == 'exp2')]
-    ax.plot(df['latlon'], df['rmse'], '-o', label='rf, noise')
+    ax.plot(df['latlon'], df['rmse'], '-o', label='UA (RF+VEM)')
 
-    df = df0[(df0.categories == 'rf') & (df0.exp_filter == 'rand')]
+    df = df0[(df0.categories == 'ground_t') & (df0.exp_filter == 'ground_t')]
     ax.plot(df['latlon'], df['rmse'], '-o',
-            label='rf, no noise')
+            label='noisy observations')
 
     df = df0[df0.categories == 'df']
-    ax.plot(df['latlon'], df['rmse'], '-o', label='vem')
+    ax.plot(df['latlon'], df['rmse'], '-o', label='VEM')
 
     df = df0[df0.categories == 'jpl']
-    ax.plot(df['latlon'], df['rmse'], '-o', label='jpl')
+    ax.plot(df['latlon'], df['rmse'], '-o', label='JPL')
 
     ax.legend(frameon=None)
     ax.set_ylim(0, 5)
@@ -158,12 +195,31 @@ def filter_plotter(df0, values, title):
     plt.savefig(values+'.png', bbox_inches='tight', dpi=300)
 
 
+def average_plot(df_mean):
+    fig, ax = plt.subplots()
+
+    ax.plot(df_mean['vector_diff_truth'], df_mean['vector_diff'])
+    ax.set_xlabel("MVD of noisy observations [m/s]")
+    ax.set_ylabel("MVD of Stage 2 UA  [m/s]")
+    ax.set_title('Global MVD computations')
+    ax.yaxis.set_ticks(np.arange(1, 4, 1))
+    #plt.yticks(range(1, 3))
+    #plt.ylim(1, 3)
+    plt.savefig('error_plot.png')
+
+
 def main():
     dict_path = '../data/interim/dictionaries/dataframes.pkl'
     dataframes_dict = pickle.load(open(dict_path, 'rb'))
 
     df0 = pd.read_pickle("./df_results.pkl")
-    print(df0)
+    df_mean = pd.read_pickle("./df_mean.pkl")
+    df_rf = pd.read_pickle("./df_rf.pkl")
+    df_df = pd.read_pickle("./df_df.pkl")
+    df_jpl = pd.read_pickle("./df_jpl.pkl")
+    df_error = pd.read_pickle("./df_error.pkl")
+
+    print(df_mean)
     df0.latlon[df0.latlon == '90°S,60°S'] = '(0) 90°S,60°S'
     df0.latlon[df0.latlon == '60°S,30°S'] = '(1) 60°S,30°S'
     df0.latlon[df0.latlon == '30°S,30°N'] = '(2) 30°S,30°N'
@@ -172,6 +228,16 @@ def main():
     print(df0)
     df0.sort_values(by=['latlon'], inplace=True)
     filter_plotter(df0, 'results_test', 'training data size = 5%')
+    average_plot(df_mean)
+    quiver_plotter(df_df, 'quiver')
+    map_plotter(df_error,  'vector_diff_truth_nw',
+                'Uncertainty of OBS', 'm/s', 0, 10)
+    map_plotter(df_rf,  'vector_diff_no_weight',
+                'VD between UA and OBS', 'm/s', 0, 6)
+    map_plotter(df_jpl,  'vector_diff_no_weight',
+                'VD between JPL and OBS', 'm/s', 0, 6)
+    map_plotter(df_df,  'vector_diff_no_weight',
+                'VD between VEM and OBS', 'm/s', 0, 6)
 
 
 if __name__ == "__main__":

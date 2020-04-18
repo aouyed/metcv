@@ -77,9 +77,6 @@ df['distance'] = np.minimum(df.distance, distance(
     df.lat, df.lon, df.jap_lat, df.jap_lon))
 df['distance'] = np.minimum(df.distance, distance(
     df.lat, df.lon, df.bra_lat, df.bra_lon))
-#df['distance'] = np.maximum(df.distance-1000, 0)
-print(df['distance'].max())
-df['sample_weight'] = np.exp(-df.distance/(np.pi*R))
 
 
 exp_distance = np.exp(2*df.distance/(np.pi*R))
@@ -87,8 +84,8 @@ sigma_u = abs(2*exp_distance)
 sigma_v = abs(0.2*exp_distance)
 df['stdev'] = np.sqrt(sigma_u**2+sigma_v**2)
 
-edp.map_plotter(
-    df, 'stdev', "standard deviation", 'm/s')
+# edp.map_plotter(
+#   df, 'stdev', "standard deviation", 'm/s')
 
 
 e_u = np.random.normal(scale=sigma_u)
@@ -98,7 +95,7 @@ e_v = np.sign(e_v)*np.minimum(2*sigma_v, abs(e_v))
 
 df['error_mag'] = np.sqrt(e_u**2+e_v**2)
 
-edp.map_plotter(df, 'error_mag', 'magnitude of error vector', 'm/s ')
+# edp.map_plotter(df, 'error_mag', 'magnitude of error vector', 'm/s ')
 
 
 print('done plotting')
@@ -112,7 +109,7 @@ dft['land'] = globe.is_land(dft.lat, dft.lon)
 dft = mlf.vorticity(dft)
 dft = dft.dropna()
 print('plotting omega_jpl...')
-edp.map_plotter(dft, 'vorticity', 'omega_jpl', '1/s ')
+#edp.map_plotter(dft, 'vorticity', 'omega_jpl', '1/s ')
 
 
 category = []
@@ -123,20 +120,20 @@ exp_list = []
 only_land = False
 
 
-latdowns = [-30, 30, 60, -60, -90]
-latups = [30, 60, 90, -30, -60]
-#latdowns = [-90]
-#latups = [90]
+#latdowns = [-30, 30, 60, -60, -90]
+#latups = [30, 60, 90, -30, -60]
+latdowns = [-90]
+latups = [90]
 test_size = 0.95
 exp_filters = ['exp2', 'ground_t']
 #exp_filters = ['ground_t']
-#exp_filters = ['rand2']
+exp_filters = ['error']
 print('process data...')
 
 
 for exp_filter in exp_filters:
     print('fitting with filter ' + str(exp_filter))
-    if exp_filter is 'exp2':
+    if exp_filter in ('exp2', 'error'):
         regressor, X_test0, y_test0 = mlf.ml_fitter('uv', f, df,
                                                     'rf', rmse, test_size, only_land, -90, 90, exp_filter)
     else:
