@@ -30,7 +30,9 @@ def df_loop(df, grid, dt):
 def parallelize_dataframe(df, grid, dt):
     start_time = time.time()
     print('start parallelization routine')
+
     df = df_loop(df, grid, dt)
+    print("--- %s seconds ---" % (time.time() - start_time))
     return df
 
 
@@ -82,9 +84,11 @@ def dataframe_builder(end_date, var, grid, dt, cores,  **kwargs):
     for date in flow_files:
         print('building dataframe for the date: ' + str(date))
         file = flow_files[date]
+        start_time = time.time()
         df = dfc.dataframe_quantum(file, date, dictionary_dict)
 
         df = parallelize_dataframe(df, grid, dt)
+        print("--- %s seconds ---" % (time.time() - start_time))
         df.set_index('datetime', inplace=True)
         path = df_path+'/'+var+'_'+str(date)+'.pkl'
         df.to_pickle(path)

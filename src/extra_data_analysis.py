@@ -20,6 +20,7 @@ from global_land_mask import globe
 import reverse_geocoder
 import extra_data_plotter as edp
 import ml_functions as mlf
+import time
 
 R = 6373.0
 
@@ -120,14 +121,14 @@ exp_list = []
 only_land = False
 
 
-#latdowns = [-30, 30, 60, -60, -90]
-#latups = [30, 60, 90, -30, -60]
-latdowns = [-90]
-latups = [90]
+latdowns = [-30, 30, 60, -60, -90]
+latups = [30, 60, 90, -30, -60]
+#latdowns = [-90]
+#latups = [90]
 test_size = 0.95
 exp_filters = ['exp2', 'ground_t']
 #exp_filters = ['ground_t']
-exp_filters = ['error']
+#exp_filters = ['error']
 print('process data...')
 
 
@@ -140,8 +141,10 @@ for exp_filter in exp_filters:
         regressor, X_test0, y_test0 = 0, 0, 0
     print('predicting..')
     for i, latdown in enumerate(tqdm(latdowns)):
+        start_time = time.time()
         mlf.latitude_selector(f, df, dft, latdown, latups[i], category,  rmse, latlon,  test_size,
                               test_sizes, only_land, exp_filter, exp_list, regressor, X_test0, y_test0)
+        print("--- %s seconds ---" % (time.time() - start_time))
 
 d = {'latlon': latlon,  'categories': category,
      'rmse': rmse, 'exp_filter': exp_list}

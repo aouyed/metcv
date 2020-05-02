@@ -1,0 +1,17 @@
+import cdsapi
+
+c = cdsapi.Client()
+
+c.retrieve(
+    'reanalysis-era5-pressure-levels',
+    {
+        'product_type': 'reanalysis',
+        'variable': 'u',
+        'pressure_level': '850',
+        'year': '2006',
+        'month': '01',
+        'day': '01',
+        'time': '0:00',
+        'format': 'netcdf',                 # Supported format: grib and netcdf. Default: grib
+    },
+    'download.nc')

@@ -7,6 +7,7 @@ from viz import amv_analysis as aa
 import pickle
 import cartopy.crs as ccrs
 import cv2
+import matplotlib.colors as mcolors
 
 
 def contourf_plotter(df,  values, title, units):
@@ -43,10 +44,10 @@ def contourf_plotter(df,  values, title, units):
     plt.savefig(title+'.png', bbox_inches='tight', dpi=300)
 
 
-def quiver_plotter(df, values):
+def quiver_plotter(df, title, uname, vname):
     grid = 10
-    U = df.pivot('lat', 'lon', 'umeanh').values
-    V = df.pivot('lat', 'lon', 'vmeanh').values
+    U = df.pivot('lat', 'lon', uname).values
+    V = df.pivot('lat', 'lon', vname).values
 
     factor = 0.0625/grid
 
@@ -70,7 +71,7 @@ def quiver_plotter(df, values):
 
     ax.set_title('Observed Velocities')
     directory = '../data/processed/density_plots'
-    plt.savefig(values+'.png', bbox_inches='tight', dpi=300)
+    plt.savefig(title+'.png', bbox_inches='tight', dpi=300)
     print('plotted quiver...')
 
 
@@ -90,8 +91,9 @@ def map_plotter(df,  values, title, units, vmin, vmax):
     #pmap = plt.cm.coolwarm
     pmap.set_bad(color='grey')
     if abs(vmax) > 0:
+        divnorm = mcolors.TwoSlopeNorm(vmin=vmin, vcenter=vmax/4, vmax=vmax)
         im = ax.imshow(var, cmap=pmap,
-                       extent=[-180, 180, -90, 90], origin='lower', vmin=vmin, vmax=vmax)
+                       extent=[-180, 180, -90, 90], origin='lower', vmin=vmin, vmax=vmax, norm=divnorm)
     else:
         im = ax.imshow(var, cmap=pmap,
                        extent=[-180, 180, -90, 90], origin='lower')

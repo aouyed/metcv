@@ -5,38 +5,29 @@ Created on Sat Jan  4 15:47:22 2020
 
 @author: amirouyed
 ,"""
+
 import pdb
 from viz import amv_analysis as aa
 from viz import dataframe_calculators as dfc
-import matplotlib.pyplot as plt
 import datetime
-import cartopy.crs as ccrs
-import seaborn as sns
 import pickle
 import numpy as np
 import pandas as pd
-import cv2
 import matplotlib as mpl
 from tqdm import tqdm
-from sklearn.preprocessing import PolynomialFeatures
-from sklearn.linear_model import LinearRegression
-from sklearn.ensemble import RandomForestRegressor
-from sklearn.model_selection import train_test_split
 from joblib import dump, load
 from global_land_mask import globe
 import reverse_geocoder
-import imblearn
-from imblearn.under_sampling import RandomUnderSampler
-from collections import Counter
-from sklearn.utils import resample
+import extra_data_plotter as edp
+import ml_functions as mlf
+import time
 
-# import extra_data_plotter as edp
+R = 6373.0
 
 
 def distance(s_lat, s_lng, e_lat, e_lng):
 
     # approximate radius of earth in km
-    R = 6373.0
 
     s_lat = s_lat*np.pi/180.0
     s_lng = np.deg2rad(s_lng)
@@ -49,254 +40,119 @@ def distance(s_lat, s_lng, e_lat, e_lng):
     return 2 * R * np.arcsin(np.sqrt(d))
 
 
-def error_calc(df, f, name, category, rmse):
-    error_uj = (df['umeanh'] - df['u_scaled_approx'])
-    error_vj = (df['vmeanh'] - df['v_scaled_approx'])
-    speed_errorj = (error_uj**2+error_vj**2)*df['cos_weight']
-   # print('rmsvd for ' + name)
-    f.write('rmsvd for '+name+'\n')
-    rmsvd = np.sqrt(speed_errorj.sum()/df['cos_weight'].sum())
-   # print(rmsvd)
-    category.append(name)
-    rmse.append(rmsvd)
-    f.write(str(rmsvd)+'\n')
-
-
-def ml(name, f, df,  alg, category, rmse, tsize, only_land, lowlat, uplat):
-    # change df0z to df for current timestep
-    X_train0, X_test0, y_train0, y_test0 = train_test_split(
-        df[['lat', 'lon', 'u_scaled_approx', 'v_scaled_approx', 'utrack', 'land', 'sample_weight', 'condition', 'umeanh', 'vmeanh', 'distance']], df[['umeanh', 'vmeanh', 'utrack', 'land', 'lat', 'condition']], test_size=tsize, random_state=1)
-
-    deltax = 10
-    distances = np.arange(0, 1800, deltax)
-    X = pd.DataFrame()
-    print('sampling based on distance...')
-    for distance in tqdm(distances):
-        X_sample = X_train0[(X_train0.distance >= distance) & (
-            X_train0.distance <= X_train0.distance + deltax)]
-        n_int = int(round(1e5*
-                          np.exp(-(distance+0.5*deltax)/18000)))
-        X_sample = resample(X_train0, replace=False,
-                            n_samples=n_int, random_state=1)
-        if X.empty:
-            X = X_sample
-        else:
-            X = pd.concat([X, X_sample])
-    X_train0 = X
-
-    exp_distance = np.exp(X_train0.distance/18000)
-    scale_noise_u = abs(X_train0['umeanh']*exp_distance)
-    scale_noise_v = abs(X_train0['vmeanh']*exp_distance)
-    X_train0['umeanh'] = X_train0.umeanh + \
-        np.random.normal(scale=scale_noise_u)
-    X_train0['vmeanh'] = X_train0.vmeanh + \
-        np.random.normal(scale=scale_noise_v)
-
-    #X_train0 = pd.concat([X_nonradio, X_radio])
-    y_train0 = X_train0[['umeanh', 'vmeanh']]
-
-    if only_land:
-        sample_weight = X_train0['sample_weight']
-        X_train0 = X_train0[X_train0.land == True]
-        X_train = X_train0[[
-            'u_scaled_approx', 'v_scaled_approx']]
-        y_train0 = y_train0[y_train0.land == True]
-    else:
-        sample_weight = X_train0['sample_weight']
-        X_train = X_train0[['lat', 'lon',
-                            'u_scaled_approx', 'v_scaled_approx', 'land']]
-
-    y_train = y_train0[['umeanh', 'vmeanh']]
-
-    if alg is 'rf':
-        regressor = RandomForestRegressor(
-            n_estimators=100, random_state=0, n_jobs=-1)
-
-    else:
-        polynomial_features = PolynomialFeatures(degree=5)
-        X_train = polynomial_features.fit_transform(X_train)
-        regressor = LinearRegression()
-
-    # print('fitting')
-    regressor.fit(X_train, y_train)
-
-    # X_test0 = X_test0[(X_test0.lat > lowlat) & (X_test0.lat < uplat)]
-    # y_test0 = y_test0[(y_test0.lat > lowlat) & (y_test0.lat < uplat)]
-    X_test0['cos_weight'] = np.cos(X_test0['lat']/180*np.pi)
-    X_test0 = X_test0.dropna()
-    y_test0 = y_test0.dropna()
-
-    X_test0 = X_test0[(X_test0.lat >= lowlat) & (X_test0.lat <= uplat)]
-    y_test0 = y_test0[(y_test0.lat >= lowlat) & (y_test0.lat <= uplat)]
-
-    if alg is 'poly':
-        if only_land:
-            X_test = polynomial_features.fit_transform(
-                X_test0[['lat', 'lon', 'u_scaled_approx', 'v_scaled_approx']])
-        else:
-            X_test = polynomial_features.fit_transform(
-                X_test0[['lat', 'lon', 'u_scaled_approx', 'v_scaled_approx', 'land']])
-    else:
-        if only_land:
-            X_test = X_test0[[
-                'u_scaled_approx', 'v_scaled_approx']]
-        else:
-            X_test = X_test0[['lat', 'lon',
-                              'u_scaled_approx', 'v_scaled_approx', 'land']]
-
-    y_pred = regressor.predict(X_test)
-
-    error_u = (y_test0['umeanh'] - y_pred[:, 0])
-    error_v = (y_test0['vmeanh'] - y_pred[:, 1])
-
-    speed_error = (error_u**2+error_v**2)*X_test0['cos_weight']
-    # print("rmsvd for "+alg+"_"+name)
-
-    f.write("rmsvd for" + alg+"_"+name+"\n")
-    rmsvd = np.sqrt(speed_error.sum()/X_test0['cos_weight'].sum())
-    # print(rmsvd)
-    f.write(str(rmsvd)+'\n')
-    category.append(alg)
-    rmse.append(rmsvd)
-
-
-def latitude_selector(df, dft, lowlat, uplat,  category, rmse, latlon, test_size, test_sizes, only_land):
-    dfm = df[(df.lat) <= uplat]
-    dfm = df[(df.lat) >= lowlat]
-
-    dftm = dft[(dft.lat) <= uplat]
-    dftm = dft[(dft.lat) >= lowlat]
-    lowlat0 = lowlat
-    uplat0 = uplat
-
-    if lowlat < 0:
-        lowlat = str(abs(lowlat)) + '°S'
-    else:
-        lowlat = str(lowlat) + '°N'
-
-    if uplat < 0:
-        uplat = str(abs(uplat)) + '°S'
-    else:
-        uplat = str(uplat) + '°N'
-
-    # latlon.append(str(str(lowlat)+',' + str(uplat)))
-    # test_sizes.append(test_size)
-    # ml(X, Y, 'uv', f,  df.copy(), 'poly', category,
-        #  rmse, test_size, only_land, lowlat0, uplat0)
-    latlon.append(str(str(lowlat)+',' + str(uplat)))
-    test_sizes.append(test_size)
-    ml('uv', f, df,
-       'rf', category, rmse, test_size, only_land, lowlat0, uplat0)
-    dfm = dfm.dropna()
-    latlon.append(str(str(lowlat)+',' + str(uplat)))
-    test_sizes.append(test_size)
-    error_calc(dfm, f, "df", category, rmse)
-    latlon.append(str(str(lowlat)+',' + str(uplat)))
-    test_sizes.append(test_size)
-    error_calc(dftm, f, 'jpl', category, rmse)
-
-
-mpl.rcParams['figure.dpi'] = 150
-sns.set_context("paper")
-# sns.set_context('poster')
-pd.set_option('display.expand_frame_repr', False)
-
-
 dict_path = '../data/interim/dictionaries/dataframes.pkl'
 dataframes_dict = pickle.load(open(dict_path, 'rb'))
 
-
+ 
 start_date = datetime.datetime(2006, 7, 1, 6, 0, 0, 0)
 end_date = datetime.datetime(2006, 7, 1, 7, 0, 0, 0)
 df = aa.df_concatenator(dataframes_dict, start_date,
                         end_date, False, True, False)
 
 
-df = df.dropna(subset=['qv'])
-df = df.dropna(subset=['umeanh'])
+df = df.dropna()
 df['land'] = globe.is_land(df.lat, df.lon)
-# print(df['land'])
 
 df = df.reset_index(drop=True)
-
 europe_coord = (54.5260, 15.2551)
 us_coord = (37.0902, -95.7129)
+aus_coord = (-25.2744, 133.7751)
+bra_coord = (-14.2350, -51.9253)
+jap_coord = (36.2048, 138.2529)
 df['europe_lat'] = europe_coord[0]
 df['europe_lon'] = europe_coord[1]
 df['us_lat'] = us_coord[0]
 df['us_lon'] = us_coord[1]
 
+df['jap_lat'] = jap_coord[0]
+df['jap_lon'] = jap_coord[1]
+
+df['bra_lat'] = bra_coord[0]
+df['bra_lon'] = bra_coord[1]
+
 df['distance'] = np.minimum(distance(df.lat, df.lon, df.europe_lat,
 
                                      df.europe_lon), distance(df.lat, df.lon, df.us_lat, df.us_lon))
 
-
-df['distance'] = np.maximum(df.distance-1000, 0)
-coordinates = np.dstack((df.lat, df.lon))
-coordinates = np.squeeze(coordinates)
-coordinates = tuple(map(tuple, coordinates))
-codes = reverse_geocoder.search(coordinates)
-codes = np.array(codes)
-countries = np.empty(codes.shape, dtype=object)
-admin1 = np.empty(codes.shape, dtype=object)
+df['distance'] = np.minimum(df.distance, distance(
+    df.lat, df.lon, df.jap_lat, df.jap_lon))
+df['distance'] = np.minimum(df.distance, distance(
+    df.lat, df.lon, df.bra_lat, df.bra_lon))
 
 
-print('retreiving countries')
-for i, code in enumerate(tqdm(codes)):
-    countries[i] = code['cc']
-    admin1[i] = code['admin1']
-df['country'] = countries
-df['admin1'] = admin1
-radiosonde_cc = np.array(['AT', 'BE', 'HR', 'BG', 'CY', 'CZ', 'DK', 'EE', 'FI', 'FR', 'DE', 'GR', 'HU', 'IE',
-                          'IT', 'LV', 'LT', 'LU', 'MT', 'NL', 'PL', 'PT', 'RO', 'SK', 'SI', 'ES', 'SE',
-                          'GB', 'NO', 'US', 'UK', 'AU', 'CN'])
+exp_distance = np.exp(2*df.distance/(np.pi*R))
+sigma_u = abs(2*exp_distance)
+sigma_v = abs(0.2*exp_distance)
+df['stdev'] = np.sqrt(sigma_u**2+sigma_v**2)
+
+# edp.map_plotter(
+#   df, 'stdev', "standard deviation", 'm/s')
 
 
-#radiosonde_cc = np.array(['US', 'UK'])
-df['condition'] = (df.country.isin(radiosonde_cc)) & (
-    df.land == True) & (df.admin1 != 'Alaska')
+e_u = np.random.normal(scale=sigma_u)
+e_v = np.random.normal(scale=sigma_v)
+e_u = np.sign(e_u)*np.minimum(2*sigma_u, abs(e_u))
+e_v = np.sign(e_v)*np.minimum(2*sigma_v, abs(e_v))
 
-#df = df[df.condition == False]
-#df = df[df.land == True]
-#df['sample_weight'] = 1
-df['sample_weight'] = np.exp(-df.distance/18000)
-# df.sample_weight[df.condition == False] = 1e-13
+df['error_mag'] = np.sqrt(e_u**2+e_v**2)
 
-print(df.sample_weight)
+# edp.map_plotter(df, 'error_mag', 'magnitude of error vector', 'm/s ')
 
-df['condition_f'] = df['condition'].astype(float)
-# edp.map_plotter(df, 'condition_f', 'condition_f')
-# pdb.set_trace()
 
-# df['land'] = df['condition']
-
+print('done plotting')
 dft = aa.df_concatenator(dataframes_dict, start_date,
                          end_date, True, True, False)
 f = open("errors.txt", "w+")
 
-dft = dft.dropna()
+
 dft['land'] = globe.is_land(dft.lat, dft.lon)
+#df = mlf.vorticity(df)
+dft = mlf.vorticity(dft)
+dft = dft.dropna()
+print('plotting omega_jpl...')
+#edp.map_plotter(dft, 'vorticity', 'omega_jpl', '1/s ')
+
+
 category = []
 rmse = []
 latlon = []
 test_sizes = []
-
+exp_list = []
 only_land = False
 
-#latdowns = [-30, 30, 60, -60, -90]
-#latups = [30, 60, 90, -30, -60]
-latdowns = [-90]
-latups = [90]
-test_sizel = [0.9]
+
+latdowns = [-30, 30, 60, -60, -90]
+latups = [30, 60, 90, -30, -60]
+#latdowns = [-90]
+#latups = [90]
+test_size = 0.95
+exp_filters = ['exp2', 'ground_t']
+#exp_filters = ['ground_t']
+#exp_filters = ['error']
 print('process data...')
-for i, latdown in enumerate(tqdm(latdowns)):
-    for test_size in test_sizel:
-        latitude_selector(df.copy(), dft.copy(), latdown, latups[i],
-                          category, rmse, latlon,  test_size, test_sizes, only_land)
+
+
+for exp_filter in exp_filters:
+    print('fitting with filter ' + str(exp_filter))
+    if exp_filter in ('exp2', 'error'):
+        regressor, X_test0, y_test0 = mlf.ml_fitter('uv', f, df,
+                                                    'rf', rmse, test_size, only_land, -90, 90, exp_filter)
+    else:
+        regressor, X_test0, y_test0 = 0, 0, 0
+    print('predicting..')
+    for i, latdown in enumerate(tqdm(latdowns)):
+        start_time = time.time()
+        mlf.latitude_selector(f, df, dft, latdown, latups[i], category,  rmse, latlon,  test_size,
+                              test_sizes, only_land, exp_filter, exp_list, regressor, X_test0, y_test0)
+        print("--- %s seconds ---" % (time.time() - start_time))
 
 d = {'latlon': latlon,  'categories': category,
-     'test_size': test_sizes, 'rmse': rmse}
+     'rmse': rmse, 'exp_filter': exp_list}
+
 df_results = pd.DataFrame(data=d)
+
+df_results.to_pickle("df_results.pkl")
+
 print('done!')
 print(df_results)
-df_results.to_pickle("df_results.pkl")
+# print(df_results[df_results.exp_filter])
