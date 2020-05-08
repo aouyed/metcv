@@ -88,7 +88,7 @@ def random_error_add(sigma_u, sigma_v, column_u, column_v):
 
 def ml_fitter(name, f, df,  alg, rmse, tsize, only_land, lowlat, uplat, exp_filter):
 
-    X_train0, X_test0, y_train0, y_test0 = train_test_split(df[['lat', 'lon', 'u_scaled_approx', 'v_scaled_approx', 'utrack', 'land', 'umeanh', 'vmeanh', 'distance']], df[[
+    X_train0, X_test0, y_train0, y_test0 = train_test_split(df[['lat', 'lon', 'u_scaled_approx', 'v_scaled_approx', 'utrack', 'land', 'umeanh', 'vmeanh', 'distance', 'u_error_rean', 'v_error_rean']], df[[
         'umeanh', 'vmeanh', 'utrack', 'land', 'lat']], test_size=tsize, random_state=1)
 
     df_freq(X_train0, 'distance', 'nosample')
@@ -96,15 +96,16 @@ def ml_fitter(name, f, df,  alg, rmse, tsize, only_land, lowlat, uplat, exp_filt
     maxr = np.pi*R
     exp_distance = np.exp(2*(X_train0.distance)/(np.pi*R))
 
-    sigma_u = abs(2*exp_distance)
-    sigma_v = abs(0.2*exp_distance)
+    sigma_u = abs(X_train0['u_error_rean'])
+    sigma_v = abs(X_train0['v_error_rean'])
 
     X_train0['umeanh'], X_train0['vmeanh'] = random_error_add(
         sigma_u, sigma_v, X_train0['umeanh'], X_train0['vmeanh'])
 
-    sigma_lon = 2*0.625*exp_distance
-    sigma_lat = 2*0.0625*exp_distance
-
+    #sigma_lon = 2*0.625*exp_distance
+    #sigma_lat = 2*0.0625*exp_distance
+    sigma_lon = 0.6
+    sigma_lat = 0.5
     X_train0['lon'], X_train0['lat'] = random_error_add(
         sigma_lon, sigma_lat, X_train0['lon'], X_train0['lat'])
 
@@ -114,7 +115,7 @@ def ml_fitter(name, f, df,  alg, rmse, tsize, only_land, lowlat, uplat, exp_filt
     y_train0 = X_train0[['umeanh', 'vmeanh']]
     X_train = X_train0[['lat', 'lon',
                         'u_scaled_approx', 'v_scaled_approx', 'land']]
-    # X_train = X_train0[['lat', 'lon', 'land']]
+    #X_train = X_train0[['lat', 'lon', 'land']]
     y_train = y_train0[['umeanh', 'vmeanh']]
 
     regressor = RandomForestRegressor(
@@ -169,19 +170,22 @@ def error_interpolator(dfm, category, rmse, f):
                       n_samples=int(1e5), random_state=1)
 
     dfm_gt = dfm_gt[['lat', 'lon', 'u_scaled_approx',
-                     'v_scaled_approx', 'umeanh', 'vmeanh', 'distance', 'cos_weight']]
+                     'v_scaled_approx', 'umeanh', 'vmeanh', 'distance', 'cos_weight', 'u_error_rean', 'v_error_rean']]
     dfm_gtf = dfm_gt.copy()
-    exp_distance = np.exp(2*(dfm_gt.distance)/(np.pi*R))
+    # exp_distance = np.exp(2*(dfm_gt.distance)/(np.pi*R))
 
-    sigma_u = 2*exp_distance
-    sigma_v = 0.2*exp_distance
+    # sigma_u = 2*exp_distance
+    # sigma_v = 0.2*exp_distance
+    sigma_u = abs(dfm_gt['u_error_rean'])
+    sigma_v = abs(dfm_gt['v_error_rean'])
 
     dfm_gt['u_scaled_approx'], dfm_gt['v_scaled_approx'] = random_error_add(
         sigma_u, sigma_v, dfm_gt['umeanh'], dfm_gt['vmeanh'])
 
-    sigma_lon = 2*0.625*exp_distance
-    sigma_lat = 2*0.0625*exp_distance
-
+    # sigma_lon = 2*0.625*exp_distance
+    # sigma_lat = 2*0.0625*exp_distance
+    sigma_lon = 0.6
+    sigma_lat = 0.5
     dfm_gt['lon'], dfm_gt['lat'] = random_error_add(
         sigma_lon, sigma_lat, dfm_gt['lon'], dfm_gt['lat'])
 
@@ -202,6 +206,17 @@ def error_interpolator(dfm, category, rmse, f):
         points=dfm_gtf[['lat', 'lon']].values, values=errors_nw.values)
 
     return func_interp_nw, func_interp
+
+
+def error_rean(dfm, category, rmse, f):
+    sigma_u = abs(dfm['u_error_rean'])
+    sigma_v = abs(dfm['v_error_rean'])
+
+    dfm['u_scaled_approx'], dfm['v_scaled_approx'] = random_error_add(
+        sigma_u, sigma_v, dfm['umeanh'], dfm['vmeanh'])
+
+    _, _ = error_calc(dfm, f, "ground_t", category, rmse)
+    return dfm
 
 
 def plot_average(deltax, df, xlist, varx, vary):
@@ -253,6 +268,7 @@ def latitude_selector(f, df, dft, lowlat, uplat,  category, rmse, latlon, test_s
                          uplat0, regressor, X_test0, y_test0)
     elif exp_filter is 'ground_t':
         _, _ = error_interpolator(dfm, category, rmse, f)
+        # _ = error_rean(dfm.copy(), category, rmse, f)
     else:
         error_df = ml_predictor('uv', f, 'rf', category, rmse, test_size, lowlat0,
                                 uplat0, regressor, X_test0, y_test0)

@@ -21,6 +21,7 @@ import reverse_geocoder
 import extra_data_plotter as edp
 import ml_functions as mlf
 import time
+import reanalysis_error as re
 
 R = 6373.0
 
@@ -106,11 +107,11 @@ f = open("errors.txt", "w+")
 
 
 dft['land'] = globe.is_land(dft.lat, dft.lon)
-#df = mlf.vorticity(df)
+# df = mlf.vorticity(df)
 dft = mlf.vorticity(dft)
 dft = dft.dropna()
 print('plotting omega_jpl...')
-#edp.map_plotter(dft, 'vorticity', 'omega_jpl', '1/s ')
+# edp.map_plotter(dft, 'vorticity', 'omega_jpl', '1/s ')
 
 
 category = []
@@ -123,15 +124,16 @@ only_land = False
 
 latdowns = [-30, 30, 60, -60, -90]
 latups = [30, 60, 90, -30, -60]
-#latdowns = [-90]
-#latups = [90]
+# latdowns = [-90]
+# latups = [90]
 test_size = 0.95
 exp_filters = ['exp2', 'ground_t']
-#exp_filters = ['ground_t']
-#exp_filters = ['error']
+# exp_filters = ['ground_t']
+# exp_filters = ['error']
 print('process data...')
 
 
+df = re.error_calc(df)
 for exp_filter in exp_filters:
     print('fitting with filter ' + str(exp_filter))
     if exp_filter in ('exp2', 'error'):

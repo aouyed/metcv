@@ -8,6 +8,18 @@ import pickle
 import cartopy.crs as ccrs
 import cv2
 import matplotlib.colors as mcolors
+import metpy as metpy
+
+
+def gradient_plot(df, var):
+    lat = df.pivot('lat', 'lon', 'lat').values
+    lon = df.pivot('lat', 'lon', 'lon').values
+    metv = df.pivot('lat', 'lon', var.lower()).values
+    dx, dy = metpy.calc.lat_lon_grid_deltas(lon, lat)
+    grad = metpy.calc.gradient(metv, deltas=(dx, dy))
+    grad = grad.magnitude
+    grad = np.nan_to_num(grad)
+    return grad
 
 
 def contourf_plotter(df,  values, title, units):
@@ -22,7 +34,7 @@ def contourf_plotter(df,  values, title, units):
     ax = plt.axes(projection=ccrs.PlateCarree())
     ax.coastlines()
 
-    #pmap = plt.cm.gnuplot
+    # pmap = plt.cm.gnuplot
     pmap = plt.cm.coolwarm
     pmap.set_bad(color='grey')
     lon = np.arange(df['lon'].min(), df['lon'].max() + 0.0625, 0.0625)
@@ -88,7 +100,7 @@ def map_plotter(df,  values, title, units, vmin, vmax):
     ax.coastlines()
 
     pmap = plt.cm.gnuplot
-    #pmap = plt.cm.coolwarm
+    # pmap = plt.cm.coolwarm
     pmap.set_bad(color='grey')
     if abs(vmax) > 0:
         divnorm = mcolors.TwoSlopeNorm(vmin=vmin, vcenter=vmax/4, vmax=vmax)
@@ -205,8 +217,8 @@ def average_plot(df_mean):
     ax.set_ylabel("MVD of Stage 2 UA  [m/s]")
     ax.set_title('Global MVD computations')
     ax.yaxis.set_ticks(np.arange(1, 4, 1))
-    #plt.yticks(range(1, 3))
-    #plt.ylim(1, 3)
+    # plt.yticks(range(1, 3))
+    # plt.ylim(1, 3)
     plt.savefig('error_plot.png')
 
 
