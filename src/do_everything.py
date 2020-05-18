@@ -11,6 +11,7 @@ import pandas as pd
 from data import make_dataset_geos5 as gd
 from features import build_features as qvd
 from data import jpl_loader as jl
+from data import exp_loader as el
 import shutil
 import os
 
@@ -70,6 +71,7 @@ class Parameters:
 def downloader_function(parameters):
     kwargs = vars(parameters)
     jl.loader(**kwargs)
+    # el.loader(**kwargs)
 
 
 def downloader(parameters):
@@ -95,12 +97,12 @@ def downloader(parameters):
     kwargs = vars(parameters)
     downloader_function(parameters)
 
-    parameters.var = 'umean'
-    kwargs = vars(parameters)
-    downloader_function(parameters)
-    parameters.var = 'vmean'
-    kwargs = vars(parameters)
-    downloader_function(parameters)
+    #parameters.var = 'umean'
+    #kwargs = vars(parameters)
+    # downloader_function(parameters)
+    #parameters.var = 'vmean'
+    #kwargs = vars(parameters)
+    # downloader_function(parameters)
 
     parameters.var = 'umeanh'
     kwargs = vars(parameters)

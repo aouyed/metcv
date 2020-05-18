@@ -151,7 +151,7 @@ def df_concatenator(dataframes_dict, start_date, end_date, track, jpl, nudger):
 
     df = error_df(df)
     df = df[['lon', 'lat', 'speed',  'qv', 'speed_approx', 'speed_error',
-             'error_v', 'error_u', 'u_scaled_approx', 'v_scaled_approx', 'utrack', 'vtrack',  'vmeanh', 'umeanh']]
+             'error_v', 'error_u', 'u_scaled_approx', 'v_scaled_approx', 'vmeanh', 'umeanh', 'utrack', 'vtrack']]
 
     df['cos_weight'] = np.cos(df['lat']/180*np.pi)
     return df

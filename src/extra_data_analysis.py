@@ -50,8 +50,10 @@ end_date = datetime.datetime(2006, 7, 1, 7, 0, 0, 0)
 df = aa.df_concatenator(dataframes_dict, start_date,
                         end_date, False, True, False)
 
-
+print(df.shape)
 df = df.dropna()
+print('non nan shape')
+print(df.shape)
 df['land'] = globe.is_land(df.lat, df.lon)
 
 df = df.reset_index(drop=True)
@@ -101,16 +103,16 @@ df['error_mag'] = np.sqrt(e_u**2+e_v**2)
 
 
 print('done plotting')
-dft = aa.df_concatenator(dataframes_dict, start_date,
-                         end_date, True, True, False)
+# dft = aa.df_concatenator(dataframes_dict, start_date,
+#                         end_date, True, True, False)
 f = open("errors.txt", "w+")
 
-
-dft['land'] = globe.is_land(dft.lat, dft.lon)
+dft = df.copy()
+# dft['land'] = globe.is_land(dft.lat, dft.lon)
 # df = mlf.vorticity(df)
-dft = mlf.vorticity(dft)
-dft = dft.dropna()
-print('plotting omega_jpl...')
+# dft = mlf.vorticity(dft)
+# dft = dft.dropna()
+# print('plotting omega_jpl...')
 # edp.map_plotter(dft, 'vorticity', 'omega_jpl', '1/s ')
 
 
@@ -127,13 +129,15 @@ latups = [30, 60, 90, -30, -60]
 # latdowns = [-90]
 # latups = [90]
 test_size = 0.95
-exp_filters = ['exp2', 'ground_t']
+# exp_filters = ['exp2', 'ground_t']
 # exp_filters = ['ground_t']
-# exp_filters = ['error']
+exp_filters = ['exp2']
 print('process data...')
 
 
 df = re.error_calc(df)
+df['u_error_rean'] = 0
+df['v_error_rean'] = 0
 for exp_filter in exp_filters:
     print('fitting with filter ' + str(exp_filter))
     if exp_filter in ('exp2', 'error'):
