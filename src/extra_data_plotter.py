@@ -227,13 +227,13 @@ def main():
     dataframes_dict = pickle.load(open(dict_path, 'rb'))
 
     df0 = pd.read_pickle("./df_results.pkl")
-    df_mean = pd.read_pickle("./df_mean.pkl")
-    df_rf = pd.read_pickle("./df_rf.pkl")
-    df_df = pd.read_pickle("./df_df.pkl")
-    df_jpl = pd.read_pickle("./df_jpl.pkl")
-    df_error = pd.read_pickle("./df_error.pkl")
+   # df_mean = pd.read_pickle("./df_mean.pkl")
+#    df_rf = pd.read_pickle("./df_rf.pkl")
+ #   df_df = pd.read_pickle("./df_df.pkl")
+  #  df_jpl = pd.read_pickle("./df_jpl.pkl")
+   # df_error = pd.read_pickle("./df_error.pkl")
 
-    print(df_mean)
+    # print(df_mean)
     df0.latlon[df0.latlon == '90°S,60°S'] = '(0) 90°S,60°S'
     df0.latlon[df0.latlon == '60°S,30°S'] = '(1) 60°S,30°S'
     df0.latlon[df0.latlon == '30°S,30°N'] = '(2) 30°S,30°N'
@@ -242,16 +242,16 @@ def main():
     print(df0)
     df0.sort_values(by=['latlon'], inplace=True)
     filter_plotter(df0, 'results_test', 'training data size = 5%')
-    average_plot(df_mean)
-    quiver_plotter(df_df, 'quiver')
-    map_plotter(df_error,  'vector_diff_truth_nw',
-                'Uncertainty of OBS', 'm/s', 0, 10)
-    map_plotter(df_rf,  'vector_diff_no_weight',
-                'VD between UA and OBS', 'm/s', 0, 6)
-    map_plotter(df_jpl,  'vector_diff_no_weight',
-                'VD between JPL and OBS', 'm/s', 0, 6)
-    map_plotter(df_df,  'vector_diff_no_weight',
-                'VD between VEM and OBS', 'm/s', 0, 6)
+    # average_plot(df_mean)
+    #quiver_plotter(df_df, 'quiver')
+    # map_plotter(df_error,  'vector_diff_truth_nw',
+    #           'Uncertainty of OBS', 'm/s', 0, 10)
+    # map_plotter(df_rf,  'vector_diff_no_weight',
+    #          'VD between UA and OBS', 'm/s', 0, 6)
+   # map_plotter(df_jpl,  'vector_diff_no_weight',
+    #            'VD between JPL and OBS', 'm/s', 0, 6)
+   # map_plotter(df_df,  'vector_diff_no_weight',
+    #            'VD between VEM and OBS', 'm/s', 0, 6)
 
 
 if __name__ == "__main__":
