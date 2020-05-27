@@ -13,3 +13,7 @@
 *.mpeg
 *.pkl
 *.joblib
+*.py~
+*.pyc
+*#
+
