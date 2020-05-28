@@ -28,6 +28,7 @@ def optical_flow(start_date,  var, **kwargs):
         open('../data/interim/dictionaries/vars/'+var+'.pkl', 'rb'))
 
     frame1 = np.load(file_paths[start_date])
+
     frame1 = ofc.drop_nan(frame1)
     frame1 = cv2.normalize(src=frame1, dst=None,
                            alpha=0, beta=255, norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_8UC1)
@@ -55,6 +56,7 @@ def optical_flow(start_date,  var, **kwargs):
         optical_flow = cv2.optflow.createOptFlow_DeepFlow()
         flowd = optical_flow.calc(prvs, next_frame, None)
         flow = flowd
+
         prvs = ofc.warp_flow(prvs, flow)
         flowd = optical_flow.calc(prvs, next_frame, None)
         flow = flow+flowd

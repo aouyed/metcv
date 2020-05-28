@@ -89,13 +89,13 @@ def downloader(parameters):
     kwargs = vars(parameters)
     downloader_function(parameters)
 
-    parameters.var = 'vtrack'
-    kwargs = vars(parameters)
-    downloader_function(parameters)
+#    parameters.var = 'vtrack'
+ #   kwargs = vars(parameters)
+  #  downloader_function(parameters)
 
-    parameters.var = 'utrack'
-    kwargs = vars(parameters)
-    downloader_function(parameters)
+   # parameters.var = 'utrack'
+   # kwargs = vars(parameters)
+   # downloader_function(parameters)
 
     #parameters.var = 'umean'
     #kwargs = vars(parameters)
