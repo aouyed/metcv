@@ -23,22 +23,7 @@ def loader(var, pressure, start_date, end_date, dt, jpl_disk, level, triplet, si
     d0 = start_date
     d1 = end_date
     date_list = daterange(d0, d1, 1)
-
-    d1 = start_date
-    triplet_delta = timedelta(hours=1)
-    d0 = d1-triplet_delta
-    d2 = d1+triplet_delta
-
-    #date_list = (d0, d1, d2)
-
-    # print(date_list)
-    # print(date_list_n)
-
     file_paths = {}
-    filename = "../data/interim/experiments/july/01.nc"
-    ds_n = xr.open_dataset(filename)
-    ds_n = ds_n.sel(pressure=850)
-
     if var.lower() in ('utrack', 'vtrack', 'umean', 'vmean'):
         filenames = glob.glob(
             "../data/raw/jpl/processed_jpl/"+str(triplet)+"z/*")
@@ -52,19 +37,15 @@ def loader(var, pressure, start_date, end_date, dt, jpl_disk, level, triplet, si
         if not os.path.exists(directory_path):
             os.makedirs(directory_path)
 
-      #  if var.lower() in ('utrack', 'vtrack', 'umean', 'vmean'):
-       #     ds = xr.open_dataset(filenames[0])
-        #    T = ds.get(var.lower())
-         #   T = T.values
-        if var == 'umeanh':
+        if var.lower() in ('utrack', 'vtrack', 'umean', 'vmean'):
+            ds = xr.open_dataset(filenames[0])
+            T = ds.get(var.lower())
+            T = T.values
+        elif var == 'umeanh':
             ds = xr.open_dataset(filenames[1])
             T = ds.sel(pressure=pressure, method='nearest')
             T = T.get('u')
             T = T.values
-
-            #T = ds_n['u'].sel(time=d1)
-            #T = T.values
-            #T = np.squeeze(T)
 
         elif var == 'vmeanh':
             ds = xr.open_dataset(filenames[1])
@@ -72,20 +53,11 @@ def loader(var, pressure, start_date, end_date, dt, jpl_disk, level, triplet, si
             T = T.get('v')
             T = T.values
 
-            #T = ds_n['v'].sel(time=d1)
-            #T = T.values
-            #T = np.squeeze(T)
-
         else:
             ds = xr.open_dataset(filenames[i])
             T = ds.sel(pressure=pressure, method='nearest')
             T = T.get(var.lower())
             T = T.values
-            # print('date_list_n')
-            # print(date)
-            T = ds_n[var.lower()].sel(time=date_list[i])
-            T = T.values
-            T = np.squeeze(T)
 
         print('shape of downloaded array: ' + str(T.shape))
         file_path = str(directory_path+'/'+str(date)+".npy")
