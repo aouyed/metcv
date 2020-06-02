@@ -45,8 +45,8 @@ dict_path = '../data/interim/dictionaries/dataframes.pkl'
 dataframes_dict = pickle.load(open(dict_path, 'rb'))
 
 
-start_date = datetime.datetime(2006, 7, 1, 6, 0, 0, 0)
-end_date = datetime.datetime(2006, 7, 1, 7, 0, 0, 0)
+start_date = datetime.datetime(2006, 6, 30, 23, 0, 0, 0)
+end_date = datetime.datetime(2006, 7, 1, 1, 0, 0, 0)
 df = aa.df_concatenator(dataframes_dict, start_date,
                         end_date, False, True, False)
 
@@ -107,7 +107,6 @@ print('done plotting')
 #                         end_date, True, True, False)
 f = open("errors.txt", "w+")
 
-dft = df.copy()
 # dft['land'] = globe.is_land(dft.lat, dft.lon)
 # df = mlf.vorticity(df)
 # dft = mlf.vorticity(dft)
@@ -126,18 +125,19 @@ only_land = False
 
 latdowns = [-30, 30, 60, -60, -90]
 latups = [30, 60, 90, -30, -60]
-# latdowns = [-90]
-# latups = [90]
 test_size = 0.95
 # exp_filters = ['exp2', 'ground_t']
 # exp_filters = ['ground_t']
 exp_filters = ['exp2']
+exp_filter = 'exp2'
 print('process data...')
 
-
+dft = df.copy()
 df = re.error_calc(df)
+
 df['u_error_rean'] = 0
 df['v_error_rean'] = 0
+
 for exp_filter in exp_filters:
     print('fitting with filter ' + str(exp_filter))
     if exp_filter in ('exp2', 'error'):

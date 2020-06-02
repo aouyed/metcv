@@ -71,6 +71,7 @@ def error_calc(df_0):
         points=df_cfs[['lat', 'lon']].values, values=df_cfs.v.values)
 
     print('regridding...')
+
     df['u_era'] = era_u_function(
         df[['lat', 'lon']].values)
 
@@ -89,18 +90,20 @@ def error_calc(df_0):
     df['v_cfs'] = cfs_v_function(
         df[['lat', 'lon']].values)
 
+    df[['u_era', 'v_era', 'u_merra', 'v_merra', 'u_cfs', 'v_cfs']] = df[[
+        'u_era', 'v_era', 'u_merra', 'v_merra', 'u_cfs', 'v_cfs']].fillna(0)
     df['u_error_rean'] = df['u_cfs']-df['u_era']
     df['v_error_rean'] = df['v_cfs']-df['v_era']
     df['error_mag'] = np.sqrt(df['u_error_rean']**2 + df['v_error_rean']**2)
-    print('mean error u')
-    print(abs(df['u_error_rean']).mean())
-    print('mean u')
-    print(df['u_era'].mean())
-    print('plotting...')
-    edp.map_plotter(df, 'error_mag', 'error_mag', 'm/s', 0, 10)
-    edp.quiver_plotter(df, 'era_quiver', 'u_era', 'v_era')
-    edp.quiver_plotter(df, 'cfs_quiver', 'u_cfs', 'v_cfs')
-    edp.quiver_plotter(df, 'merra_quiver', 'u_merra', 'v_merra')
-    edp.quiver_plotter(df, 'error_rean_quiver', 'u_error_rean', 'v_error_rean')
+    # print('mean error u')
+    # print(abs(df['u_error_rean']).mean())
+    # print('mean u')
+    # print(df['u_era'].mean())
+    # print('plotting...')
+    # edp.map_plotter(df, 'error_mag', 'error_mag', 'm/s', 0, 10)
+#    edp.quiver_plotter(df, 'era_quiver', 'u_era', 'v_era')
+ #   edp.quiver_plotter(df, 'cfs_quiver', 'u_cfs', 'v_cfs')
+  #  edp.quiver_plotter(df, 'merra_quiver', 'u_merra', 'v_merra')
+   # edp.quiver_plotter(df, 'error_rean_quiver', 'u_error_rean', 'v_error_rean')
     return df
 \

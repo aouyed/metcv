@@ -70,9 +70,8 @@ def path(parameters):
     return(path)
 
 
-def file_string(var, winsizes, poly_n, levels, iterations, cutoff, grid, **kwargs):
-    path = (var+'_w'+str(winsizes)+'_p'+str(poly_n)+'_l'
-            + str(levels)+'_i'+str(iterations)+'_c'+str(cutoff)+'_g'+str(grid))
+def file_string(var,  grid, **kwargs):
+    path = (var+'_g'+str(grid))
     return path
 
 

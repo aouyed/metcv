@@ -21,14 +21,19 @@ from viz import dataframe_calculators as dfc
 from datetime import timedelta
 import gc
 import time
+import xarray as xr
+import datetime
 
 
-def optical_flow(start_date,  var, **kwargs):
+def optical_flow(triplet, dt,  var, **kwargs):
     file_paths = pickle.load(
         open('../data/interim/dictionaries/vars/'+var+'.pkl', 'rb'))
 
-    frame1 = np.load(file_paths[start_date])
+    triplet_delta = datetime.timedelta(hours=dt/3600)
+    start_date = triplet-triplet_delta
 
+    frame1 = np.load(file_paths[start_date])
+    #frame1 = ds[var].sel(time=start_date).values
     frame1 = ofc.drop_nan(frame1)
     frame1 = cv2.normalize(src=frame1, dst=None,
                            alpha=0, beta=255, norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_8UC1)
@@ -40,6 +45,7 @@ def optical_flow(start_date,  var, **kwargs):
     prvs = np.nan_to_num(prvs)
     file_paths_flow = {}
     dates = []
+
     file_paths.pop(start_date, None)
 
     for date in file_paths:
@@ -48,6 +54,8 @@ def optical_flow(start_date,  var, **kwargs):
 
         file = file_paths[date]
         frame2 = np.load(file)
+        #frame2 = ds[var].sel(time=date).values
+
         frame2 = ofc.drop_nan(frame2)
         start_time = time.time()
         frame2 = cv2.normalize(src=frame2, dst=None, alpha=0,

@@ -88,8 +88,8 @@ def random_error_add(sigma_u, sigma_v, column_u, column_v):
 
 def ml_fitter(name, f, df,  alg, rmse, tsize, only_land, lowlat, uplat, exp_filter):
 
-    X_train0, X_test0, y_train0, y_test0 = train_test_split(df[['lat', 'lon', 'u_scaled_approx', 'v_scaled_approx', 'utrack', 'land', 'umeanh', 'vmeanh', 'distance', 'u_error_rean', 'v_error_rean']], df[[
-        'umeanh', 'vmeanh', 'utrack', 'land', 'lat']], test_size=tsize, random_state=1)
+    X_train0, X_test0, y_train0, y_test0 = train_test_split(df[['lat', 'lon', 'u_scaled_approx', 'v_scaled_approx',  'land', 'umeanh', 'vmeanh', 'distance', 'u_error_rean', 'v_error_rean']], df[[
+        'umeanh', 'vmeanh', 'land', 'lat']], test_size=tsize, random_state=1)
 
     df_freq(X_train0, 'distance', 'nosample')
     deltax = 100
@@ -292,6 +292,7 @@ def latitude_selector(f, df, dft, lowlat, uplat,  category, rmse, latlon, test_s
         plt.savefig('error_plot.png')
 
     dfm = dfm.dropna()
+    dftm = dftm.dropna()
     latlon.append(str(str(lowlat)+',' + str(uplat)))
     test_sizes.append(test_size)
     exp_list.append(exp_filter)

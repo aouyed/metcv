@@ -22,15 +22,6 @@ class Parameters:
             "start_date": datetime(2006, 7, 1, 0, 0, 0, 0),
             "end_date": datetime(2006, 7, 1, 1, 0, 0, 0),
             "var": "QVDENS",
-            "pyr_scale": 0.5,
-            "levels": 5,
-            "level": 65,
-            "winsizes": [10],
-            "iterations": 3,
-            "poly_n": 2,
-            "poly_sigma": 1.2,
-            "cutoff": 2.5,
-            "cutoffs": [2.5],
             "grid": 0.0625,
             "coarse": False,
             "dt": 1800,
@@ -42,27 +33,8 @@ class Parameters:
             "track": False,
             "pressure": 850,
             "cores": 5,
-            "speed_cutoff": False,
-            "low_speed": 0,
-            "up_speed": 10,
-            'tvl1': False,
-            'jpl_disk': True,
-            'do_cross_correlation': False,
-            'farneback': False,
-            'average_lon': False,
-            'stride_n': 3,
-            'dof_average_x': 3,
-            'dof_average_y': 3,
-            'cc_average_x': 720,
-            'cc_average_y': 720,
-            'Lambda': 0.0025,
-            'coarse_grid': 1.0,
-            'pyramid_factor': 2,
-            'nudger': True,
             'deep_flow': True,
-            'triplet': 0,
-            'sigma_random': 0
-
+            'triplet': datetime(2006, 7, 1, 0, 0, 0, 0)
         }
         for (prop, default) in prop_defaults.items():
             setattr(self, prop, kwargs.get(prop, default))
@@ -75,6 +47,9 @@ def downloader_function(parameters):
 
 
 def downloader(parameters):
+    print('resetting dictionaries and arrays...')
+    jl.resetter()
+
     print('initializing  downloader...')
 
     parameters.var = 'u'

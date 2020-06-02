@@ -6,6 +6,10 @@ import os
 import pickle
 from datetime import datetime
 from datetime import timedelta
+import shutil
+
+dictionary_path = '../data/interim/dictionaries/vars'
+npy_stem = '../data/interim/npys'
 
 
 def daterange(start_date, end_date, dhour):
@@ -17,72 +21,50 @@ def daterange(start_date, end_date, dhour):
     return date_list
 
 
-def loader(var, pressure, start_date, end_date, dt, jpl_disk, level, triplet, sigma_random,   **kwargs):
-    print('JPL loader running...')
-    date = start_date
-    d0 = start_date
-    d1 = end_date
-    date_list = daterange(d0, d1, 1)
+def resetter():
+    if os.path.exists(dictionary_path):
+        shutil.rmtree(dictionary_path, ignore_errors=False, onerror=None)
+    if os.path.exists(npy_stem):
+        shutil.rmtree(npy_stem, ignore_errors=False, onerror=None)
 
-    d1 = start_date
-    triplet_delta = timedelta(hours=1)
+
+def loader(var, pressure,  dt,  triplet,   **kwargs):
+    print('JPL loader running...')
+
+    d1 = triplet
+    triplet_delta = timedelta(hours=dt/3600)
     d0 = d1-triplet_delta
     d2 = d1+triplet_delta
-
-    #date_list = (d0, d1, d2)
-
-    # print(date_list)
-    # print(date_list_n)
+    date_list = (d0, d1, d2)
 
     file_paths = {}
-    filename = "../data/interim/experiments/july/01.nc"
+    filename = "../data/interim/experiments/july/" + str(triplet.day) + ".nc"
     ds_n = xr.open_dataset(filename)
     ds_n = ds_n.sel(pressure=850)
 
-    if var.lower() in ('utrack', 'vtrack', 'umean', 'vmean'):
-        filenames = glob.glob(
-            "../data/raw/jpl/processed_jpl/"+str(triplet)+"z/*")
-    else:
-        filenames = glob.glob("../data/raw/jpl/raw_jpl/"+str(triplet)+"z/*")
-        print(filenames)
+    # if var.lower() in ('utrack', 'vtrack', 'umean', 'vmean'):
+    #   filenames = glob.glob(
+    #      "../data/raw/jpl/processed_jpl/"+str(triplet)+"z/*")
+   # else:
+    #    filenames = glob.glob("../data/raw/jpl/raw_jpl/"+str(triplet)+"z/*")
+    #   print(filenames)
     for i, date in enumerate(date_list):
         print('Downloading data for variable ' +
               var + ' for date: ' + str(date))
-        directory_path = '../data/raw/'+var.lower()
+        directory_path = npy_stem + '/' + var.lower()
         if not os.path.exists(directory_path):
             os.makedirs(directory_path)
 
-      #  if var.lower() in ('utrack', 'vtrack', 'umean', 'vmean'):
-       #     ds = xr.open_dataset(filenames[0])
-        #    T = ds.get(var.lower())
-         #   T = T.values
         if var == 'umeanh':
-            ds = xr.open_dataset(filenames[1])
-            T = ds.sel(pressure=pressure, method='nearest')
-            T = T.get('u')
+            T = ds_n['u'].sel(time=d1)
             T = T.values
-
-            #T = ds_n['u'].sel(time=d1)
-            #T = T.values
-            #T = np.squeeze(T)
-
+            T = np.squeeze(T)
         elif var == 'vmeanh':
-            ds = xr.open_dataset(filenames[1])
-            T = ds.sel(pressure=pressure, method='nearest')
-            T = T.get('v')
+            T = ds_n['v'].sel(time=d1)
             T = T.values
-
-            #T = ds_n['v'].sel(time=d1)
-            #T = T.values
-            #T = np.squeeze(T)
+            T = np.squeeze(T)
 
         else:
-            ds = xr.open_dataset(filenames[i])
-            T = ds.sel(pressure=pressure, method='nearest')
-            T = T.get(var.lower())
-            T = T.values
-            # print('date_list_n')
-            # print(date)
             T = ds_n[var.lower()].sel(time=date_list[i])
             T = T.values
             T = np.squeeze(T)
@@ -91,7 +73,6 @@ def loader(var, pressure, start_date, end_date, dt, jpl_disk, level, triplet, si
         file_path = str(directory_path+'/'+str(date)+".npy")
         np.save(file_path, T)
         file_paths[date] = file_path
-    dictionary_path = '../data/interim/dictionaries/vars'
     if not os.path.exists(dictionary_path):
         os.makedirs(dictionary_path)
     f = open(dictionary_path+'/' + var+'.pkl', "wb")
