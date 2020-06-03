@@ -22,8 +22,21 @@ import extra_data_plotter as edp
 import ml_functions as mlf
 import time
 import reanalysis_error as re
+import xarray as xr
 
 R = 6373.0
+
+
+def ds_to_dataframe(ds, triplet_time, deltatime):
+    ds_unit = ds.sel(time=triplet_time)
+    ds_unit['u_scaled_approx'] = 0.5*(ds['u_scaled_approx'].sel(time=triplet_time) +
+                                      ds['u_scaled_approx'].sel(time=(triplet_time+deltatime)))
+    ds_unit['v_scaled_approx'] = 0.5*(ds['v_scaled_approx'].sel(time=triplet_time) +
+                                      ds['v_scaled_approx'].sel(time=(triplet_time+deltatime)))
+    df = ds_unit.to_dataframe()
+    df = df.reset_index()
+    df['cos_weight'] = np.cos(df['lat']/180*np.pi)
+    return df
 
 
 def distance(s_lat, s_lng, e_lat, e_lng):
@@ -45,10 +58,20 @@ dict_path = '../data/interim/dictionaries/dataframes.pkl'
 dataframes_dict = pickle.load(open(dict_path, 'rb'))
 
 
-start_date = datetime.datetime(2006, 6, 30, 23, 0, 0, 0)
-end_date = datetime.datetime(2006, 7, 1, 1, 0, 0, 0)
-df = aa.df_concatenator(dataframes_dict, start_date,
-                        end_date, False, True, False)
+#start_date = datetime.datetime(2006, 6, 30, 23, 0, 0, 0)
+#end_date = datetime.datetime(2006, 7, 1, 1, 0, 0, 0)
+# df = aa.df_concatenator(dataframes_dict, start_date,
+#                       end_date, False)
+
+triplet_time = datetime.datetime(2006, 7, 1, 0, 0, 0, 0)
+
+filename = '../data/processed/experiments/' + \
+    triplet_time.strftime("%Y-%m-%d-%H:%M")+'.nc'
+
+ds = xr.open_dataset(filename)
+triplet_delta = datetime.timedelta(hours=1)
+df = ds_to_dataframe(ds, triplet_time, triplet_delta)
+
 
 print(df.shape)
 df = df.dropna()
@@ -126,17 +149,17 @@ only_land = False
 latdowns = [-30, 30, 60, -60, -90]
 latups = [30, 60, 90, -30, -60]
 test_size = 0.95
-# exp_filters = ['exp2', 'ground_t']
+exp_filters = ['exp2', 'ground_t']
 # exp_filters = ['ground_t']
-exp_filters = ['exp2']
-exp_filter = 'exp2'
+#exp_filters = ['exp2']
+#exp_filter = 'exp2'
 print('process data...')
 
 dft = df.copy()
 df = re.error_calc(df)
 
-df['u_error_rean'] = 0
-df['v_error_rean'] = 0
+#df['u_error_rean'] = 0
+#df['v_error_rean'] = 0
 
 for exp_filter in exp_filters:
     print('fitting with filter ' + str(exp_filter))

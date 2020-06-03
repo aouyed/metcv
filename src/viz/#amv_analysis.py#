@@ -18,20 +18,22 @@ from itertools import product
 import time
 import gc
 from tqdm import tqdm
+import xarray as xr
 
 
 def df_loop(df, grid, dt):
     dt_inv = 1/dt
     df = dfc.latlon_converter(df, grid)
     df = dfc.scaling_df_approx(df, grid, dt_inv)
-    df, _ = dfc.vorticity(df)
     return df
 
 
 def parallelize_dataframe(df, grid, dt):
     start_time = time.time()
     print('start parallelization routine')
+
     df = df_loop(df, grid, dt)
+    print("--- %s seconds ---" % (time.time() - start_time))
     return df
 
 
@@ -83,9 +85,11 @@ def dataframe_builder(end_date, var, grid, dt, cores,  **kwargs):
     for date in flow_files:
         print('building dataframe for the date: ' + str(date))
         file = flow_files[date]
+        start_time = time.time()
         df = dfc.dataframe_quantum(file, date, dictionary_dict)
 
         df = parallelize_dataframe(df, grid, dt)
+        print("--- %s seconds ---" % (time.time() - start_time))
         df.set_index('datetime', inplace=True)
         path = df_path+'/'+var+'_'+str(date)+'.pkl'
         df.to_pickle(path)
@@ -123,56 +127,85 @@ def error_df(df):
     return df
 
 
-def df_concatenator(dataframes_dict, start_date, end_date, track, jpl, nudger):
+def df_concatenator(dataframes_dict, start_date, end_date, track):
     df = pd.DataFrame()
     print('concatenating dataframes for all dates for further analysis:')
     for date in tqdm(dataframes_dict):
-        if date >= start_date and date <= end_date:
-            gc.collect()
-            df_path = dataframes_dict[date]
-            df_unit = pd.read_pickle(df_path)
+        # if date >= start_date and date <= end_date:
+        gc.collect()
+        df_path = dataframes_dict[date]
+        df_unit = pd.read_pickle(df_path)
 
-            if track:
-                df_unit['u_scaled_approx'] = df_unit['utrack']
-                df_unit['v_scaled_approx'] = df_unit['vtrack']
-            gc.collect()
-            df_unit = df_unit.reset_index(drop=True)
+        if track:
+            df_unit['u_scaled_approx'] = df_unit['utrack']
+            df_unit['v_scaled_approx'] = df_unit['vtrack']
 
-            if df.empty:
-                df = df_unit
-            else:
-                df = df + df_unit
+        df_unit = df_unit.reset_index(drop=True)
+
+        if df.empty:
+            df = df_unit
+        else:
+            df = df + df_unit
 
     df = df/2
-    df['datetime'] = end_date
+    # df['datetime'] = end_date
 
     df = error_df(df)
     df = df[['lon', 'lat', 'speed',  'qv', 'speed_approx', 'speed_error',
-             'error_v', 'error_u', 'u_scaled_approx', 'v_scaled_approx', 'utrack', 'vtrack',  'vmeanh', 'umeanh']]
+             'error_v', 'error_u', 'u_scaled_approx', 'v_scaled_approx', 'vmeanh', 'umeanh']]
 
     df['cos_weight'] = np.cos(df['lat']/180*np.pi)
     return df
 
 
-def data_analysis(start_date, end_date, var, path, cutoff, track, speed_cutoff, up_speed, low_speed, jpl_loader, nudger, **kwargs):
+def df_to_netcdf(dataframes_dict, triplet):
+    ds = xr.Dataset()
+
+    for i, date in enumerate(dataframes_dict):
+        df_path = dataframes_dict[date]
+        df = pd.read_pickle(df_path)
+        lon = np.arange(df['lon'].min(), df['lon'].max() + 0.0625, 0.0625)
+        lat = np.arange(df['lat'].min(), df['lat'].max() + 0.0625, 0.0625)
+        columns = np.array(df.columns.values.tolist())
+        columns_diff = np.array(['y', 'x', 'flow_u', 'flow_v', 'lat', 'lon'])
+        columns = np.setdiff1d(columns, columns_diff)
+
+        for j, var in enumerate(columns):
+            da = xr.DataArray()
+            varval = df.pivot('lat', 'lon', var).values
+
+            da = xr.DataArray(varval, coords=[
+                lat, lon], dims=['lat', 'lon'])
+            da = da.expand_dims('time')
+            da = da.assign_coords(time=[date])
+
+            if(j == 0):
+                ds_unit = xr.Dataset({var: da})
+            else:
+                ds_unit_m = xr.Dataset({var: da})
+                ds_unit = xr.merge([ds_unit, ds_unit_m])
+
+        if(i == 0):
+            ds = ds_unit
+        else:
+            ds = xr.concat([ds, ds_unit], 'time')
+
+    ds.to_netcdf('../data/processed/experiments/' +
+                 triplet.strftime("%Y-%m-%d-%H:%M")+'.nc')
+
+
+def data_analysis(start_date, end_date, track, triplet,  **kwargs):
     """perform analytics on the dataframe"""
 
     pd.set_option('display.max_colwidth', -1)
     pd.set_option('display.expand_frame_repr', False)
     dict_path = '../data/interim/dictionaries/dataframes.pkl'
     dataframes_dict = pickle.load(open(dict_path, 'rb'))
-    df = df_concatenator(dataframes_dict, start_date,
-                         end_date, track, jpl_loader, nudger)
-
-    if speed_cutoff:
-        df = df[df.speed >= low_speed]
-        df = df[df.speed <= up_speed]
+    df = df_concatenator(dataframes_dict, start_date, end_date, track)
+    df_to_netcdf(dataframes_dict, triplet)
     count = df.shape[0]
-
     df = df.dropna()
-
     df_stats = df_summary(df, count)
-
     print('Done!')
 
     return df_stats

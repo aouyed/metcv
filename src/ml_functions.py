@@ -25,29 +25,6 @@ from scipy.interpolate import LinearNDInterpolator as lNDI
 R = 6373.0
 
 
-def vorticity(df):
-    print('Calculating vorticity...')
-    u_a = df.pivot('lat', 'lon', 'umeanh').values
-    v_a = df.pivot('lat', 'lon', 'vmeanh').values
-    u_a = np.nan_to_num(u_a)
-    v_a = np.nan_to_num(v_a)
-    lon = np.arange(df['lon'].min(), df['lon'].max() + 0.0625, 0.0625)
-    lat = np.arange(df['lat'].min(), df['lat'].max() + 0.0625, 0.0625)
-
-    dx, dy = metpy.calc.lat_lon_grid_deltas(lon, lat)
-    omega = mpcalc.vorticity(u_a * units['m/s'],
-                             v_a * units['m/s'], dx, dy, dim_order='yx')
-
-    omega = omega.magnitude
-
-    df_u = pd.DataFrame(omega).stack().rename_axis(
-        ['y', 'x']).reset_index(name='vorticity')
-    df_u = dfc.latlon_converter(df_u, 0.0625)
-    df_u['vorticity'] = df_u['vorticity']/(1e-5)
-    df = df.merge(df_u, how='left')
-    return df
-
-
 def error_calc(df, f, name, category, rmse):
     error_uj = (df['umeanh'] - df['u_scaled_approx'])
     error_vj = (df['vmeanh'] - df['v_scaled_approx'])
@@ -102,10 +79,10 @@ def ml_fitter(name, f, df,  alg, rmse, tsize, only_land, lowlat, uplat, exp_filt
     X_train0['umeanh'], X_train0['vmeanh'] = random_error_add(
         sigma_u, sigma_v, X_train0['umeanh'], X_train0['vmeanh'])
 
-    sigma_lon = 2*0.625*exp_distance
-    sigma_lat = 2*0.0625*exp_distance
-   # sigma_lon = 0.6
-    #sigma_lat = 0.5
+    # sigma_lon = 2*0.625*exp_distance
+    # sigma_lat = 2*0.0625*exp_distance
+    sigma_lon = 1.5
+    sigma_lat = 0.15
     X_train0['lon'], X_train0['lat'] = random_error_add(
         sigma_lon, sigma_lat, X_train0['lon'], X_train0['lat'])
 
@@ -182,10 +159,11 @@ def error_interpolator(dfm, category, rmse, f):
     dfm_gt['u_scaled_approx'], dfm_gt['v_scaled_approx'] = random_error_add(
         sigma_u, sigma_v, dfm_gt['umeanh'], dfm_gt['vmeanh'])
 
-    sigma_lon = 2*0.625*exp_distance
-    sigma_lat = 2*0.0625*exp_distance
-    #sigma_lon = 0.6
-    #sigma_lat = 0.5
+    sigma_lon = 1.5
+    sigma_lat = 0.15
+
+   # sigma_lon = 0.6
+    # sigma_lat = 0.5
     dfm_gt['lon'], dfm_gt['lat'] = random_error_add(
         sigma_lon, sigma_lat, dfm_gt['lon'], dfm_gt['lat'])
 
