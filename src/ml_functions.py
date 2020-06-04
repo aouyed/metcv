@@ -92,7 +92,7 @@ def ml_fitter(name, f, df,  alg, rmse, tsize, only_land, lowlat, uplat, exp_filt
     y_train0 = X_train0[['umeanh', 'vmeanh']]
     X_train = X_train0[['lat', 'lon',
                         'u_scaled_approx', 'v_scaled_approx', 'land']]
-    #X_train = X_train0[['lat', 'lon', 'land']]
+    # X_train = X_train0[['lat', 'lon', 'land']]
     y_train = y_train0[['umeanh', 'vmeanh']]
 
     regressor = RandomForestRegressor(
@@ -117,7 +117,7 @@ def ml_predictor(name, f, alg, category,   rmse, tsize, lowlat, uplat, regressor
 
     X_test = X_test0[['lat', 'lon',
                       'u_scaled_approx', 'v_scaled_approx', 'land']]
-    #X_test = X_test0[['lat', 'lon', 'land']]
+    # X_test = X_test0[['lat', 'lon', 'land']]
     y_pred = regressor.predict(X_test)
 
     error_u = (y_test0['umeanh'] - y_pred[:, 0])
@@ -183,7 +183,7 @@ def error_interpolator(dfm, category, rmse, f):
     func_interp_nw = lNDI(
         points=dfm_gtf[['lat', 'lon']].values, values=errors_nw.values)
 
-    return func_interp_nw, func_interp
+    return dfm_gtf, func_interp_nw, func_interp
 
 
 def error_rean(dfm, category, rmse, f):
@@ -220,7 +220,17 @@ def plot_average(deltax, df, xlist, varx, vary):
     return df_mean
 
 
-def latitude_selector(f, df, dft, lowlat, uplat,  category, rmse, latlon, test_size, test_sizes, only_land, exp_filter, exp_list, regressor, X_test0, y_test0):
+def ds_to_netcdf(df, triplet_time, exp_filter):
+    df = df.set_index(['lat', 'lon'])
+    ds = df.to_xarray()
+    ds = ds.rename({'u_scaled_approx': 'utrack', 'v_scaled_approx': 'vtrack'})
+    ds = ds.expand_dims('time')
+    ds = ds.assign_coords(time=[triplet_time])
+    ds.to_netcdf('../data/processed/experiments/' +
+                 exp_filter+'_'+triplet_time.strftime("%Y-%m-%d-%H:%M")+'.nc')
+
+
+def latitude_selector(f, df, dft, lowlat, uplat,  category, rmse, latlon, test_size, test_sizes, only_land, exp_filter, exp_list, regressor, X_test0, y_test0, triplet_time):
     dfm = df[(df.lat) <= uplat]
     dfm = df[(df.lat) >= lowlat]
 
@@ -242,11 +252,13 @@ def latitude_selector(f, df, dft, lowlat, uplat,  category, rmse, latlon, test_s
     test_sizes.append(test_size)
     exp_list.append(exp_filter)
     if exp_filter is 'exp2':
-        _ = ml_predictor('uv', f, 'rf', category, rmse, test_size, lowlat0,
-                         uplat0, regressor, X_test0, y_test0)
+        X_test0 = ml_predictor('uv', f, 'rf', category, rmse, test_size, lowlat0,
+                               uplat0, regressor, X_test0, y_test0)
+        ds_to_netcdf(X_test0, triplet_time, exp_filter)
     elif exp_filter is 'ground_t':
-        _, _ = error_interpolator(dfm, category, rmse, f)
-        # _ = error_rean(dfm.copy(), category, rmse, f)
+        X_test0, _, _ = error_interpolator(dfm, category, rmse, f)
+        ds_to_netcdf(X_test0, triplet_time, exp_filter)
+
     else:
         error_df = ml_predictor('uv', f, 'rf', category, rmse, test_size, lowlat0,
                                 uplat0, regressor, X_test0, y_test0)
@@ -262,7 +274,6 @@ def latitude_selector(f, df, dft, lowlat, uplat,  category, rmse, latlon, test_s
         df_mean = plot_average(deltax, error_df, xlist,
                                'vector_diff_truth', 'vector_diff')
         print(df_mean)
-
         df_mean.to_pickle("df_mean.pkl")
         fig, ax = plt.subplots()
 

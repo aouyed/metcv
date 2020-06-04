@@ -146,8 +146,10 @@ exp_list = []
 only_land = False
 
 
-latdowns = [-30, 30, 60, -60, -90]
-latups = [30, 60, 90, -30, -60]
+#latdowns = [-30, 30, 60, -60, -90]
+#latups = [30, 60, 90, -30, -60]
+latdowns = [-90]
+latups = [90]
 test_size = 0.95
 exp_filters = ['exp2', 'ground_t']
 # exp_filters = ['ground_t']
@@ -172,7 +174,7 @@ for exp_filter in exp_filters:
     for i, latdown in enumerate(tqdm(latdowns)):
         start_time = time.time()
         mlf.latitude_selector(f, df, dft, latdown, latups[i], category,  rmse, latlon,  test_size,
-                              test_sizes, only_land, exp_filter, exp_list, regressor, X_test0, y_test0)
+                              test_sizes, only_land, exp_filter, exp_list, regressor, X_test0, y_test0, triplet_time)
         print("--- %s seconds ---" % (time.time() - start_time))
 
 d = {'latlon': latlon,  'categories': category,
