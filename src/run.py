@@ -61,10 +61,6 @@ def parser(process_parameters, parameters):
                         help="Whether we run downloader", action="store_true")
     parser.add_argument("-p", "--processor",
                         help="Whether we run processor", action="store_true")
-    parser.add_argument("-sd", "--start_date", help="The Start Date - format YYYY-MM-DD-00:00",
-                        type=valid_date)
-    parser.add_argument("-ed", "--end_date", help="The End Date - format YYYY-MM-DD-00:00",
-                        type=valid_date)
     parser.add_argument("-jl", "--jpl_loader",
                         help="Whether we low jpl dataset", action="store_true")
     parser.add_argument(
@@ -84,10 +80,6 @@ def parser(process_parameters, parameters):
     parameters.track = args.track
     parameters.jpl_loader = args.jpl_loader
     parameters.deep_flow = args.deep_flow
-    if args.start_date is not None:
-        parameters.start_date = args.start_date
-    if args.end_date is not None:
-        parameters.end_date = args.end_date
     if args.variable is not None:
         parameters.var = args.variable
     if args.timestep is not None:

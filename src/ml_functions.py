@@ -25,30 +25,16 @@ from scipy.interpolate import LinearNDInterpolator as lNDI
 R = 6373.0
 
 
-def error_calc(df, f, name, category, rmse):
+def error_calc(df, name, category, rmse):
     error_uj = (df['umeanh'] - df['u_scaled_approx'])
     error_vj = (df['vmeanh'] - df['v_scaled_approx'])
     speed_errorj = (error_uj**2+error_vj**2)*df['cos_weight']
     speed_errorj_sqrt = np.sqrt(error_uj**2+error_vj**2)*df['cos_weight']
     speed_errorj_sqrt_nw = np.sqrt(error_uj**2+error_vj**2)
-    f.write('rmsvd for '+name+'\n')
     rmsvd = np.sqrt(speed_errorj.sum()/df['cos_weight'].sum())
     category.append(name)
     rmse.append(rmsvd)
-    f.write(str(rmsvd)+'\n')
     return speed_errorj_sqrt_nw, speed_errorj_sqrt
-
-
-def df_freq(df, values, title):
-    print('calculating frequency...')
-    # freq_group = df[values]
-    freq_group = df.groupby(values).size()
-    freq_group = freq_group.reset_index()
-    freq_group = freq_group.rename(columns={0: 'freq'})
-    print(freq_group)
-  #  freq_group['freq'] = freq_group['freq']
-    # print("plotting...")
-    edp.freq_plotter(freq_group, values, title)
 
 
 def random_error_add(sigma_u, sigma_v, column_u, column_v):
@@ -63,15 +49,10 @@ def random_error_add(sigma_u, sigma_v, column_u, column_v):
     return column_u, column_v
 
 
-def ml_fitter(name, f, df,  alg, rmse, tsize, only_land, lowlat, uplat, exp_filter):
+def ml_fitter(name, df,  alg, rmse, tsize, only_land, lowlat, uplat, exp_filter):
 
-    X_train0, X_test0, y_train0, y_test0 = train_test_split(df[['lat', 'lon', 'u_scaled_approx', 'v_scaled_approx',  'land', 'umeanh', 'vmeanh', 'distance', 'u_error_rean', 'v_error_rean']], df[[
+    X_train0, X_test0, y_train0, y_test0 = train_test_split(df[['lat', 'lon', 'u_scaled_approx', 'v_scaled_approx',  'land', 'umeanh', 'vmeanh',  'u_error_rean', 'v_error_rean']], df[[
         'umeanh', 'vmeanh', 'land', 'lat']], test_size=tsize, random_state=1)
-
-    df_freq(X_train0, 'distance', 'nosample')
-    deltax = 100
-    maxr = np.pi*R
-    exp_distance = np.exp(2*(X_train0.distance)/(np.pi*R))
 
     sigma_u = abs(X_train0['u_error_rean'])
     sigma_v = abs(X_train0['v_error_rean'])
@@ -79,8 +60,6 @@ def ml_fitter(name, f, df,  alg, rmse, tsize, only_land, lowlat, uplat, exp_filt
     X_train0['umeanh'], X_train0['vmeanh'] = random_error_add(
         sigma_u, sigma_v, X_train0['umeanh'], X_train0['vmeanh'])
 
-    # sigma_lon = 2*0.625*exp_distance
-    # sigma_lat = 2*0.0625*exp_distance
     sigma_lon = 1.5
     sigma_lat = 0.15
     X_train0['lon'], X_train0['lat'] = random_error_add(
@@ -88,7 +67,6 @@ def ml_fitter(name, f, df,  alg, rmse, tsize, only_land, lowlat, uplat, exp_filt
 
     print('final shape')
     print(X_train0.shape[0])
-    df_freq(X_train0, 'distance', 'rsample')
     y_train0 = X_train0[['umeanh', 'vmeanh']]
     X_train = X_train0[['lat', 'lon',
                         'u_scaled_approx', 'v_scaled_approx', 'land']]
@@ -105,7 +83,7 @@ def ml_fitter(name, f, df,  alg, rmse, tsize, only_land, lowlat, uplat, exp_filt
     return regressor, X_test0, y_test0
 
 
-def ml_predictor(name, f, alg, category,   rmse, tsize, lowlat, uplat, regressor, X_test0, y_test0):
+def ml_predictor(name, alg, category,   rmse, tsize, lowlat, uplat, regressor, X_test0, y_test0):
         # change df0z to df for current timestep
 
     X_test0['cos_weight'] = np.cos(X_test0['lat']/180*np.pi)
@@ -127,10 +105,7 @@ def ml_predictor(name, f, alg, category,   rmse, tsize, lowlat, uplat, regressor
     speed_error_sqrt = np.sqrt(error_u**2+error_v**2)*X_test0['cos_weight']
     speed_error_sqrt_nw = np.sqrt(error_u**2+error_v**2)
 
-    f.write("rmsvd for" + alg+"_"+name+"\n")
-
     rmsvd = np.sqrt(speed_error.sum()/X_test0['cos_weight'].sum())
-    f.write(str(rmsvd)+'\n')
     category.append(alg)
     rmse.append(rmsvd)
     X_test0['vector_diff'] = speed_error_sqrt
@@ -140,19 +115,13 @@ def ml_predictor(name, f, alg, category,   rmse, tsize, lowlat, uplat, regressor
     return X_test0
 
 
-def error_interpolator(dfm, category, rmse, f):
+def error_interpolator(dfm, category, rmse):
     dfm_gt = dfm.copy()
-
     dfm_gt = resample(dfm_gt, replace=False,
                       n_samples=int(1e5), random_state=1)
-
     dfm_gt = dfm_gt[['lat', 'lon', 'u_scaled_approx',
-                     'v_scaled_approx', 'umeanh', 'vmeanh', 'distance', 'cos_weight', 'u_error_rean', 'v_error_rean']]
+                     'v_scaled_approx', 'umeanh', 'vmeanh', 'cos_weight', 'u_error_rean', 'v_error_rean']]
     dfm_gtf = dfm_gt.copy()
-    exp_distance = np.exp(2*(dfm_gt.distance)/(np.pi*R))
-
-    # sigma_u = 2*exp_distance
-    # sigma_v = 0.2*exp_distance
     sigma_u = abs(dfm_gt['u_error_rean'])
     sigma_v = abs(dfm_gt['v_error_rean'])
 
@@ -162,8 +131,6 @@ def error_interpolator(dfm, category, rmse, f):
     sigma_lon = 1.5
     sigma_lat = 0.15
 
-   # sigma_lon = 0.6
-    # sigma_lat = 0.5
     dfm_gt['lon'], dfm_gt['lat'] = random_error_add(
         sigma_lon, sigma_lat, dfm_gt['lon'], dfm_gt['lat'])
 
@@ -177,7 +144,7 @@ def error_interpolator(dfm, category, rmse, f):
     dfm_gtf['v_scaled_approx'] = func_interp(
         dfm_gtf[['lat', 'lon']].values)
 
-    errors_nw, errors = error_calc(dfm_gtf, f, "ground_t", category, rmse)
+    errors_nw, errors = error_calc(dfm_gtf, "ground_t", category, rmse)
     func_interp = lNDI(
         points=dfm_gtf[['lat', 'lon']].values, values=errors.values)
     func_interp_nw = lNDI(
@@ -186,14 +153,14 @@ def error_interpolator(dfm, category, rmse, f):
     return dfm_gtf, func_interp_nw, func_interp
 
 
-def error_rean(dfm, category, rmse, f):
+def error_rean(dfm, category, rmse):
     sigma_u = abs(dfm['u_error_rean'])
     sigma_v = abs(dfm['v_error_rean'])
 
     dfm['u_scaled_approx'], dfm['v_scaled_approx'] = random_error_add(
         sigma_u, sigma_v, dfm['umeanh'], dfm['vmeanh'])
 
-    _, _ = error_calc(dfm, f, "ground_t", category, rmse)
+    _, _ = error_calc(dfm, "ground_t", category, rmse)
     return dfm
 
 
@@ -230,12 +197,9 @@ def ds_to_netcdf(df, triplet_time, exp_filter):
                  exp_filter+'_'+triplet_time.strftime("%Y-%m-%d-%H:%M")+'.nc')
 
 
-def latitude_selector(f, df, dft, lowlat, uplat,  category, rmse, latlon, test_size, test_sizes, only_land, exp_filter, exp_list, regressor, X_test0, y_test0, triplet_time):
+def latitude_selector(df, lowlat, uplat,  category, rmse, latlon, test_size, test_sizes, only_land, exp_filter, exp_list, regressor, X_test0, y_test0, triplet_time):
     dfm = df[(df.lat) <= uplat]
     dfm = df[(df.lat) >= lowlat]
-
-    dftm = dft[(dft.lat) <= uplat]
-    dftm = dft[(dft.lat) >= lowlat]
     lowlat0 = lowlat
     uplat0 = uplat
 
@@ -252,46 +216,14 @@ def latitude_selector(f, df, dft, lowlat, uplat,  category, rmse, latlon, test_s
     test_sizes.append(test_size)
     exp_list.append(exp_filter)
     if exp_filter is 'exp2':
-        X_test0 = ml_predictor('uv', f, 'rf', category, rmse, test_size, lowlat0,
+        X_test0 = ml_predictor('uv',  'rf', category, rmse, test_size, lowlat0,
                                uplat0, regressor, X_test0, y_test0)
         ds_to_netcdf(X_test0, triplet_time, exp_filter)
     elif exp_filter is 'ground_t':
-        X_test0, _, _ = error_interpolator(dfm, category, rmse, f)
+        X_test0, _, _ = error_interpolator(dfm, category, rmse)
         ds_to_netcdf(X_test0, triplet_time, exp_filter)
 
     else:
-        error_df = ml_predictor('uv', f, 'rf', category, rmse, test_size, lowlat0,
-                                uplat0, regressor, X_test0, y_test0)
-        error_func_nw, error_func = error_interpolator(dfm, category, rmse, f)
-        error_df['vector_diff_truth'] = error_func(
-            error_df[['lat', 'lon']].values)
-        error_df['vector_diff_truth_nw'] = error_func_nw(
-            error_df[['lat', 'lon']].values)
-        error_df.to_pickle("df_error.pkl")
-
-        deltax = 1
-        xlist = np.arange(0, 10+deltax, deltax)
-        df_mean = plot_average(deltax, error_df, xlist,
-                               'vector_diff_truth', 'vector_diff')
-        print(df_mean)
-        df_mean.to_pickle("df_mean.pkl")
-        fig, ax = plt.subplots()
-
-        ax.plot(df_mean['vector_diff_truth'], df_mean['vector_diff'])
-        plt.savefig('error_plot.png')
-
-    dfm = dfm.dropna()
-    dftm = dftm.dropna()
-    latlon.append(str(str(lowlat)+',' + str(uplat)))
-    test_sizes.append(test_size)
-    exp_list.append(exp_filter)
-
-    dfm['vector_diff_no_weight'], _ = error_calc(dfm, f, "df", category, rmse)
-    dfm.to_pickle("df_df.pkl")
-    latlon.append(str(str(lowlat)+',' + str(uplat)))
-    test_sizes.append(test_size)
-    exp_list.append(exp_filter)
-
-    dftm['vector_diff_no_weight'], _ = error_calc(
-        dftm, f, 'jpl', category, rmse)
-    dftm.to_pickle("df_jpl.pkl")
+        dfm = dfm.dropna()
+        dfm['vector_diff_no_weight'], _ = error_calc(dfm, "df", category, rmse)
+        dfm.to_pickle("df_df.pkl")
