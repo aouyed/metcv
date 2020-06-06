@@ -41,8 +41,6 @@ def ds_to_dataframe(ds, triplet_time, deltatime):
 
 def run(triplet_time):
 
-    triplet_time = datetime.datetime(2006, 7, 1, 0, 0, 0, 0)
-
     filename = '../data/processed/experiments/' + \
         triplet_time.strftime("%Y-%m-%d-%H:%M")+'.nc'
 
