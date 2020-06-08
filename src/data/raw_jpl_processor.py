@@ -39,7 +39,6 @@ for i, file in enumerate(files):
     ds = ds.expand_dims('time')
     date = np.array([date_list[i]])
     ds = ds.assign_coords(time=date)
-    # for var in ('umean', 'vmean','utrack','vtrack', 'qv'):
     for var in ds:
         print('var', var)
         ds[var].encoding['_FillValue'] = np.nan

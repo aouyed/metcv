@@ -164,35 +164,15 @@ def error_rean(dfm, category, rmse):
     return dfm
 
 
-def plot_average(deltax, df, xlist, varx, vary):
-    df_mean = pd.DataFrame()
-    df_unit = pd.DataFrame(data=[0], columns=[varx])
-    print("calculating averages ...")
-    for x in tqdm(xlist):
-        df_a = df[df[varx] >= x]
-        df_a = df_a[df_a[varx] <= x+deltax]
-        df_unit[varx] = x
-        df_a['weighted_'+vary] = df_a[vary]*df_a['cos_weight']
-        df_unit[vary+'_count'] = df_a[vary].shape[0]
-        df_unit[vary] = df_a['weighted_'+vary].sum()/df_a['cos_weight'].sum()
-        df_a['variance'] = (df_a[vary]-df_unit[vary][0]) ** 2
-        df_a['variance'] = df_a['variance']*df_a['cos_weight']
-        df_unit[vary + '_std'] = np.sqrt(df_a['variance'].sum() /
-                                         df_a['cos_weight'].sum())
-
-        if df_mean.empty:
-            df_mean = df_unit
-        else:
-            df_mean = pd.concat([df_mean, df_unit])
-    return df_mean
-
-
 def ds_to_netcdf(df, triplet_time, exp_filter):
     df = df.set_index(['lat', 'lon'])
     ds = df.to_xarray()
     ds = ds.rename({'u_scaled_approx': 'utrack', 'v_scaled_approx': 'vtrack'})
     ds = ds.expand_dims('time')
     ds = ds.assign_coords(time=[triplet_time])
+    ds = ds[['umeanh', 'vmeanh', 'utrack',
+             'vtrack', 'cos_weight', 'u_error_rean', 'v_error_rean']]
+
     ds.to_netcdf('../data/processed/experiments/' +
                  exp_filter+'_'+triplet_time.strftime("%Y-%m-%d-%H:%M")+'.nc')
 
@@ -219,6 +199,7 @@ def latitude_selector(df, lowlat, uplat,  category, rmse, latlon, test_size, tes
         X_test0 = ml_predictor('uv',  'rf', category, rmse, test_size, lowlat0,
                                uplat0, regressor, X_test0, y_test0)
         ds_to_netcdf(X_test0, triplet_time, exp_filter)
+
     elif exp_filter is 'ground_t':
         X_test0, _, _ = error_interpolator(dfm, category, rmse)
         ds_to_netcdf(X_test0, triplet_time, exp_filter)
