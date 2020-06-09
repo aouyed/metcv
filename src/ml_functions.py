@@ -34,7 +34,10 @@ def error_calc(df, name, category, rmse):
     rmsvd = np.sqrt(speed_errorj.sum()/df['cos_weight'].sum())
     category.append(name)
     rmse.append(rmsvd)
-    return speed_errorj_sqrt_nw, speed_errorj_sqrt
+    df['vector_diff'] = speed_errorj_sqrt
+    df['vector_diff_no_weight'] = speed_errorj_sqrt_nw
+
+    return speed_errorj_sqrt_nw, speed_errorj_sqrt, df
 
 
 def random_error_add(sigma_u, sigma_v, column_u, column_v):
@@ -100,7 +103,8 @@ def ml_predictor(name, alg, category,   rmse, tsize, lowlat, uplat, regressor, X
 
     error_u = (y_test0['umeanh'] - y_pred[:, 0])
     error_v = (y_test0['vmeanh'] - y_pred[:, 1])
-
+    X_test0['u_scaled_approx'] = y_pred[:, 0]
+    X_test0['v_scaled_approx'] = y_pred[:, 1]
     speed_error = (error_u**2+error_v**2)*X_test0['cos_weight']
     speed_error_sqrt = np.sqrt(error_u**2+error_v**2)*X_test0['cos_weight']
     speed_error_sqrt_nw = np.sqrt(error_u**2+error_v**2)
@@ -144,7 +148,8 @@ def error_interpolator(dfm, category, rmse):
     dfm_gtf['v_scaled_approx'] = func_interp(
         dfm_gtf[['lat', 'lon']].values)
 
-    errors_nw, errors = error_calc(dfm_gtf, "ground_t", category, rmse)
+    errors_nw, errors, dfm_gtf = error_calc(
+        dfm_gtf, "ground_t", category, rmse)
     func_interp = lNDI(
         points=dfm_gtf[['lat', 'lon']].values, values=errors.values)
     func_interp_nw = lNDI(
@@ -167,12 +172,13 @@ def error_rean(dfm, category, rmse):
 def ds_to_netcdf(df, triplet_time, exp_filter):
     df = df.set_index(['lat', 'lon'])
     ds = df.to_xarray()
+    ds = ds[['umeanh', 'vmeanh', 'u_scaled_approx',
+             'v_scaled_approx', 'cos_weight', 'u_error_rean', 'v_error_rean']]
     ds = ds.rename({'u_scaled_approx': 'utrack', 'v_scaled_approx': 'vtrack'})
     ds = ds.expand_dims('time')
     ds = ds.assign_coords(time=[triplet_time])
-    ds = ds[['umeanh', 'vmeanh', 'utrack',
-             'vtrack', 'cos_weight', 'u_error_rean', 'v_error_rean']]
-
+    # ds = ds[['umeanh', 'vmeanh', 'utrack',
+    #        'vtrack', 'cos_weight', 'u_error_rean', 'v_error_rean']]
     ds.to_netcdf('../data/processed/experiments/' +
                  exp_filter+'_'+triplet_time.strftime("%Y-%m-%d-%H:%M")+'.nc')
 
@@ -205,6 +211,4 @@ def latitude_selector(df, lowlat, uplat,  category, rmse, latlon, test_size, tes
         ds_to_netcdf(X_test0, triplet_time, exp_filter)
 
     else:
-        dfm = dfm.dropna()
-        dfm['vector_diff_no_weight'], _ = error_calc(dfm, "df", category, rmse)
-        dfm.to_pickle("df_df.pkl")
+        ds_to_netcdf(X_test0, triplet_time, exp_filter)

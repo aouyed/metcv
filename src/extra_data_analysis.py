@@ -77,6 +77,9 @@ def run(triplet_time):
         if exp_filter in ('exp2', 'error'):
             regressor, X_test0, y_test0 = mlf.ml_fitter('uv', df,
                                                         'rf', rmse, test_size, only_land, -90, 90, exp_filter)
+        elif exp_filter is 'df':
+            X_test0 = df
+            regressor, y_test0 = 0, 0
         else:
             regressor, X_test0, y_test0 = 0, 0, 0
             print('predicting..')
@@ -86,12 +89,9 @@ def run(triplet_time):
                                   test_sizes, only_land, exp_filter, exp_list, regressor, X_test0, y_test0, triplet_time)
             print("--- %s seconds ---" % (time.time() - start_time))
 
-    d = {'latlon': latlon, 'categories': category,
-         'rmse': rmse, 'exp_filter': exp_list}
-
-    df_results = pd.DataFrame(data=d)
-
-    df_results.to_pickle("df_results.pkl")
+    print(rmse)
+    print(category)
+   # pdb.set_trace()
 
     print('done!')
-    print(df_results)
+    # print(df_results)
