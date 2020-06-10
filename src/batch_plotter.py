@@ -8,11 +8,11 @@ import pickle
 import glob
 from natsort import natsorted
 import pandas as pd
+import extra_data_plotter as edp
 
 
-def rmsvd_calculator(df, coord, rmsvd_num, rmsvd_den, filter):
+def rmsvd_calculator(df, coord, rmsvd_num, rmsvd_den):
     df_unit = df[(df.lat >= coord[0]) & (df.lat <= coord[1])]
-    df_unit = df_unit[df_unit['filter'] == filter]
     df_unit['cos_weight'] = np.cos(df_unit.lat/180*np.pi)
     erroru = df_unit.utrack-df_unit.umeanh
     errorv = df_unit.vtrack-df_unit.vmeanh
@@ -36,79 +36,81 @@ def df_builder(ds, ds_track, date):
     df_tot = df_tot.drop(
         columns=['Exist', 'time_x', 'time_y', 'utrack_y'])
     df_tot = df_tot.rename(columns={'utrack_x': 'utrack'})
-    #df_tot = df_tot.dropna()
+    df_tot = df_tot.rename(columns={'vtrack_x': 'vtrack'})
+    dft = dft.rename(columns={'vmean': 'vmeanh', 'umean': 'umeanh'})
+#    breakpoint()
+    return df_tot, dft
 
-    return df_tot
+
+def coord_to_string(coord):
+    if coord[0] < 0:
+        lowlat = str(abs(coord[0])) + '°S'
+    else:
+        lowlat = str(coord[0]) + '°N'
+
+    if coord[1] < 0:
+        uplat = str(abs(coord[1])) + '°S'
+    else:
+        uplat = str(coord[1]) + '°N'
+    stringd = str(str(lowlat)+',' + str(uplat))
+    return stringd
 
 
 def plot_preprocessor(ds, ds_track):
     dates = ds.time.values
     coords = [(-30, 30), (-60, -30), (-90, -60), (30, 60), (60, 90)]
     #coords = [(-90, 90)]
-    filters = ['df', 'exp2', 'ground_t']
+    filters = ['df', 'exp2', 'ground_t', 'jpl']
     rmsvds = []
     region = []
     filter_res = []
     print('preprocessing_data...')
 
     for i, date in enumerate(dates):
-        df_unit = df_builder(ds, ds_track[[
-            'time', 'utrack', 'lat', 'lon']], date)
+        df_unit, df_t = df_builder(ds, ds_track[[
+            'time', 'utrack', 'vtrack', 'umean', 'vmean', 'lat', 'lon']], date)
         df_unit.to_pickle('../data/interim/experiments/dataframes/' +
                           str(i)+'.pkl')
+        df_t.to_pickle('../data/interim/experiments/dataframes/jpl/' +
+                       str(i)+'.pkl')
 
     files = natsorted(glob.glob('../data/interim/experiments/dataframes/*'))
+    files_t = natsorted(
+        glob.glob('../data/interim/experiments/dataframes/jpl/*'))
     for coord in tqdm(coords):
         for filter in filters:
             rmsvd_num = 0
             rmsvd_den = 0
             for i, date in enumerate(dates):
-                df_unit = pd.read_pickle(files[i])
+                if (filter is 'jpl'):
+                    df_unit = pd.read_pickle(files_t[i])
+                else:
+                    df_unit = pd.read_pickle(files[i])
+                    df_unit = df_unit[df_unit['filter'] == filter]
                 df_unit = df_unit.dropna()
                 rmsvd_num, rmsvd_den = rmsvd_calculator(
-                    df_unit, coord, rmsvd_num, rmsvd_den, filter)
-               # if(filter == 'ground_t'):
-                #    pdb.set_trace()
+                    df_unit, coord, rmsvd_num, rmsvd_den)
 
+          #  print(stringd)
+           # region.append(stringd)
+            stringc = coord_to_string(coord)
             rmsvds.append(np.sqrt(rmsvd_num/rmsvd_den))
-            region.append(coord)
+            # region.append(coord)
+            region.append(stringc)
             filter_res.append(filter)
 
-    d = {'latlon': region, 'categories': filter_res,
-         'rmse': rmsvds, 'exp_filter': filter_res}
+    d = {'latlon': region, 'exp_filter': filter_res, 'rmse': rmsvds}
     df_results = pd.DataFrame(data=d)
     return df_results
 
 
-file = '../data/processed/experiments/july.nc'
-ds = xr.open_dataset(file)
-ds_track = xr.open_dataset(
-    '../data/interim/experiments/july/tracked/60min/1.nc')
-
-df = plot_preprocessor(ds, ds_track)
-print(df)
-pdb.set_trace()
-
-
-fig, ax = plt.subplots()
-
-df = df0[(df0.categories == 'rf') & (df0.exp_filter == 'exp2')]
-ax.plot(df['latlon'], df['rmse'], '-o', label='UA (RF+VEM)')
-
-df = df0[(df0.categories == 'ground_t') & (df0.exp_filter == 'ground_t')]
-ax.plot(df['latlon'], df['rmse'], '-o',
-        label='noisy observations')
-
-df = df0[df0.categories == 'df']
-ax.plot(df['latlon'], df['rmse'], '-o', label='VEM')
-
-df = df0[df0.categories == 'jpl']
-ax.plot(df['latlon'], df['rmse'], '-o', label='JPL')
-
-ax.legend(frameon=None)
-ax.set_ylim(0, 5)
-ax.set_xlabel("Region")
-ax.set_ylabel("RMSVD [m/s]")
-ax.set_title(title)
-directory = '../data/processed/density_plots'
-plt.savefig(values+'.png', bbox_inches='tight', dpi=300)
+def run():
+    file = '../data/processed/experiments/july.nc'
+    ds = xr.open_dataset(file)
+    ds_track = xr.open_dataset(
+        '../data/interim/experiments/july/tracked/60min/1.nc')
+    df = plot_preprocessor(ds, ds_track)
+    print(df)
+    df = edp.sorting_latlon(df)
+    print(df)
+    edp.filter_plotter(df, 'results_test', 'training data size = 5%')

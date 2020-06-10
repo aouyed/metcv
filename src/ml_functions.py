@@ -184,8 +184,9 @@ def ds_to_netcdf(df, triplet_time, exp_filter):
 
 
 def latitude_selector(df, lowlat, uplat,  category, rmse, latlon, test_size, test_sizes, only_land, exp_filter, exp_list, regressor, X_test0, y_test0, triplet_time):
-    dfm = df[(df.lat) <= uplat]
-    dfm = df[(df.lat) >= lowlat]
+   # dfm = df[(df.lat) <= uplat]
+   # dfm = df[(df.lat) >= lowlat]
+    dfm = df[(df.lat >= lowlat) & (df.lat <= uplat)]
     lowlat0 = lowlat
     uplat0 = uplat
 
@@ -211,4 +212,5 @@ def latitude_selector(df, lowlat, uplat,  category, rmse, latlon, test_size, tes
         ds_to_netcdf(X_test0, triplet_time, exp_filter)
 
     else:
-        ds_to_netcdf(X_test0, triplet_time, exp_filter)
+        _, _, dfm = error_calc(dfm, exp_filter, category, rmse)
+        ds_to_netcdf(dfm, triplet_time, exp_filter)

@@ -184,21 +184,21 @@ def line_plotter(df0, values, title):
 def filter_plotter(df0, values, title):
     fig, ax = plt.subplots()
 
-    df = df0[(df0.categories == 'rf') & (df0.exp_filter == 'exp2')]
+    df = df0[df0.exp_filter == 'exp2']
     ax.plot(df['latlon'], df['rmse'], '-o', label='UA (RF+VEM)')
 
-    df = df0[(df0.categories == 'ground_t') & (df0.exp_filter == 'ground_t')]
+    df = df0[df0.exp_filter == 'ground_t']
     ax.plot(df['latlon'], df['rmse'], '-o',
             label='noisy observations')
 
-    df = df0[df0.categories == 'df']
+    df = df0[df0.exp_filter == 'df']
     ax.plot(df['latlon'], df['rmse'], '-o', label='VEM')
 
-    df = df0[df0.categories == 'jpl']
+    df = df0[df0.exp_filter == 'jpl']
     ax.plot(df['latlon'], df['rmse'], '-o', label='JPL')
 
     ax.legend(frameon=None)
-    ax.set_ylim(0, 5)
+    ax.set_ylim(0, 10)
     ax.set_xlabel("Region")
     ax.set_ylabel("RMSVD [m/s]")
     ax.set_title(title)
@@ -219,11 +219,7 @@ def average_plot(df_mean):
     plt.savefig('error_plot.png')
 
 
-def main():
-    dict_path = '../data/interim/dictionaries/dataframes.pkl'
-    dataframes_dict = pickle.load(open(dict_path, 'rb'))
-
-    df0 = pd.read_pickle("./df_results.pkl")
+def sorting_latlon(df0):
     df0.latlon[df0.latlon == '90°S,60°S'] = '(0) 90°S,60°S'
     df0.latlon[df0.latlon == '60°S,30°S'] = '(1) 60°S,30°S'
     df0.latlon[df0.latlon == '30°S,30°N'] = '(2) 30°S,30°N'
@@ -231,7 +227,14 @@ def main():
     df0.latlon[df0.latlon == '60°N,90°N'] = '(4) 60°N,90°N'
     print(df0)
     df0.sort_values(by=['latlon'], inplace=True)
-    filter_plotter(df0, 'results_test', 'training data size = 5%')
+    return df0
+
+
+def main():
+    dict_path = '../data/interim/dictionaries/dataframes.pkl'
+    dataframes_dict = pickle.load(open(dict_path, 'rb'))
+
+    #  filter_plotter(df0, 'results_test', 'training data size = 5%')
 
 
 if __name__ == "__main__":

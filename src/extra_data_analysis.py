@@ -62,8 +62,8 @@ def run(triplet_time):
     exp_list = []
     only_land = False
 
-    # latdowns = [-30, 30, 60, -60, -90]
-    # latups = [30, 60, 90, -30, -60]
+    #latdowns = [-30, 30, 60, -60, -90]
+    #latups = [30, 60, 90, -30, -60]
     latdowns = [-90]
     latups = [90]
     test_size = 0.95
@@ -89,8 +89,10 @@ def run(triplet_time):
                                   test_sizes, only_land, exp_filter, exp_list, regressor, X_test0, y_test0, triplet_time)
             print("--- %s seconds ---" % (time.time() - start_time))
 
-    print(rmse)
-    print(category)
+    d = {'latlon': latlon, 'rmse': rmse, 'exp_filter': category}
+    df_results = pd.DataFrame(data=d)
+    print(df_results)
+
    # pdb.set_trace()
 
     print('done!')
