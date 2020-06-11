@@ -14,8 +14,8 @@ import extra_data_plotter as edp
 def rmsvd_calculator(df, coord, rmsvd_num, rmsvd_den):
     df_unit = df[(df.lat >= coord[0]) & (df.lat <= coord[1])]
     df_unit['cos_weight'] = np.cos(df_unit.lat/180*np.pi)
-    erroru = df_unit.utrack-df_unit.umeanh
-    errorv = df_unit.vtrack-df_unit.vmeanh
+    erroru = df_unit.utrack-df_unit.umean
+    errorv = df_unit.vtrack-df_unit.vmean
     df_unit['vec_diff'] = df_unit.cos_weight * (erroru**2 + errorv**2)
     rmsvd_num = rmsvd_num + df_unit['vec_diff'].sum()
     rmsvd_den = rmsvd_den + df_unit['cos_weight'].sum()
@@ -33,11 +33,12 @@ def df_builder(ds, ds_track, date):
         'lat', 'lon'], how='left', indicator='Exist')
     #df_dummy = df_tot[df_tot['filter'] != 'ground_t'].copy()
     df_tot = df_tot[df_tot.utrack_y.notna()]
+    dft = df_tot[['utrack_y', 'vtrack_y', 'umean', 'vmean', 'lat', 'lon']]
     df_tot = df_tot.drop(
-        columns=['Exist', 'time_x', 'time_y', 'utrack_y'])
+        columns=['Exist', 'time_x', 'time_y', 'utrack_y', 'umeanh', 'vmeanh'])
     df_tot = df_tot.rename(columns={'utrack_x': 'utrack'})
     df_tot = df_tot.rename(columns={'vtrack_x': 'vtrack'})
-    dft = dft.rename(columns={'vmean': 'vmeanh', 'umean': 'umeanh'})
+    dft = dft.rename(columns={'utrack_y': 'utrack', 'vtrack_y': 'vtrack'})
 #    breakpoint()
     return df_tot, dft
 
@@ -67,6 +68,7 @@ def plot_preprocessor(ds, ds_track):
     print('preprocessing_data...')
 
     for i, date in enumerate(dates):
+        print('preprocessing: ' + str(date))
         df_unit, df_t = df_builder(ds, ds_track[[
             'time', 'utrack', 'vtrack', 'umean', 'vmean', 'lat', 'lon']], date)
         df_unit.to_pickle('../data/interim/experiments/dataframes/' +
@@ -108,7 +110,7 @@ def run():
     file = '../data/processed/experiments/july.nc'
     ds = xr.open_dataset(file)
     ds_track = xr.open_dataset(
-        '../data/interim/experiments/july/tracked/60min/1.nc')
+        '../data/interim/experiments/july/tracked/60min/combined/july.nc')
     df = plot_preprocessor(ds, ds_track)
     print(df)
     df = edp.sorting_latlon(df)

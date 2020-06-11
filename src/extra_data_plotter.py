@@ -189,7 +189,7 @@ def filter_plotter(df0, values, title):
 
     df = df0[df0.exp_filter == 'ground_t']
     ax.plot(df['latlon'], df['rmse'], '-o',
-            label='noisy observations')
+            label='error from reanalysis')
 
     df = df0[df0.exp_filter == 'df']
     ax.plot(df['latlon'], df['rmse'], '-o', label='VEM')

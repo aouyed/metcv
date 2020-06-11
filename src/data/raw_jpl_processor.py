@@ -26,29 +26,49 @@ def daterange(start_date, end_date, dhour):
 # for i, start_date in enumerate(start_dates):
  #   date_list = date_list + daterange(start_date, end_dates[i], 0.5)
 
-date_list = (datetime(2006, 7, 1, 0, 0, 0, 0), datetime(2006, 7, 1, 6, 0, 0, 0),
-             datetime(2006, 7, 1, 12, 0, 0, 0), datetime(2006, 7, 1, 18, 0, 0, 0))
+
+for day in (1, 2, 3):
+
+    date_list = (datetime(2006, 7, day, 0, 0, 0, 0), datetime(2006, 7, day, 6, 0, 0, 0),
+                 datetime(2006, 7, day, 12, 0, 0, 0), datetime(2006, 7, day, 18, 0, 0, 0))
+
+    files = natsorted(
+        glob.glob('../../data/raw/experiments/jpl/tracked/july/'+str(day)+'/850/60min/*.nc'))
+    ds_total = 0
+    for i, file in enumerate(files):
+        print('var file:')
+        print(file)
+        ds = xr.open_dataset(file)
+        ds = ds.expand_dims('time')
+        date = np.array([date_list[i]])
+        ds = ds.assign_coords(time=date)
+        for var in ds:
+            print('var', var)
+            ds[var].encoding['_FillValue'] = np.nan
+            ds[var].encoding['missing_value'] = np.nan
+        filename = Path(file).stem
+        print(ds.time)
+        if(i == 0):
+            ds_total = ds
+        else:
+            ds_total = xr.concat([ds_total, ds], 'time')
+    print('saving..')
+    ds_total.to_netcdf(
+        '../../data/interim/experiments/july/tracked/60min/' + str(day)+'.nc')
+    print(ds_total)
+
 
 files = natsorted(
-    glob.glob('../../data/raw/experiments/jpl/tracked/july/1/850/60min/*.nc'))
-ds_total = 0
+    glob.glob('../../data/interim/experiments/july/tracked/60min/*.nc'))
+
+ds_total = xr.Dataset()
 for i, file in enumerate(files):
-    print('var file:')
-    print(file)
     ds = xr.open_dataset(file)
-    ds = ds.expand_dims('time')
-    date = np.array([date_list[i]])
-    ds = ds.assign_coords(time=date)
-    for var in ds:
-        print('var', var)
-        ds[var].encoding['_FillValue'] = np.nan
-        ds[var].encoding['missing_value'] = np.nan
-    filename = Path(file).stem
-    print(ds.time)
-    if(i == 0):
+    if i == 0:
         ds_total = ds
     else:
         ds_total = xr.concat([ds_total, ds], 'time')
-print('saving..')
-ds_total.to_netcdf('../../data/interim/experiments/july/tracked/60min/1.nc')
+
+ds_total.to_netcdf(
+    '../../data/interim/experiments/july/tracked/60min/combined/july.nc')
 print(ds_total)
