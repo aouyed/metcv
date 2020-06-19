@@ -3,7 +3,7 @@ import datetime
 import glob
 from pathlib import Path
 
-files = glob.glob('pgbh00*')
+files = glob.glob('pgbhnl*')
 
 for file in files:
     print(file)

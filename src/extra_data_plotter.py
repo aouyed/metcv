@@ -11,51 +11,6 @@ import matplotlib.colors as mcolors
 import metpy as metpy
 
 
-def gradient_plot(df, var):
-    lat = df.pivot('lat', 'lon', 'lat').values
-    lon = df.pivot('lat', 'lon', 'lon').values
-    metv = df.pivot('lat', 'lon', var.lower()).values
-    dx, dy = metpy.calc.lat_lon_grid_deltas(lon, lat)
-    grad = metpy.calc.gradient(metv, deltas=(dx, dy))
-    grad = grad.magnitude
-    grad = np.nan_to_num(grad)
-    return grad
-
-
-def contourf_plotter(df,  values, title, units):
-
-   # df['speed_error'] = np.sqrt(df['speed_error'])
-    grid = 10
-    var = df.pivot('lat', 'lon', values).values
-
-    factor = 0.0625/grid
-
-    fig, ax = plt.subplots()
-    ax = plt.axes(projection=ccrs.PlateCarree())
-    ax.coastlines()
-
-    # pmap = plt.cm.gnuplot
-    pmap = plt.cm.coolwarm
-    pmap.set_bad(color='grey')
-    lon = np.arange(df['lon'].min(), df['lon'].max() + 0.0625, 0.0625)
-    lat = np.arange(df['lat'].min(), df['lat'].max() + 0.0625, 0.0625)
-
-    levs = [-30, -10, -5, -3, 0, 3, 5, 10, 30]
-    im = ax.contourf(lon, lat, var, levs,  cmap=pmap,
-                     extent=[-180, 180, -90, 90], origin='lower')
-    gl = ax.gridlines(crs=ccrs.PlateCarree(), draw_labels=True,
-                      linewidth=2, color='gray', alpha=0, linestyle='--')
-    gl.xlabels_top = False
-    gl.ylabels_right = False
-    cbar = fig.colorbar(im, ax=ax, fraction=0.025, pad=0.04)
-
-    cbar.set_label(units)
-    plt.xlabel("lon")
-    plt.ylabel("lat")
-    ax.set_title(title)
-    plt.savefig(title+'.png', bbox_inches='tight', dpi=300)
-
-
 def quiver_plotter(df, title, uname, vname):
     grid = 10
     U = df.pivot('lat', 'lon', uname).values
@@ -148,39 +103,6 @@ def scatter_plotter(df,  values, title, units):
     plt.savefig(values+'.png', bbox_inches='tight', dpi=300)
 
 
-def freq_plotter(df,  values, title):
-
-    fig, ax = plt.subplots()
-    df = df[df[values] > 0]
-
-    ax.plot(df[values], df['freq'], '-o', label='rf')
-    plt.xlabel(values)
-    plt.ylabel("freq")
-    ax.set_title(title)
-    plt.savefig(title+'.png', bbox_inches='tight', dpi=300)
-
-
-def line_plotter(df0, values, title):
-    fig, ax = plt.subplots()
-
-    df = df0[df0.categories == 'rf']
-    ax.plot(df['latlon'], df['rmse'], '-o', label='rf')
-
-    df = df0[df0.categories == 'df']
-    ax.plot(df['latlon'], df['rmse'], '-o', label='vem')
-
-    df = df0[df0.categories == 'jpl']
-    ax.plot(df['latlon'], df['rmse'], '-o', label='jpl')
-
-    ax.legend(frameon=None)
-
-    ax.set_xlabel("Region")
-    ax.set_ylabel("RMSVD [m/s]")
-    ax.set_title(title)
-    directory = '../data/processed/density_plots'
-    plt.savefig('filtr'+'.png', bbox_inches='tight', dpi=300)
-
-
 def filter_plotter(df0, values, title):
     fig, ax = plt.subplots()
 
@@ -198,25 +120,12 @@ def filter_plotter(df0, values, title):
     ax.plot(df['latlon'], df['rmse'], '-o', label='JPL')
 
     ax.legend(frameon=None)
-    ax.set_ylim(0, 10)
+    ax.set_ylim(0, 8)
     ax.set_xlabel("Region")
     ax.set_ylabel("RMSVD [m/s]")
     ax.set_title(title)
     directory = '../data/processed/density_plots'
     plt.savefig(values+'.png', bbox_inches='tight', dpi=300)
-
-
-def average_plot(df_mean):
-    fig, ax = plt.subplots()
-
-    ax.plot(df_mean['vector_diff_truth'], df_mean['vector_diff'])
-    ax.set_xlabel("MVD of noisy observations [m/s]")
-    ax.set_ylabel("MVD of Stage 2 UA  [m/s]")
-    ax.set_title('Global MVD computations')
-    ax.yaxis.set_ticks(np.arange(1, 4, 1))
-    # plt.yticks(range(1, 3))
-    # plt.ylim(1, 3)
-    plt.savefig('error_plot.png')
 
 
 def sorting_latlon(df0):

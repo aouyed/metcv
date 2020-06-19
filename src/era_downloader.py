@@ -5,23 +5,28 @@ c = cdsapi.Client()
 #var = 'v'
 year = '2006'
 month = '07'
-day = '01'
-time = '12:00:00'
+#day = '01'
+#time = '12:00:00'
 pressure = '850'
-timen = '12_00_00'
+#timen = '12_00_00'
 
-varis = ['u', 'v']
-for var in varis:
-    c.retrieve(
-        'reanalysis-era5-pressure-levels',
-        {
-            'product_type': 'reanalysis',
-            'variable': var,
-            'pressure_level': pressure,
-            'year': year,
-            'month': month,
-            'day': day,
-            'time': time,
-            'format': 'netcdf',                 # Supported format: grib and netcdf. Default: grib
-        },
-        var + '_'+pressure + '_'+year + '_'+month+'_'+day + '_'+timen + '_era5.nc')
+days = ['01', '02', '03']
+times = ['00:00:00', '06:00:00', '12:00:00', '18:00:00']
+vars = ['u', 'v']
+
+for day in days:
+    for time in times:
+        for var in vars:
+            c.retrieve(
+                'reanalysis-era5-pressure-levels',
+                {
+                    'product_type': 'reanalysis',
+                    'variable': var,
+                    'pressure_level': pressure,
+                    'year': year,
+                    'month': month,
+                    'day': day,
+                    'time': time,
+                    'format': 'netcdf',                 # Supported format: grib and netcdf. Default: grib
+                },
+                var + '_'+pressure + '_'+year + '_'+month+'_'+day + '_'+time + '_era5.nc')

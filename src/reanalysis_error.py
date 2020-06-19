@@ -21,7 +21,8 @@ def error_calc(df_0):
     df_era['longitude'] = df_era['longitude']-180
 
     print('cfs dataset')
-    ds = xr.open_dataset("850_2006_07_01_12_00_00_cfs.nc")
+#    ds = xr.open_dataset("850_2006_07_01_12_00_00_cfs.nc")
+    ds = xr.open_dataset("pgbhnl.gdas.2006070112.nc")
     df = ds.to_dataframe()
     df = df.reset_index()
 
