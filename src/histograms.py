@@ -4,6 +4,7 @@ import matplotlib.cm as cm
 from scipy.ndimage.filters import gaussian_filter
 import pandas as pd
 import pdb
+import glob
 
 
 def myplot(x, y, s, bins=100):
@@ -15,9 +16,38 @@ def myplot(x, y, s, bins=100):
     return heatmap.T, extent
 
 
-def histogram_plot(df, filename, column_a, column_b):
+def big_histogram(dataframes, var, filter, column_x, column_y, s,  bins=100):
+    xedges = [np.inf, -np.inf]
+    yedges = [np.inf, -np.inf]
+
+    for df in dataframes:
+        df = initialize_dataframe(filter, var, 5, df)
+        xedges[0] = np.minimum(df[column_x].min(), xedges[0])
+        xedges[1] = np.maximum(df[column_x].max(), xedges[1])
+
+        yedges[0] = np.minimum(df[column_y].min(), yedges[0])
+        yedges[1] = np.maximum(df[column_y].max(), yedges[1])
+
+    xbins = np.linspace(xedges[0], xedges[1], bins+1)
+    ybins = np.linspace(yedges[0], yedges[1], bins+1)
+    heatmap = np.zeros((bins, bins), np.uint)
+    for df in dataframes:
+        df = initialize_dataframe(filter, var, 5, df)
+        subtotal, _, _ = np.histogram2d(
+            df[column_x], df[column_y], bins=[xbins, ybins])
+        heatmap += subtotal.astype(np.uint)
+    if s > 0:
+        heatmap = gaussian_filter(heatmap, sigma=s)
+
+    extent = [xedges[0], xedges[-1], yedges[0], yedges[-1]]
+    return heatmap.T, extent
+
+
+def histogram_plot(dataframes, var, filename, column_a, column_b, filter):
     print('calculating histogram...')
-    img, extent = myplot(df[column_a], df[column_b], 1)
+    print(var)
+    img, extent = big_histogram(
+        dataframes, var,  filter, column_a, column_b, 1)
     print('plotting...')
     fig, ax = plt.subplots()
     im = ax.imshow(img, extent=extent, origin='lower',
@@ -29,10 +59,11 @@ def histogram_plot(df, filename, column_a, column_b):
     plt.savefig('histogram_'+filename+'.png', bbox_inches='tight', dpi=300)
 
 
-def initialize_dataframe(filter, var, diff_limit):
+def initialize_dataframe(filter, var, diff_limit, file):
     print('initializing  ' + var + ' histogram...')
-    df = pd.read_pickle('df_sample.pkl')
-    df = df[df['filter'] == filter]
+    df = pd.read_pickle(file)
+    if 'filter' in df.columns:
+        df = df[df['filter'] == filter]
     if var is 'angle':
         df = angle(df)
     df['speed'] = np.sqrt(df.umean**2+df.vmean**2)
@@ -43,47 +74,39 @@ def initialize_dataframe(filter, var, diff_limit):
     return df
 
 
-def angle_fun(grad_qv, vel_vector):
-    dot = np.dot(grad_qv, vel_vector)
-    mags = np.linalg.norm(grad_qv)*np.linalg.norm(vel_vector)
-    c = (dot/mags)
-    angle = np.arccos(c)
-    angle = angle/np.pi*180
-    neg_function = grad_qv[0]*vel_vector[1] - grad_qv[1]*vel_vector[0]
-    if(neg_function < 0):
-        angle = -angle
-    return angle
-
-
 def angle(df):
-    df['vel_vector'] = list(zip(df.umean, df.vmean))
-    df['grad_qv'] = list(zip(df.grad_x_qv, df.grad_y_qv))
-    df.grad_qv = df['grad_qv'].apply(lambda x: np.array(x))
-    df.vel_vector = df['vel_vector'].apply(lambda x: np.array(x))
-    df['angle'] = df.apply(lambda x: angle_fun(
-        x['grad_qv'], x['vel_vector']), axis=1)
+    dot = df['grad_x_qv']*df['umean']+df['grad_y_qv']*df['vmean']
+    mags = np.sqrt(df['grad_x_qv']**2+df['grad_y_qv']**2) * \
+        np.sqrt(df['umean']**2+df['vmean']**2)
+    c = (dot/mags)
+    df['angle'] = np.arccos(c)
+    df['angle'] = df.angle/np.pi*180
+    df['neg_function'] = df['grad_x_qv'] * \
+        df['vmean'] - df['grad_y_qv']*df['umean']
+    df['angle'][df.neg_function < 0] = -df['angle'][df.neg_function < 0]
+    df = df.drop(columns=['neg_function'])
     return df
 
 
-df = initialize_dataframe('exp2', 'qv', 5)
-
-histogram_plot(df, 'ua_qv', 'qv', 'speed_diff')
+dataframes = glob.glob('../data/interim/experiments/dataframes/jpl/*')
 
 
-df = initialize_dataframe('exp2', 'grad_mag_qv', 5)
-histogram_plot(df, 'ua_qv_mag', 'grad_mag_qv', 'speed_diff')
+#histogram_plot(dataframes, 'qv', 'ua_qv', 'qv', 'speed_diff', 'exp2')
 
-df = initialize_dataframe('exp2', 'speed', 5)
-histogram_plot(df, 'ua', 'speed', 'speed_diff')
+# histogram_plot(dataframes, 'grad_mag_qv', 'ua_qv_mag',
+#              'grad_mag_qv', 'speed_diff', 'exp2')
 
-df = initialize_dataframe('exp2', 'angle', 5)
-histogram_plot(df, 'ua_angle', 'angle', 'speed_diff')
+# histogram_plot(df, 'ua', 'speed', 'speed_diff')
 
-df = initialize_dataframe('jpl', 'angle', 5)
-histogram_plot(df, 'jpl_angle', 'angle', 'speed_diff')
+# df = initialize_dataframe('exp2', 'angle', 5)
+histogram_plot(dataframes, 'angle', 'jpl_angle', 'angle', 'speed_diff', 'jpl')
+#histogram_plot(dataframes, 'angle', 'ua_angle', 'angle', 'speed_diff', 'exp2')
 
-df = initialize_dataframe('jpl', 'speed', 10)
-histogram_plot(df, 'jpl', 'speed', 'speed_diff')
+# df = initialize_dataframe('jpl', 'angle', 5)
+# istogram_plot(df, 'jpl_angle', 'angle', 'speed_diff')
 
-df = initialize_dataframe('df', 'speed', 10)
-histogram_plot(df, 'df', 'speed', 'speed_diff')
+# df = initialize_dataframe('jpl', 'speed', 10)
+# istogram_plot(df, 'jpl', 'speed', 'speed_diff')
+
+# df = initialize_dataframe('df', 'speed', 10)
+# istogram_plot(df, 'df', 'speed', 'speed_diff')

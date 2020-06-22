@@ -36,15 +36,14 @@ def df_builder(ds, ds_track, ds_qv_grad, date):
     df_qv_grad = ds_qv_grad.to_dataframe().reset_index()
     df_qv_grad = df_qv_grad.drop(columns=['time'])
     df_tot = df.merge(dft.dropna(), on=[
-        'lat', 'lon'], how='left', indicator='Exist')
+        'lat', 'lon'], how='left')
     df_tot = df_tot[df_tot.utrack_y.notna()]
-    dft = df_tot[['utrack_y', 'vtrack_y',
-                  'umean', 'vmean', 'qv', 'lat', 'lon']]
+    df_tot = df_tot.merge(df_qv_grad.dropna(), on=['lat', 'lon'], how='left')
+    dft = df_tot.drop(
+        columns=['time_x', 'time_y', 'utrack_x', 'vtrack_x', 'umeanh', 'vmeanh'])
     df_tot = df_tot.drop(
-        columns=['Exist', 'time_x', 'time_y', 'utrack_y', 'vtrack_y', 'umeanh', 'vmeanh'])
+        columns=['time_x', 'time_y', 'utrack_y', 'vtrack_y', 'umeanh', 'vmeanh'])
 
-    df_tot = df_tot.merge(df_qv_grad.dropna(), on=[
-        'lat', 'lon'], how='left', indicator='Exist')
     df_tot = df_tot.rename(columns={'utrack_x': 'utrack'})
     df_tot = df_tot.rename(columns={'vtrack_x': 'vtrack'})
     dft = dft.rename(columns={'utrack_y': 'utrack', 'vtrack_y': 'vtrack'})
