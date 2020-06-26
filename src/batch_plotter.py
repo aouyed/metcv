@@ -47,7 +47,9 @@ def df_builder(ds, ds_track, ds_qv_grad, date):
     df_tot = df_tot.rename(columns={'utrack_x': 'utrack'})
     df_tot = df_tot.rename(columns={'vtrack_x': 'vtrack'})
     dft = dft.rename(columns={'utrack_y': 'utrack', 'vtrack_y': 'vtrack'})
-
+    dft['filter'] = 'jpl'
+    df_tot = df_tot.drop_duplicates(['lat', 'lon', 'filter'], keep='first')
+    dft = dft.drop_duplicates(['lat', 'lon', 'filter'], keep='first')
     return df_tot, dft
 
 
