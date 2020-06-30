@@ -9,12 +9,8 @@ Created on Thu Dec 12 14:15:17 2019
 import os
 import pickle
 import cv2
-from skimage import util
-from computer_vision import cross_correlation as cc
+import glob
 import numpy as np
-import matplotlib.pyplot as plt
-from sklearn.feature_extraction import image
-from skimage.feature import register_translation
 from tqdm import trange
 from computer_vision import optical_flow_calculators as ofc
 from viz import dataframe_calculators as dfc
@@ -23,6 +19,7 @@ import gc
 import time
 import xarray as xr
 import datetime
+import sh
 
 
 def optical_flow(triplet, dt,  var, **kwargs):
@@ -33,7 +30,6 @@ def optical_flow(triplet, dt,  var, **kwargs):
     start_date = triplet-triplet_delta
 
     frame1 = np.load(file_paths[start_date])
-    #frame1 = ds[var].sel(time=start_date).values
     frame1 = ofc.drop_nan(frame1)
     frame1 = cv2.normalize(src=frame1, dst=None,
                            alpha=0, beta=255, norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_8UC1)
@@ -73,7 +69,11 @@ def optical_flow(triplet, dt,  var, **kwargs):
 
         filename = os.path.basename(file)
         filename = os.path.splitext(filename)[0]
-        path = '../data/processed/flow_frames/'
+        path = '../data/interim/flow_frames/'
+        files = glob.glob(path + '*')
+        if files:
+            sh.rm(files)
+
         if not os.path.exists(path):
             os.makedirs(path)
         file_path = path + var + '_'+filename+'.npy'

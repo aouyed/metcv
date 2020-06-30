@@ -1,14 +1,13 @@
-import pandas as pd
-import seaborn as sns
-import matplotlib.pyplot as plt
-import numpy as np
-import datetime as datetime
-from viz import amv_analysis as aa
-import pickle
-import cartopy.crs as ccrs
-import cv2
-import matplotlib.colors as mcolors
 import metpy as metpy
+import matplotlib.colors as mcolors
+import cv2
+import cartopy.crs as ccrs
+import pickle
+import datetime as datetime
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+import pandas as pd
 
 
 def quiver_plotter(df, title, uname, vname):
@@ -42,40 +41,34 @@ def quiver_plotter(df, title, uname, vname):
     print('plotted quiver...')
 
 
-def map_plotter(df,  values, title, units, vmin, vmax):
-
-   # df['speed_error'] = np.sqrt(df['speed_error'])
-    grid = 10
-    var = df.pivot('lat', 'lon', values).values
-
-    factor = 0.0625/grid
-
+def map_plotter(var, title, units, vmin, vmax):
     fig, ax = plt.subplots()
-    ax = plt.axes(projection=ccrs.PlateCarree())
-    ax.coastlines()
-
+    breakpoint()
+    #ax = plt.axes(projection=ccrs.PlateCarree())
+    # ax.coastlines()
     pmap = plt.cm.gnuplot
     # pmap = plt.cm.coolwarm
-    pmap.set_bad(color='grey')
-    if abs(vmax) > 0:
-        divnorm = mcolors.TwoSlopeNorm(vmin=vmin, vcenter=vmax/4, vmax=vmax)
-        im = ax.imshow(var, cmap=pmap,
-                       extent=[-180, 180, -90, 90], origin='lower', vmin=vmin, vmax=vmax, norm=divnorm)
-    else:
-        im = ax.imshow(var, cmap=pmap,
-                       extent=[-180, 180, -90, 90], origin='lower')
+    # pmap.set_bad(color='grey')
+#    if abs(vmax) > 0:
+ #       divnorm = mcolors.TwoSlopeNorm(vmin=vmin, vcenter=vmax/4, vmax=vmax)
+  #      im = ax.imshow(var, cmap=pmap,
+   #                    extent=[-180, 180, -90, 90], origin='lower', vmin=vmin, vmax=vmax, norm=divnorm)
+    # else:
+    im = ax.imshow(var, cmap=pmap,
+                   extent=[-180, 180, -90, 90], origin='lower')
 
-    gl = ax.gridlines(crs=ccrs.PlateCarree(), draw_labels=True,
-                      linewidth=2, color='gray', alpha=0, linestyle='--')
-    gl.xlabels_top = False
-    gl.ylabels_right = False
+   # gl = ax.gridlines(crs=ccrs.PlateCarree(), draw_labels=True,
+    #                  linewidth=2, color='gray', alpha=0, linestyle='--')
+    #gl.xlabels_top = False
+    #gl.ylabels_right = False
     cbar = fig.colorbar(im, ax=ax, fraction=0.025, pad=0.04)
 
     cbar.set_label(units)
     plt.xlabel("lon")
     plt.ylabel("lat")
     ax.set_title(title)
-    plt.savefig(title+'.png', bbox_inches='tight', dpi=300)
+    plt.savefig('../../data/processed/plots/'+title +
+                '.png', bbox_inches='tight', dpi=300)
 
 
 def scatter_plotter(df,  values, title, units):
