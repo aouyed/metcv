@@ -3,7 +3,7 @@ import glob
 
 
 def run():
-    exp_filters = ('exp2', 'ground_t', 'df')
+    exp_filters = ('exp2', 'ground_t', 'df', 'full_exp2')
 
     ds_total = xr.Dataset()
     for i, exp_filter in enumerate(exp_filters):

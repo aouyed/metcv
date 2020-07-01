@@ -1,7 +1,4 @@
-
-import seaborn as sns
 import pdb
-import matplotlib.pyplot as plt
 import datetime
 import pickle
 import numpy as np
@@ -15,17 +12,22 @@ from sklearn.model_selection import train_test_split
 from joblib import dump, load
 from global_land_mask import globe
 from sklearn.utils import resample
-import extra_data_plotter as edp
+from data import extra_data_plotter as edp
 import time
 import metpy.calc as mpcalc
 import metpy
 from metpy.units import units
 from viz import dataframe_calculators as dfc
 from scipy.interpolate import LinearNDInterpolator as lNDI
+
 R = 6373.0
+SIGMA_LON = 1.5
+SIGMA_LAT = 0.15
 
 
 def error_calc(df, name, category, rmse):
+    """Calculates and stores error of tracker algorithm into dataframe."""
+
     error_uj = (df['umeanh'] - df['u_scaled_approx'])
     error_vj = (df['vmeanh'] - df['v_scaled_approx'])
     speed_errorj = (error_uj**2+error_vj**2)*df['cos_weight']
@@ -41,6 +43,8 @@ def error_calc(df, name, category, rmse):
 
 
 def random_error_add(sigma_u, sigma_v, column_u, column_v):
+    """Adds random noise to dataframe.."""
+
     e_u = np.random.normal(scale=sigma_u)
     e_v = np.random.normal(scale=sigma_v)
     e_u = np.sign(e_u)*np.minimum(2*sigma_u, abs(e_u))
@@ -52,10 +56,15 @@ def random_error_add(sigma_u, sigma_v, column_u, column_v):
     return column_u, column_v
 
 
-def ml_fitter(name, df,  alg, rmse, tsize, only_land, lowlat, uplat, exp_filter):
+def ml_fitter(df, tsize):
+    """fits random forest to tracked values calculated by optical flow."""
 
-    X_train0, X_test0, y_train0, y_test0 = train_test_split(df[['lat', 'lon', 'u_scaled_approx', 'v_scaled_approx',  'land', 'umeanh', 'vmeanh',  'u_error_rean', 'v_error_rean']], df[[
-        'umeanh', 'vmeanh', 'land', 'lat']], test_size=tsize, random_state=1)
+    X_full = df[['lat', 'lon', 'u_scaled_approx', 'v_scaled_approx',
+                 'land', 'umeanh', 'vmeanh',  'u_error_rean', 'v_error_rean']]
+    y_full = df[['umeanh', 'vmeanh', 'land', 'lat']]
+
+    X_train0, X_test0, y_train0, y_test0 = train_test_split(
+        X_full, y_full, test_size=tsize, random_state=1)
 
     sigma_u = abs(X_train0['u_error_rean'])
     sigma_v = abs(X_train0['v_error_rean'])
@@ -63,8 +72,8 @@ def ml_fitter(name, df,  alg, rmse, tsize, only_land, lowlat, uplat, exp_filter)
     X_train0['umeanh'], X_train0['vmeanh'] = random_error_add(
         sigma_u, sigma_v, X_train0['umeanh'], X_train0['vmeanh'])
 
-    sigma_lon = 1.5
-    sigma_lat = 0.15
+    sigma_lon = SIGMA_LON
+    sigma_lat = SIGMA_LAT
     X_train0['lon'], X_train0['lat'] = random_error_add(
         sigma_lon, sigma_lat, X_train0['lon'], X_train0['lat'])
 
@@ -83,43 +92,42 @@ def ml_fitter(name, df,  alg, rmse, tsize, only_land, lowlat, uplat, exp_filter)
     start_time = time.time()
     regressor.fit(X_train, y_train)
     print("--- %s seconds ---" % (time.time() - start_time))
-    return regressor, X_test0, y_test0
+    return regressor, X_test0, y_test0, X_full
 
 
-def ml_predictor(name, alg, category,   rmse, tsize, lowlat, uplat, regressor, X_test0, y_test0):
-        # change df0z to df for current timestep
+def ml_predictor(category, name, rmse,  regressor, X_test0, y_test0, X_full0):
+    """Corrects optical flow velocities with random forest model."""
 
     X_test0['cos_weight'] = np.cos(X_test0['lat']/180*np.pi)
+    X_full0['cos_weight'] = np.cos(X_full0['lat']/180*np.pi)
+
     X_test0 = X_test0.dropna()
     y_test0 = y_test0.dropna()
-
-    X_test0 = X_test0[(X_test0.lat >= lowlat) & (X_test0.lat <= uplat)]
-    y_test0 = y_test0[(y_test0.lat >= lowlat) & (y_test0.lat <= uplat)]
+    X_full0 = X_full0.dropna()
 
     X_test = X_test0[['lat', 'lon',
                       'u_scaled_approx', 'v_scaled_approx', 'land']]
+    X_full = X_full0[['lat', 'lon',
+                      'u_scaled_approx', 'v_scaled_approx', 'land']]
     # X_test = X_test0[['lat', 'lon', 'land']]
     y_pred = regressor.predict(X_test)
+    y_pred_full = regressor.predict(X_full)
 
-    error_u = (y_test0['umeanh'] - y_pred[:, 0])
-    error_v = (y_test0['vmeanh'] - y_pred[:, 1])
     X_test0['u_scaled_approx'] = y_pred[:, 0]
     X_test0['v_scaled_approx'] = y_pred[:, 1]
-    speed_error = (error_u**2+error_v**2)*X_test0['cos_weight']
-    speed_error_sqrt = np.sqrt(error_u**2+error_v**2)*X_test0['cos_weight']
-    speed_error_sqrt_nw = np.sqrt(error_u**2+error_v**2)
 
-    rmsvd = np.sqrt(speed_error.sum()/X_test0['cos_weight'].sum())
-    category.append(alg)
-    rmse.append(rmsvd)
-    X_test0['vector_diff'] = speed_error_sqrt
-    X_test0['vector_diff_no_weight'] = speed_error_sqrt_nw
-    if lowlat == -90 and uplat == 90:
-        X_test0.to_pickle("df_rf.pkl")
-    return X_test0
+    X_full0['u_scaled_approx'] = y_pred_full[:, 0]
+    X_full0['v_scaled_approx'] = y_pred_full[:, 1]
+
+    _, _, X_test0 = error_calc(X_test0, name, category, rmse)
+    _, _, X_full0 = error_calc(X_full0, name, [], [])
+
+    return X_test0, X_full0
 
 
 def error_interpolator(dfm, category, rmse):
+    """Interpolates error into appropriate coordinates, since error is calculated by adding noise to coordinates."""
+
     dfm_gt = dfm.copy()
     dfm_gt = resample(dfm_gt, replace=False,
                       n_samples=int(1e5), random_state=1)
@@ -132,8 +140,8 @@ def error_interpolator(dfm, category, rmse):
     dfm_gt['u_scaled_approx'], dfm_gt['v_scaled_approx'] = random_error_add(
         sigma_u, sigma_v, dfm_gt['umeanh'], dfm_gt['vmeanh'])
 
-    sigma_lon = 1.5
-    sigma_lat = 0.15
+    sigma_lon = SIGMA_LON
+    sigma_lat = SIGMA_LAT
 
     dfm_gt['lon'], dfm_gt['lat'] = random_error_add(
         sigma_lon, sigma_lat, dfm_gt['lon'], dfm_gt['lat'])
@@ -159,6 +167,8 @@ def error_interpolator(dfm, category, rmse):
 
 
 def error_rean(dfm, category, rmse):
+    """Adds error from reanalysis to GEOS-5 ground truth."""
+
     sigma_u = abs(dfm['u_error_rean'])
     sigma_v = abs(dfm['v_error_rean'])
 
@@ -170,6 +180,8 @@ def error_rean(dfm, category, rmse):
 
 
 def ds_to_netcdf(df, triplet_time, exp_filter):
+    """Saves dataset to netCDF file."""
+
     df = df.set_index(['lat', 'lon'])
     ds = df.to_xarray()
     ds = ds[['umeanh', 'vmeanh', 'u_scaled_approx',
@@ -177,40 +189,24 @@ def ds_to_netcdf(df, triplet_time, exp_filter):
     ds = ds.rename({'u_scaled_approx': 'utrack', 'v_scaled_approx': 'vtrack'})
     ds = ds.expand_dims('time')
     ds = ds.assign_coords(time=[triplet_time])
-    # ds = ds[['umeanh', 'vmeanh', 'utrack',
-    #        'vtrack', 'cos_weight', 'u_error_rean', 'v_error_rean']]
     ds.to_netcdf('../data/processed/experiments/' +
                  exp_filter+'_'+triplet_time.strftime("%Y-%m-%d-%H:%M")+'.nc')
 
 
-def latitude_selector(df, lowlat, uplat,  category, rmse, latlon, test_size, test_sizes, only_land, exp_filter, exp_list, regressor, X_test0, y_test0, triplet_time):
-   # dfm = df[(df.lat) <= uplat]
-   # dfm = df[(df.lat) >= lowlat]
-    dfm = df[(df.lat >= lowlat) & (df.lat <= uplat)]
-    lowlat0 = lowlat
-    uplat0 = uplat
-
-    if lowlat < 0:
-        lowlat = str(abs(lowlat)) + '°S'
-    else:
-        lowlat = str(lowlat) + '°N'
-
-    if uplat < 0:
-        uplat = str(abs(uplat)) + '°S'
-    else:
-        uplat = str(uplat) + '°N'
-    latlon.append(str(str(lowlat)+',' + str(uplat)))
-    test_sizes.append(test_size)
+def latitude_selector(df,  category, rmse,   exp_filter, exp_list, regressor, X_test0, y_test0, triplet_time, X_full):
+    """Calculates second stage of UA algorithm."""
     exp_list.append(exp_filter)
+
     if exp_filter is 'exp2':
-        X_test0 = ml_predictor('uv',  'rf', category, rmse, test_size, lowlat0,
-                               uplat0, regressor, X_test0, y_test0)
+        X_test0, X_full = ml_predictor(category, 'rf',
+                                       rmse,  regressor, X_test0, y_test0, X_full)
         ds_to_netcdf(X_test0, triplet_time, exp_filter)
+        ds_to_netcdf(X_full, triplet_time, 'full_' + exp_filter)
 
     elif exp_filter is 'ground_t':
-        X_test0, _, _ = error_interpolator(dfm, category, rmse)
+        X_test0, _, _ = error_interpolator(df, category, rmse)
         ds_to_netcdf(X_test0, triplet_time, exp_filter)
 
     else:
-        _, _, dfm = error_calc(dfm, exp_filter, category, rmse)
-        ds_to_netcdf(dfm, triplet_time, exp_filter)
+        _, _, df = error_calc(df, exp_filter, category, rmse)
+        ds_to_netcdf(df, triplet_time, exp_filter)

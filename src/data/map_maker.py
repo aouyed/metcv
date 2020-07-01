@@ -16,6 +16,7 @@ date = datetime(2006, 7, 1, 0, 0, 0, 0)
 ds_unit = ds.sel(time=date, filter='df')
 var = ds_unit['error_mag'].values
 vmin = 0
-vmax = np.quantile(var, 0.99)
-
+vmax = np.quantile(np.nan_to_num(var), 0.99)
+vmax = 5.838104948848125
+print(vmax)
 edp.map_plotter(var, 'errorf', 'm/s', 0, vmax)

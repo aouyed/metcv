@@ -8,7 +8,7 @@ import pickle
 import glob
 from natsort import natsorted
 import pandas as pd
-import extra_data_plotter as edp
+from data import extra_data_plotter as edp
 import sh
 from sklearn.utils import resample
 

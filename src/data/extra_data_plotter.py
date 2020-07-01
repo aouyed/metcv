@@ -43,19 +43,18 @@ def quiver_plotter(df, title, uname, vname):
 
 def map_plotter(var, title, units, vmin, vmax):
     fig, ax = plt.subplots()
-    breakpoint()
-    #ax = plt.axes(projection=ccrs.PlateCarree())
-    # ax.coastlines()
+    ax = plt.axes(projection=ccrs.PlateCarree())
+    ax.coastlines()
     pmap = plt.cm.gnuplot
     # pmap = plt.cm.coolwarm
     # pmap.set_bad(color='grey')
-#    if abs(vmax) > 0:
- #       divnorm = mcolors.TwoSlopeNorm(vmin=vmin, vcenter=vmax/4, vmax=vmax)
-  #      im = ax.imshow(var, cmap=pmap,
-   #                    extent=[-180, 180, -90, 90], origin='lower', vmin=vmin, vmax=vmax, norm=divnorm)
-    # else:
-    im = ax.imshow(var, cmap=pmap,
-                   extent=[-180, 180, -90, 90], origin='lower')
+    if abs(vmax) > 0:
+        divnorm = mcolors.TwoSlopeNorm(vmin=vmin, vcenter=vmax/4, vmax=vmax)
+        im = ax.imshow(var, cmap=pmap,
+                       extent=[-180, 180, -90, 90], origin='lower', vmin=vmin, vmax=vmax, norm=divnorm)
+    else:
+        im = ax.imshow(var, cmap=pmap,
+                       extent=[-180, 180, -90, 90], origin='lower')
 
    # gl = ax.gridlines(crs=ccrs.PlateCarree(), draw_labels=True,
     #                  linewidth=2, color='gray', alpha=0, linestyle='--')

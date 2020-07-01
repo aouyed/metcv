@@ -44,6 +44,11 @@ def optical_flow(triplet, dt,  var, **kwargs):
 
     file_paths.pop(start_date, None)
 
+    path = '../data/interim/flow_frames/'
+    files = glob.glob(path + '*')
+    if files:
+        sh.rm(files)
+
     for date in file_paths:
         dates.append(date)
         print('flow calculation for date: ' + str(date))
@@ -69,10 +74,6 @@ def optical_flow(triplet, dt,  var, **kwargs):
 
         filename = os.path.basename(file)
         filename = os.path.splitext(filename)[0]
-        path = '../data/interim/flow_frames/'
-        files = glob.glob(path + '*')
-        if files:
-            sh.rm(files)
 
         if not os.path.exists(path):
             os.makedirs(path)

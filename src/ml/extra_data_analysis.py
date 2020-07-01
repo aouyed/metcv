@@ -6,9 +6,6 @@ Created on Sat Jan  4 15:47:22 2020
 @author: amirouyed
 ,"""
 
-import pdb
-from viz import amv_analysis as aa
-from viz import dataframe_calculators as dfc
 import datetime
 import pickle
 import numpy as np
@@ -18,16 +15,18 @@ from tqdm import tqdm
 from joblib import dump, load
 from global_land_mask import globe
 import reverse_geocoder
-import extra_data_plotter as edp
-import ml_functions as mlf
+from data import extra_data_plotter as edp
+from ml import ml_functions as mlf
 import time
-import reanalysis_error as re
+from ml import reanalysis_error as re
 import xarray as xr
 
 R = 6373.0
 
 
 def ds_to_dataframe(ds, triplet_time, deltatime):
+    """Get dataframe from an xarray dataset."""
+
     ds_unit = ds.sel(time=triplet_time)
     ds_unit['u_scaled_approx'] = 0.5*(ds['u_scaled_approx'].sel(time=triplet_time) +
                                       ds['u_scaled_approx'].sel(time=(triplet_time+deltatime)))
@@ -40,6 +39,7 @@ def ds_to_dataframe(ds, triplet_time, deltatime):
 
 
 def run(triplet_time):
+    """Initialize second stage of UA algorithm."""
 
     filename = '../data/processed/experiments/' + \
         triplet_time.strftime("%Y-%m-%d-%H:%M")+'.nc'
@@ -57,15 +57,7 @@ def run(triplet_time):
 
     category = []
     rmse = []
-    latlon = []
-    test_sizes = []
     exp_list = []
-    only_land = False
-
-    #latdowns = [-30, 30, 60, -60, -90]
-    #latups = [30, 60, 90, -30, -60]
-    latdowns = [-90]
-    latups = [90]
     test_size = 0.95
     exp_filters = ['exp2', 'ground_t', 'df']
     print('process data...')
@@ -75,25 +67,21 @@ def run(triplet_time):
     for exp_filter in exp_filters:
         print('fitting with filter ' + str(exp_filter))
         if exp_filter in ('exp2', 'error'):
-            regressor, X_test0, y_test0 = mlf.ml_fitter('uv', df,
-                                                        'rf', rmse, test_size, only_land, -90, 90, exp_filter)
+            regressor, X_test0, y_test0, X_full = mlf.ml_fitter(
+                df, test_size)
         elif exp_filter is 'df':
             X_test0 = df
             regressor, y_test0 = 0, 0
         else:
             regressor, X_test0, y_test0 = 0, 0, 0
             print('predicting..')
-        for i, latdown in enumerate(tqdm(latdowns)):
-            start_time = time.time()
-            mlf.latitude_selector(df, latdown, latups[i], category,  rmse, latlon,  test_size,
-                                  test_sizes, only_land, exp_filter, exp_list, regressor, X_test0, y_test0, triplet_time)
-            print("--- %s seconds ---" % (time.time() - start_time))
+        start_time = time.time()
+        mlf.latitude_selector(df, category,  rmse,
+                              exp_filter, exp_list, regressor, X_test0, y_test0, triplet_time, X_full)
+        print("--- %s seconds ---" % (time.time() - start_time))
 
-    d = {'latlon': latlon, 'rmse': rmse, 'exp_filter': category}
+    d = {'rmse': rmse, 'exp_filter': category}
     df_results = pd.DataFrame(data=d)
     print(df_results)
 
-   # pdb.set_trace()
-
     print('done!')
-    # print(df_results)
