@@ -2,9 +2,9 @@ import os
 import glob
 import sh
 from datetime import datetime
-import extra_data_analysis as eda
-import track_preprocessor as tp
-import batch_plotter as bp
+from ml import extra_data_analysis as eda
+from data import track_preprocessor as tp
+from data import batch_plotter as bp
 # triplet_times = (datetime(2006, 7, 1, 0, 0, 0, 0), datetime(2006, 7, 1, 6, 0, 0, 0),
 #                datetime(2006, 7, 1, 12, 0, 0, 0), datetime(2006, 7, 1, 18, 0, 0, 0))
 
@@ -17,5 +17,5 @@ import batch_plotter as bp
 #           triplet_time.strftime("%Y-%m-%d-%H:%M"))
 # eda.run(triplet_time)
 
-# tp.run()
-bp.run()
+tp.run()
+# bp.run()
