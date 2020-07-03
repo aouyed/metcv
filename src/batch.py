@@ -23,7 +23,7 @@ if files:
     sh.rm(files)
 for triplet_time in triplet_times:
     print('loop')
-    os.system("python3 run.py  -a -p  -v 'qv' -dt 3600  -df -tri " +
+    os.system("python3 run.py  -p 500  -dt 3600  -tri " +
               triplet_time.strftime("%Y-%m-%d-%H:%M"))
     eda.run(triplet_time)
 

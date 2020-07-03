@@ -17,5 +17,5 @@ from data import batch_plotter as bp
 #           triplet_time.strftime("%Y-%m-%d-%H:%M"))
 # eda.run(triplet_time)
 
-tp.run()
-# bp.run()
+# tp.run()
+bp.run()

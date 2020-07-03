@@ -11,6 +11,8 @@ import pandas as pd
 from data import extra_data_plotter as edp
 import sh
 from sklearn.utils import resample
+PATH_DF = '../../data/processed/dataframe/'
+PATH_PLOT = '../../data/processed/dataframe/plots/'
 
 
 def rmsvd_calculator(df, coord, rmsvd_num, rmsvd_den):
@@ -40,13 +42,14 @@ def df_builder(ds, ds_track, ds_qv_grad, date):
     df_tot = df_tot[df_tot.utrack_y.notna()]
     df_tot = df_tot.merge(df_qv_grad.dropna(), on=['lat', 'lon'], how='left')
     dft = df_tot.drop(
-        columns=['time_x', 'time_y', 'utrack_x', 'vtrack_x', 'umeanh', 'vmeanh'])
+        columns=['time_x', 'time_y', 'utrack_x', 'vtrack_x', 'umean_x', 'vmean_x'])
     df_tot = df_tot.drop(
-        columns=['time_x', 'time_y', 'utrack_y', 'vtrack_y', 'umeanh', 'vmeanh'])
+        columns=['time_x', 'time_y', 'utrack_y', 'vtrack_y', 'umean_y', 'vmean_y'])
 
-    df_tot = df_tot.rename(columns={'utrack_x': 'utrack'})
-    df_tot = df_tot.rename(columns={'vtrack_x': 'vtrack'})
-    dft = dft.rename(columns={'utrack_y': 'utrack', 'vtrack_y': 'vtrack'})
+    df_tot = df_tot.rename(columns={
+                           'utrack_x': 'utrack', 'vtrack_x': 'vtrack', 'umean_x': 'umean', 'vmean_x': 'vmean'})
+    dft = dft.rename(columns={
+        'utrack_y': 'utrack', 'vtrack_y': 'vtrack', 'umean_y': 'umean', 'vmean_y': 'vmean'})
     dft['filter'] = 'jpl'
     df_tot = df_tot.drop_duplicates(['lat', 'lon', 'filter'], keep='first')
     dft = dft.drop_duplicates(['lat', 'lon', 'filter'], keep='first')
@@ -171,6 +174,6 @@ def run():
     df = edp.sorting_latlon(df)
     print(df)
     print(df_sample)
-    df.to_pickle('df_results.pkl')
-    df_sample.to_pickle('df_sample.pkl')
-    edp.filter_plotter(df, 'results_test', 'training data size = 5%')
+    df.to_pickle(PATH_DF+'df_results.pkl')
+    df_sample.to_pickle(PATH_DF'df_sample.pkl')
+    edp.filter_plotter(df, PATH_PLOT+'results_test', 'training data size = 5%')

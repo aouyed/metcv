@@ -40,14 +40,8 @@ def loader(var, pressure,  dt,  triplet,   **kwargs):
     file_paths = {}
     filename = "../data/interim/experiments/july/" + str(triplet.day) + ".nc"
     ds_n = xr.open_dataset(filename)
-    ds_n = ds_n.sel(pressure=850)
+    ds_n = ds_n.sel(pressure=pressure)
 
-    # if var.lower() in ('utrack', 'vtrack', 'umean', 'vmean'):
-    #   filenames = glob.glob(
-    #      "../data/raw/jpl/processed_jpl/"+str(triplet)+"z/*")
-   # else:
-    #    filenames = glob.glob("../data/raw/jpl/raw_jpl/"+str(triplet)+"z/*")
-    #   print(filenames)
     for i, date in enumerate(date_list):
         print('Downloading data for variable ' +
               var + ' for date: ' + str(date))

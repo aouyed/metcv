@@ -19,21 +19,11 @@ import os
 class Parameters:
     def __init__(self, **kwargs):
         prop_defaults = {
-            "start_date": datetime(2006, 7, 1, 0, 0, 0, 0),
-            "end_date": datetime(2006, 7, 1, 1, 0, 0, 0),
-            "var": "QVDENS",
+            "var": "qv",
             "grid": 0.0625,
-            "coarse": False,
             "dt": 1800,
-            "target_box_x": [10],
-            "target_box_y": [10],
-            'sub_pixel': False,
-            "path": "_",
-            "jpl_loader": False,
-            "track": False,
             "pressure": 850,
             "cores": 5,
-            'deep_flow': True,
             'triplet': datetime(2006, 7, 1, 0, 0, 0, 0)
         }
         for (prop, default) in prop_defaults.items():
@@ -64,21 +54,6 @@ def downloader(parameters):
     kwargs = vars(parameters)
     downloader_function(parameters)
 
-#    parameters.var = 'vtrack'
- #   kwargs = vars(parameters)
-  #  downloader_function(parameters)
-
-   # parameters.var = 'utrack'
-   # kwargs = vars(parameters)
-   # downloader_function(parameters)
-
-    #parameters.var = 'umean'
-    #kwargs = vars(parameters)
-    # downloader_function(parameters)
-    #parameters.var = 'vmean'
-    #kwargs = vars(parameters)
-    # downloader_function(parameters)
-
     parameters.var = 'umeanh'
     kwargs = vars(parameters)
     downloader_function(parameters)
@@ -92,7 +67,7 @@ def downloader(parameters):
     print('finished downloader.')
 
 
-def processor(parameters, parameters_process):
+def processor(parameters):
     """ iteratres through the hyperparameters"""
     print('initializing processor...')
     df = pd.DataFrame()
@@ -102,7 +77,6 @@ def processor(parameters, parameters_process):
     dc.optical_flow(parameters)
     dc.builder(parameters)
     size_path = dc.path(parameters)
-    parameters.path = size_path
     df_unit = dc.analysis(parameters)
     df = dc.df_parameters(df, df_unit, parameters)
     dc.df_sumnmary(df, parameters.coarse)

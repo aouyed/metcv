@@ -13,17 +13,17 @@ GRADIENT_TO_KM = KG_TO_GRAMS/METERS_TO_KM
 
 def big_histogram(dataframes, var, filter, column_x, column_y, s,  bins=100):
     """Creates a big histogram out of chunks in order to fit it in memory. """
-    xedges = [-5, 5]
-    yedges = [np.inf, -np.inf]
+    xedges = [np.inf, -np.inf]
+    yedges = [-5, 5]
 
     for df in dataframes:
         print(df)
         df = initialize_dataframe(filter, var, df)
-        #xedges[0] = np.minimum(df[column_x].min(), xedges[0])
-       # xedges[1] = np.maximum(df[column_x].max(), xedges[1])
+        xedges[0] = np.minimum(df[column_x].min(), xedges[0])
+        xedges[1] = np.maximum(df[column_x].max(), xedges[1])
 
-        yedges[0] = np.minimum(df[column_y].min(), yedges[0])
-        yedges[1] = np.maximum(df[column_y].max(), yedges[1])
+        #yedges[0] = np.minimum(df[column_y].min(), yedges[0])
+        #yedges[1] = np.maximum(df[column_y].max(), yedges[1])
 
     xbins = np.linspace(xedges[0], xedges[1], bins+1)
     ybins = np.linspace(yedges[0], yedges[1], bins+1)
@@ -64,7 +64,10 @@ def initialize_dataframe(filter, var,  file):
     print('initializing  ' + var + ' histogram...')
     df = pd.read_pickle(file)
     if filter is not 'jpl':
-        df = df[df['filter'] == filter]
+        if filter is 'reanalysis':
+            df = df[df['filter'] == 'df']
+        else:
+            df = df[df['filter'] == filter]
     df = df.drop_duplicates(['lat', 'lon'], keep='first')
     if var is 'angle':
         df = angle(df)
@@ -74,7 +77,13 @@ def initialize_dataframe(filter, var,  file):
         df[var] = df[var]*GRADIENT_TO_KM
     df['speed'] = np.sqrt(df.umean**2+df.vmean**2)
     df['speed_track'] = np.sqrt(df.utrack**2+df.vtrack**2)
-    df['speed_diff'] = df['speed_track']-df['speed']
+    #u_error = df.utrack-df.umean
+    #v_error = df.vtrack-df.vmean
+    #df['speed_diff'] = np.sqrt(u_error**2+v_error**2)
+    df['speed_diff'] = df.speed - df.speed_track
+
+    if filter is 'reanalysis':
+        df['speed_diff'] = np.sqrt(df.u_error_rean**2+df.v_error_rean**2)
     df = df[['speed_diff', var]].dropna()
 #    df = df[(abs(df['speed_diff']) <= diff_limit)]
     return df
@@ -112,6 +121,7 @@ def main():
 
     histogram_sequence('exp2', 'ua', dataframes)
     histogram_sequence('df', 'df', dataframes)
+    histogram_sequence('reanalysis', 'rean', dataframes)
     histogram_sequence('ground_t', 'gt', dataframes)
 
     dataframes = glob.glob('../../data/interim/experiments/dataframes/jpl/*')
