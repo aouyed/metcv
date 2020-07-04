@@ -58,7 +58,7 @@ def df_summary(df, count):
     return df_total
 
 
-def dataframe_builder(end_date, var, grid, dt, cores,  **kwargs):
+def dataframe_builder(var, grid, dt, cores,  **kwargs):
     """build dataframe that includes data from all relevant dates"""
     dictionary_paths = glob.glob('../data/interim/dictionaries/vars/*')
     dictionary_path = '../data/interim/dictionaries/'
@@ -127,7 +127,7 @@ def error_df(df):
     return df
 
 
-def df_concatenator(dataframes_dict, start_date, end_date, track):
+def df_concatenator(dataframes_dict):
     df = pd.DataFrame()
     print('concatenating dataframes for all dates for further analysis:')
     for date in tqdm(dataframes_dict):
@@ -135,11 +135,6 @@ def df_concatenator(dataframes_dict, start_date, end_date, track):
         gc.collect()
         df_path = dataframes_dict[date]
         df_unit = pd.read_pickle(df_path)
-
-        if track:
-            df_unit['u_scaled_approx'] = df_unit['utrack']
-            df_unit['v_scaled_approx'] = df_unit['vtrack']
-
         df_unit = df_unit.reset_index(drop=True)
 
         if df.empty:
@@ -148,8 +143,6 @@ def df_concatenator(dataframes_dict, start_date, end_date, track):
             df = df + df_unit
 
     df = df/2
-    # df['datetime'] = end_date
-
     df = error_df(df)
     df = df[['lon', 'lat', 'speed',  'qv', 'speed_approx', 'speed_error',
              'error_v', 'error_u', 'u_scaled_approx', 'v_scaled_approx', 'vmeanh', 'umeanh']]
@@ -194,14 +187,14 @@ def df_to_netcdf(dataframes_dict, triplet):
                  triplet.strftime("%Y-%m-%d-%H:%M")+'.nc')
 
 
-def data_analysis(start_date, end_date, track, triplet,  **kwargs):
+def data_analysis(triplet,  **kwargs):
     """perform analytics on the dataframe"""
 
     pd.set_option('display.max_colwidth', -1)
     pd.set_option('display.expand_frame_repr', False)
     dict_path = '../data/interim/dictionaries/dataframes.pkl'
     dataframes_dict = pickle.load(open(dict_path, 'rb'))
-    df = df_concatenator(dataframes_dict, start_date, end_date, track)
+    df = df_concatenator(dataframes_dict)
     df_to_netcdf(dataframes_dict, triplet)
     count = df.shape[0]
     df = df.dropna()

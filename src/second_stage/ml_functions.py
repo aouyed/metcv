@@ -17,10 +17,8 @@ import time
 import metpy.calc as mpcalc
 import metpy
 from metpy.units import units
-from viz import dataframe_calculators as dfc
 from scipy.interpolate import LinearNDInterpolator as lNDI
 
-R = 6373.0
 SIGMA_LON = 1.5
 SIGMA_LAT = 0.15
 
@@ -189,11 +187,11 @@ def ds_to_netcdf(df, triplet_time, exp_filter):
     ds = ds.rename({'u_scaled_approx': 'utrack', 'v_scaled_approx': 'vtrack'})
     ds = ds.expand_dims('time')
     ds = ds.assign_coords(time=[triplet_time])
-    ds.to_netcdf('../data/processed/experiments/' +
-                 exp_filter+'_'+triplet_time.strftime("%Y-%m-%d-%H:%M")+'.nc')
+    ds.to_netcdf('../data/processed/experiments/' + exp_filter +
+                 '_'+triplet_time.strftime("%Y-%m-%d-%H:%M")+'.nc')
 
 
-def latitude_selector(df,  category, rmse,   exp_filter, exp_list, regressor, X_test0, y_test0, triplet_time, X_full):
+def random_forest_calculator(df,  category, rmse,   exp_filter, exp_list, regressor, X_test0, y_test0, triplet_time, X_full):
     """Calculates second stage of UA algorithm."""
     exp_list.append(exp_filter)
 

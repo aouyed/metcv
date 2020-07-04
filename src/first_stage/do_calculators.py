@@ -28,25 +28,11 @@ def df_parameters(df, df_unit, parameters):
     return df
 
 
-def cross_correlation(parameters):
-    print('initializing cross correlation...')
-    kwargs = vars(parameters)
-    cc.cross_correlation_amv(**kwargs)
-    print('finished cross correlation.')
-
-
 def optical_flow(parameters):
     print('initializing optical flow...')
     kwargs = vars(parameters)
     ofa.optical_flow(**kwargs)
     print('finished optical flow.')
-
-
-def coarsener(parameters):
-    print('initializing coarsener...')
-    kwargs = vars(parameters)
-    c.coarsener(**kwargs)
-    print('finished coarsener.')
 
 
 def builder(parameters):
@@ -64,18 +50,7 @@ def analysis(parameters):
     return df_unit
 
 
-def path(parameters):
-    kwargs = vars(parameters)
-    path = file_string(**kwargs)
-    return(path)
-
-
-def file_string(var,  grid, **kwargs):
-    path = (var+'_g'+str(grid))
-    return path
-
-
-def df_sumnmary(df, coarse):
+def df_sumnmary(df):
     today = date.today()
     df_path = '../data/interim/dataframes/'+str(today)
     plot_path = '../data/processed/summary_plots/'+str(today)
@@ -83,7 +58,4 @@ def df_sumnmary(df, coarse):
         os.makedirs(df_path)
     if not os.path.exists(plot_path):
         os.makedirs(plot_path)
-    df.to_pickle(df_path+'/c'+str(coarse)+'.pkl')
     print(df[["corr_speed", "corr_u", "corr_v", "ratio_count", "mean", "std"]])
-   # dfc.line_plotter(df[['cutoff', 'corr_speed',
-   #                      'mean_speed_error', 'initial_count', 'ratio_count']], plot_path)

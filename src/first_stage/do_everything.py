@@ -8,10 +8,7 @@ Created on Thu Nov 14 11:59:16 2019
 from datetime import datetime
 import do_calculators as dc
 import pandas as pd
-from data import make_dataset_geos5 as gd
-from features import build_features as qvd
 from data import jpl_loader as jl
-from data import exp_loader as el
 import shutil
 import os
 
@@ -71,13 +68,9 @@ def processor(parameters):
     """ iteratres through the hyperparameters"""
     print('initializing processor...')
     df = pd.DataFrame()
-
-    size_path = dc.path(parameters)
-    parameters.path = size_path
     dc.optical_flow(parameters)
     dc.builder(parameters)
-    size_path = dc.path(parameters)
     df_unit = dc.analysis(parameters)
     df = dc.df_parameters(df, df_unit, parameters)
-    dc.df_sumnmary(df, parameters.coarse)
+    dc.df_sumnmary(df)
     print('finished processor.')

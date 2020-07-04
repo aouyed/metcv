@@ -11,8 +11,8 @@ import pandas as pd
 from data import extra_data_plotter as edp
 import sh
 from sklearn.utils import resample
-PATH_DF = '../../data/processed/dataframe/'
-PATH_PLOT = '../../data/processed/dataframe/plots/'
+PATH_DF = '../data/processed/dataframes/'
+PATH_PLOT = '../data/processed/plots/'
 
 
 def rmsvd_calculator(df, coord, rmsvd_num, rmsvd_den):
@@ -163,17 +163,17 @@ def plot_preprocessor(ds, ds_track, ds_qv_grad):
     return df_results, df_sample
 
 
-def run():
-    file = '../data/processed/experiments/july.nc'
+def run(pressure):
+    file = '../data/processed/experiments/'+str(pressure)+'_july.nc'
     ds = xr.open_dataset(file)
     ds_track = xr.open_dataset(
-        '../data/interim/experiments/july/tracked/60min/combined/july.nc')
+        '../data/interim/experiments/july/tracked/60min/combined/'+str(pressure)+'_july.nc')
     ds_qv_grad = xr.open_dataset(
-        '../data/interim/experiments/july/tracked/60min/combined/july_qv_grad.nc')
+        '../data/interim/experiments/july/tracked/60min/combined/'+str(pressure)+'_july_qv_grad.nc')
     df, df_sample = plot_preprocessor(ds, ds_track, ds_qv_grad)
     df = edp.sorting_latlon(df)
     print(df)
     print(df_sample)
     df.to_pickle(PATH_DF+'df_results.pkl')
-    df_sample.to_pickle(PATH_DF'df_sample.pkl')
+    df_sample.to_pickle(PATH_DF+'df_sample.pkl')
     edp.filter_plotter(df, PATH_PLOT+'results_test', 'training data size = 5%')

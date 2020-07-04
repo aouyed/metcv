@@ -80,7 +80,7 @@ def initialize_dataframe(filter, var,  file):
     #u_error = df.utrack-df.umean
     #v_error = df.vtrack-df.vmean
     #df['speed_diff'] = np.sqrt(u_error**2+v_error**2)
-    df['speed_diff'] = df.speed - df.speed_track
+    df['speed_diff'] = df.speed_track - df.speed
 
     if filter is 'reanalysis':
         df['speed_diff'] = np.sqrt(df.u_error_rean**2+df.v_error_rean**2)

@@ -5,6 +5,10 @@ import glob
 from pathlib import Path
 from natsort import natsorted
 from datetime import datetime
+import sh
+
+PRESSURE = 500
+PATH_FILES = '../../data/interim/experiments/july/tracked/60min/*.nc'
 
 
 def daterange(start_date, end_date, dhour):
@@ -16,24 +20,20 @@ def daterange(start_date, end_date, dhour):
     return date_list
 
 
-# d0 = datetime.datetime(2006, 6, 30, 23, 0, 0, 0)
-# d1 = datetime.datetime(2006, 7, 1, 19, 0, 0, 0)
+rm_files = natsorted(glob.glob(PATH_FILES))
 
-# start_dates = daterange(d0, d1, 6)
-# end_dates = daterange(d0+datetime.timedelta(hours=2),
-#                      d1+datetime.timedelta(hours=2), 6)
-# date_list = []
-# for i, start_date in enumerate(start_dates):
- #   date_list = date_list + daterange(start_date, end_dates[i], 0.5)
+if rm_files:
+    sh.rm(rm_files)
 
-
+pressure = PRESSURE
 for day in (1, 2, 3):
 
     date_list = (datetime(2006, 7, day, 0, 0, 0, 0), datetime(2006, 7, day, 6, 0, 0, 0),
                  datetime(2006, 7, day, 12, 0, 0, 0), datetime(2006, 7, day, 18, 0, 0, 0))
 
     files = natsorted(
-        glob.glob('../../data/raw/experiments/jpl/tracked/july/'+str(day)+'/850/60min/*.nc'))
+        glob.glob('../../data/raw/experiments/jpl/tracked/july/'+str(day)+'/'+str(pressure)+'/60min/*.nc'))
+    print(files)
     ds_total = 0
     for i, file in enumerate(files):
         print('var file:')
@@ -58,10 +58,9 @@ for day in (1, 2, 3):
     print(ds_total)
 
 
-files = natsorted(
-    glob.glob('../../data/interim/experiments/july/tracked/60min/*.nc'))
-
 ds_total = xr.Dataset()
+files = natsorted(glob.glob(PATH_FILES))
+
 for i, file in enumerate(files):
     ds = xr.open_dataset(file)
     if i == 0:
@@ -70,5 +69,5 @@ for i, file in enumerate(files):
         ds_total = xr.concat([ds_total, ds], 'time')
 
 ds_total.to_netcdf(
-    '../../data/interim/experiments/july/tracked/60min/combined/july.nc')
+    '../../data/interim/experiments/july/tracked/60min/combined/'+str(pressure)+'_july.nc')
 print(ds_total)

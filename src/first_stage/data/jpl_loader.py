@@ -30,7 +30,7 @@ def resetter():
 
 def loader(var, pressure,  dt,  triplet,   **kwargs):
     print('JPL loader running...')
-
+    print('pressure: ' + str(pressure))
     d1 = triplet
     triplet_delta = timedelta(hours=dt/3600)
     d0 = d1-triplet_delta
