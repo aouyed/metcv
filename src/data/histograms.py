@@ -55,7 +55,7 @@ def histogram_plot(dataframes, var, filename, column_a, column_b, filter, xlabel
     plt.xlabel(xlabel)
     plt.ylabel("speed difference [m/s] ")
     plt.tight_layout()
-    plt.savefig('../../data/processed/plots/histogram_' +
+    plt.savefig('../data/processed/plots/histogram_' +
                 filename+'.png', bbox_inches='tight', dpi=300)
 
 
@@ -77,15 +77,11 @@ def initialize_dataframe(filter, var,  file):
         df[var] = df[var]*GRADIENT_TO_KM
     df['speed'] = np.sqrt(df.umean**2+df.vmean**2)
     df['speed_track'] = np.sqrt(df.utrack**2+df.vtrack**2)
-    #u_error = df.utrack-df.umean
-    #v_error = df.vtrack-df.vmean
-    #df['speed_diff'] = np.sqrt(u_error**2+v_error**2)
     df['speed_diff'] = df.speed_track - df.speed
 
     if filter is 'reanalysis':
         df['speed_diff'] = np.sqrt(df.u_error_rean**2+df.v_error_rean**2)
     df = df[['speed_diff', var]].dropna()
-#    df = df[(abs(df['speed_diff']) <= diff_limit)]
     return df
 
 
@@ -116,15 +112,15 @@ def histogram_sequence(filter, prefix, dataframes):
                    'speed_diff', filter, 'Wind-moisture gradient angle [deg]')
 
 
-def main():
-    dataframes = glob.glob('../../data/interim/experiments/dataframes/ua/*')
+def main(pressure=500):
+    dataframes = glob.glob('../data/interim/experiments/dataframes/ua/*')
 
-    histogram_sequence('exp2', 'ua', dataframes)
-    histogram_sequence('df', 'df', dataframes)
-    histogram_sequence('reanalysis', 'rean', dataframes)
-    histogram_sequence('ground_t', 'gt', dataframes)
+    histogram_sequence('exp2', str(pressure)+'_ua', dataframes)
+    histogram_sequence('df',  str(pressure)+'_df', dataframes)
+    histogram_sequence('reanalysis',  str(pressure)+'_rean', dataframes)
+    histogram_sequence('ground_t', str(pressure)+'_gt', dataframes)
 
-    dataframes = glob.glob('../../data/interim/experiments/dataframes/jpl/*')
+    dataframes = glob.glob('../data/interim/experiments/dataframes/jpl/*')
     histogram_sequence('jpl', 'jpl', dataframes)
 
 
