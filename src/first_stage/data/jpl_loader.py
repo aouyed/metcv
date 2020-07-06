@@ -50,11 +50,15 @@ def loader(var, pressure,  dt,  triplet,   **kwargs):
             os.makedirs(directory_path)
 
         if var == 'umeanh':
-            T = ds_n['u'].sel(time=d1)
+            T_l = 0.5*(ds_n['u'].sel(time=d0)+ds_n['u'].sel(time=d1))
+            T_u = 0.5*(ds_n['u'].sel(time=d1)+ds_n['u'].sel(time=d2))
+            T = 0.5*(T_l+T_u)
             T = T.values
             T = np.squeeze(T)
         elif var == 'vmeanh':
-            T = ds_n['v'].sel(time=d1)
+            T_l = 0.5*(ds_n['v'].sel(time=d0)+ds_n['v'].sel(time=d1))
+            T_u = 0.5*(ds_n['v'].sel(time=d1)+ds_n['v'].sel(time=d2))
+            T = 0.5*(T_l+T_u)
             T = T.values
             T = np.squeeze(T)
 

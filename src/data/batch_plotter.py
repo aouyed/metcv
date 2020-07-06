@@ -108,7 +108,6 @@ def plot_preprocessor(ds, ds_track, ds_qv_grad):
     jpl_directory = '../data/interim/experiments/dataframes/jpl/*'
     files = natsorted(glob.glob(ua_directory))
     files_t = natsorted(glob.glob(jpl_directory))
-    df_sample = pd.DataFrame()
     if files:
         sh.rm(files)
     if files_t:
@@ -117,24 +116,11 @@ def plot_preprocessor(ds, ds_track, ds_qv_grad):
         print('preprocessing: ' + str(date))
         df_unit, df_t = df_builder(ds, ds_track[[
             'time', 'qv', 'utrack', 'vtrack', 'umean', 'vmean', 'lat', 'lon']], ds_qv_grad, date)
+        df_t['filter'] = 'jpl'
         df_unit.to_pickle('../data/interim/experiments/dataframes/ua/' +
                           str(i)+'.pkl')
         df_t.to_pickle('../data/interim/experiments/dataframes/jpl/' +
                        str(i)+'.pkl')
-
-        if df_sample.empty:
-
-            df_sample = resample(
-                df_unit, replace=False, n_samples=int(1e5), random_state=1)
-            df_sample = pd.concat([df_sample, resample(
-                df_t, replace=False, n_samples=int(1e5), random_state=1)])
-
-        else:
-            df_t['filter'] = 'jpl'
-            df_sample = pd.concat([df_sample, resample(
-                df_unit, replace=False, n_samples=int(1e5), random_state=1)])
-            df_sample = pd.concat([df_sample, resample(
-                df_t, replace=False, n_samples=int(1e5), random_state=1)])
 
     files = natsorted(glob.glob(ua_directory))
     files_t = natsorted(glob.glob(jpl_directory))
@@ -160,7 +146,7 @@ def plot_preprocessor(ds, ds_track, ds_qv_grad):
 
     d = {'latlon': region, 'exp_filter': filter_res, 'rmse': rmsvds}
     df_results = pd.DataFrame(data=d)
-    return df_results, df_sample
+    return df_results
 
 
 def run(pressure):
@@ -170,11 +156,9 @@ def run(pressure):
         '../data/interim/experiments/july/tracked/60min/combined/'+str(pressure)+'_july.nc')
     ds_qv_grad = xr.open_dataset(
         '../data/interim/experiments/july/tracked/60min/combined/'+str(pressure)+'_july_qv_grad.nc')
-    df, df_sample = plot_preprocessor(ds, ds_track, ds_qv_grad)
+    df = plot_preprocessor(ds, ds_track, ds_qv_grad)
     df = edp.sorting_latlon(df)
     print(df)
-    print(df_sample)
     df.to_pickle(PATH_DF+str(pressure)+'_df_results.pkl')
-    df_sample.to_pickle(PATH_DF+str(pressure)+'_df_sample.pkl')
     edp.filter_plotter(df, PATH_PLOT+str(pressure) +
                        '_results_test', 'training data size = 5%')

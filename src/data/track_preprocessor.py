@@ -1,6 +1,7 @@
 import os
 import xarray as xr
 import glob
+import sh
 PATH = '../data/processed/experiments/'
 
 
@@ -23,7 +24,8 @@ def preprocessing_loop(exp_filters, name):
             ds_total = ds_con
         else:
             ds_total = xr.concat([ds_total, ds_con], 'filter')
-
+        if files:
+            sh.rm(files)
     if not os.path.exists(PATH):
         os.makedirs(PATH)
     ds_total = ds_total.rename({'umeanh': 'umean', 'vmeanh': 'vmean'})

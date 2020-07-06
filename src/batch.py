@@ -6,19 +6,19 @@ from second_stage import second_stage_run as ssr
 from data import track_preprocessor as tp
 from data import batch_plotter as bp
 from data import histograms as hist
-pressures = [500]
+pressures = [850]
 triplet_times = []
 month = 7
 day_list = (1, 2, 3)
 hour_list = (0, 6, 12, 18)
-#day_list = [1]
-#hour_list = [0]
+# day_list = [1]
+# hour_list = [0]
 for day in day_list:
     for hour in hour_list:
         triplet_times.append(datetime(2006, month, day, hour, 0, 0, 0))
 
 
-print(triplet_times)
+# print(triplet_times)
 files = glob.glob('../data/processed/experiments/*')
 if files:
     sh.rm(files)
