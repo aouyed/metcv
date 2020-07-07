@@ -5,7 +5,7 @@ import numpy as np
 
 VMAX = 16.748113280632353
 PATH = '../data/processed/experiments/'
-PATH_JPL = '../data/interim/experiments/july/tracked/60min/combined/july.nc'
+PATH_JPL = '../data/interim/experiments/july/tracked/60min/combined/'
 
 
 def ds_averager(ds, rean=True):
@@ -57,7 +57,7 @@ def main(pressure=850):
     ds = ds_averager(ds)
     plotter(ds, 'error_mag_rean', filter)
 
-    ds = xr.open_dataset(PATH_JPL)
+    ds = xr.open_dataset(PATH_JPL + str(pressure) + '_july.nc')
     filter = 'jpl'
     ds = ds_averager(ds, rean=False)
     plotter(ds, 'error_mag', filter)

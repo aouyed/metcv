@@ -6,6 +6,8 @@ from second_stage import second_stage_run as ssr
 from data import track_preprocessor as tp
 from data import batch_plotter as bp
 from data import histograms as hist
+from data import map_maker as mm
+
 # triplet_times = (datetime(2006, 7, 1, 0, 0, 0, 0), datetime(2006, 7, 1, 6, 0, 0, 0),
 #                datetime(2006, 7, 1, 12, 0, 0, 0), datetime(2006, 7, 1, 18, 0, 0, 0))
 
@@ -20,5 +22,6 @@ files = glob.glob('../data/processed/experiments/*')
 #  ssr.run(triplet_time)
 
 # tp.run(pressure)
-bp.run(pressure)
-hist.main(pressure=pressure)
+# bp.run(pressure)
+# hist.main(pressure=pressure)
+mm.main(pressure=pressure)
