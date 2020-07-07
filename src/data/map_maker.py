@@ -1,9 +1,11 @@
 import xarray as xr
 from datetime import datetime
-import extra_data_plotter as edp
+from data import extra_data_plotter as edp
 import numpy as np
 
 VMAX = 16.748113280632353
+PATH = '../data/processed/experiments/'
+PATH_JPL = '../data/interim/experiments/july/tracked/60min/combined/july.nc'
 
 
 def ds_averager(ds, rean=True):
@@ -36,26 +38,30 @@ def plotter(ds, varname, filter):
     edp.map_plotter(var, varname + '_' + filter, 'm/s', 0, vmax)
 
 
-ds = xr.open_dataset('../../data/processed/experiments/july.nc')
-filter = 'df'
-ds = ds.sel(filter=filter)
-ds = ds_averager(ds)
-plotter(ds, 'error_mag', filter)
+def main(pressure=850):
+    ds = xr.open_dataset(PATH+str(pressure)+'_july.nc')
+    filter = 'df'
+    ds = ds.sel(filter=filter)
+    ds = ds_averager(ds)
+    plotter(ds, 'error_mag', filter)
 
-ds = xr.open_dataset('../../data/processed/experiments/full_july.nc')
-filter = 'full_exp2'
-ds = ds.sel(filter=filter)
-ds = ds_averager(ds)
-plotter(ds, 'error_mag', filter)
+    ds = xr.open_dataset(PATH+str(pressure)+'_full_july.nc')
+    filter = 'full_exp2'
+    ds = ds.sel(filter=filter)
+    ds = ds_averager(ds)
+    plotter(ds, 'error_mag', filter)
 
-ds = xr.open_dataset('../../data/processed/experiments/full_july.nc')
-filter = 'full_exp2'
-ds = ds.sel(filter=filter)
-ds = ds_averager(ds)
-plotter(ds, 'error_mag_rean', filter)
+    ds = xr.open_dataset(PATH+str(pressure)+'_full_july.nc')
+    filter = 'full_exp2'
+    ds = ds.sel(filter=filter)
+    ds = ds_averager(ds)
+    plotter(ds, 'error_mag_rean', filter)
 
-ds = xr.open_dataset(
-    '../../data/interim/experiments/july/tracked/60min/combined/july.nc')
-filter = 'jpl'
-ds = ds_averager(ds, rean=False)
-plotter(ds, 'error_mag', filter)
+    ds = xr.open_dataset(PATH_JPL)
+    filter = 'jpl'
+    ds = ds_averager(ds, rean=False)
+    plotter(ds, 'error_mag', filter)
+
+
+if __name__ == "__main__":
+    main()

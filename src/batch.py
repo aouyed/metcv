@@ -6,7 +6,8 @@ from second_stage import second_stage_run as ssr
 from data import track_preprocessor as tp
 from data import batch_plotter as bp
 from data import histograms as hist
-pressures = [850]
+from data import map_maker as mm
+pressures = [500]
 triplet_times = []
 month = 7
 day_list = (1, 2, 3)
@@ -30,3 +31,4 @@ for pressure in pressures:
     tp.run(pressure)
     bp.run(pressure)
     hist.main(pressure=pressure)
+    mm.main(pressure=pressure)

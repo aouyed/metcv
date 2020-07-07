@@ -149,7 +149,7 @@ def plot_preprocessor(ds, ds_track, ds_qv_grad):
     return df_results
 
 
-def run(pressure):
+def run(pressure=500):
     file = '../data/processed/experiments/'+str(pressure)+'_july.nc'
     ds = xr.open_dataset(file)
     ds_track = xr.open_dataset(

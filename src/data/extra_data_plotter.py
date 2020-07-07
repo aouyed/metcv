@@ -8,6 +8,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 import pandas as pd
+import cmocean
 
 
 def quiver_plotter(df, title, uname, vname):
@@ -45,7 +46,8 @@ def map_plotter(var, title, units, vmin, vmax):
     fig, ax = plt.subplots()
     ax = plt.axes(projection=ccrs.PlateCarree())
     ax.coastlines()
-    pmap = plt.cm.gnuplot
+    #pmap = plt.cm.gnuplot
+    pmap = cmocean.cm.haline
     # pmap = plt.cm.coolwarm
     # pmap.set_bad(color='grey')
     if abs(vmax) > 0:
@@ -56,10 +58,6 @@ def map_plotter(var, title, units, vmin, vmax):
         im = ax.imshow(var, cmap=pmap,
                        extent=[-180, 180, -90, 90], origin='lower')
 
-   # gl = ax.gridlines(crs=ccrs.PlateCarree(), draw_labels=True,
-    #                  linewidth=2, color='gray', alpha=0, linestyle='--')
-    #gl.xlabels_top = False
-    #gl.ylabels_right = False
     cbar = fig.colorbar(im, ax=ax, fraction=0.025, pad=0.04)
 
     cbar.set_label(units)

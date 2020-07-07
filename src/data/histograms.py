@@ -5,25 +5,19 @@ from scipy.ndimage.filters import gaussian_filter
 import pandas as pd
 import pdb
 import glob
+import cmocean
 
 KG_TO_GRAMS = 1000
 METERS_TO_KM = 1/1000
 GRADIENT_TO_KM = KG_TO_GRAMS/METERS_TO_KM
+HIST_X_EDGES = {'grad_mag_qv': [0, 0.3], 'qv': [
+    0, 17.5], 'speed': [0, 30], 'angle': [-180, 180]}
 
 
 def big_histogram(dataframes, var, filter, column_x, column_y, s,  bins=100):
     """Creates a big histogram out of chunks in order to fit it in memory. """
-    xedges = [np.inf, -np.inf]
+    xedges = HIST_X_EDGES[column_x]
     yedges = [-5, 5]
-
-    for df in dataframes:
-        print(df)
-        df = initialize_dataframe(filter, var, df)
-        xedges[0] = np.minimum(df[column_x].min(), xedges[0])
-        xedges[1] = np.maximum(df[column_x].max(), xedges[1])
-
-        #yedges[0] = np.minimum(df[column_y].min(), yedges[0])
-        #yedges[1] = np.maximum(df[column_y].max(), yedges[1])
 
     xbins = np.linspace(xedges[0], xedges[1], bins+1)
     ybins = np.linspace(yedges[0], yedges[1], bins+1)
@@ -50,7 +44,7 @@ def histogram_plot(dataframes, var, filename, column_a, column_b, filter, xlabel
     print('plotting...')
     fig, ax = plt.subplots()
     im = ax.imshow(img, extent=extent, origin='lower',
-                   cmap=cm.jet, aspect='auto')
+                   cmap=cmocean.cm.haline, aspect='auto')
     cbar = fig.colorbar(im, ax=ax, fraction=0.025, pad=0.04)
     plt.xlabel(xlabel)
     plt.ylabel("speed difference [m/s] ")
@@ -121,7 +115,7 @@ def main(pressure=500):
     histogram_sequence('ground_t', str(pressure)+'_gt', dataframes)
 
     dataframes = glob.glob('../data/interim/experiments/dataframes/jpl/*')
-    histogram_sequence('jpl', 'jpl', dataframes)
+    histogram_sequence('jpl', str(pressure) + '_jpl', dataframes)
 
 
 if __name__ == "__main__":

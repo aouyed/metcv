@@ -26,26 +26,7 @@ import metpy
 from metpy.units import units
 import scipy.ndimage as ndimage
 
-
-def density_scatter(x, y, ax=None, sort=True, bins=20, **kwargs):
-    """
-    Scatter plot colored by 2d histogram,  modified from
-    https://stackoverflow.com/questions/20105364/how-can-i-make-a-scatter-plot-colored-by-density-in-matplotlib
-    """
-
-    fig, ax = plt.subplots()
-    data, x_e, y_e = np.histogram2d(x, y, bins=bins, normed=True)
-    z = interpn((0.5*(x_e[1:] + x_e[:-1]), 0.5*(y_e[1:]+y_e[:-1])),
-                data, np.vstack([x, y]).T, method="splinef2d", bounds_error=False)
-
-    # Sort the points by density, so that the densest points are plotted last
-    if sort:
-        idx = z.argsort()
-        x, y, z = x[idx], y[idx], z[idx]
-
-    im = ax.scatter(x, y, c=z, **kwargs)
-    fig.colorbar(im, ax=ax)
-    return ax
+R = 6371000
 
 
 def daterange(start_date, end_date):
@@ -97,13 +78,9 @@ def scaling_df_approx(df, grid, dt_inv):
 def scaling_u(df_lon, df_lat, df_flow_u, grid, dt_inv):
     dtheta = grid*df_flow_u
     drads = dtheta * math.pi / 180
-    lat = df_lat*math.pi/90/2
-    # dt_hr = 1
-    # dt_s = 3600
-    R = 6371000
-    scaleConstant = dt_inv
+    lat = df_lat*math.pi/180
     dx = R*abs(np.cos(lat))*drads
-    scale = dx*scaleConstant
+    scale = dx*dt_inv
     return scale
 
 
@@ -111,10 +88,8 @@ def scaling_v(df_lon, df_lat, df_flow_v, grid, dt_inv):
     """coordinate transform for v from pixel/angular to metric, approximate"""
     dtheta = grid*df_flow_v
     drads = dtheta * math.pi / 180
-    R = 6371000
-    scaleConstant = dt_inv
     dx = R*drads
-    scale = dx*scaleConstant
+    scale = dx*dt_inv
     return scale
 
 

@@ -1,4 +1,4 @@
-import os
+\import os
 import xarray as xr
 import glob
 import sh
@@ -32,7 +32,7 @@ def preprocessing_loop(exp_filters, name):
     ds_total.to_netcdf(PATH + name+'.nc',  mode='w')
 
 
-def run(pressure):
+def run(pressure=500, dt=3600):
     exp_filters = ('exp2', 'ground_t', 'df')
-    preprocessing_loop(exp_filters, str(pressure) + '_july')
-    preprocessing_loop(['full_exp2'], str(pressure) + '_full_july')
+    preprocessing_loop(exp_filters, str(dt)+'_'+str(pressure) + '_july')
+    preprocessing_loop(['full_exp2'],str(dt)+ '_'+ str(pressure) + '_full_july')

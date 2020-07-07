@@ -5,7 +5,6 @@ Created on Tue Nov 12 15:27:02 2019
 
 @author: amirouyed
 """
-# from pathos.multiprocessing import ProcessingPool as Pool
 from multiprocessing import Pool
 import glob
 import os
@@ -51,14 +50,13 @@ def df_summary(df, count):
     df_total['corr_speed'] = df['speed'].corr(df['speed_approx'])
     df_total['corr_u'] = df['umeanh'].corr(df['u_scaled_approx'])
     df_total['corr_v'] = df['vmeanh'].corr(df['v_scaled_approx'])
-    # df_total['initial_count']=count
     df_total['ratio_count'] = df.shape[0]/count
     df_total['count'] = count
     df_total['mean_speed_error'] = np.sqrt(df['speed_error'].mean())
     return df_total
 
 
-def dataframe_builder(var, grid, dt, cores,  **kwargs):
+def dataframe_builder(var, grid, dt,  **kwargs):
     """build dataframe that includes data from all relevant dates"""
     dictionary_paths = glob.glob('../data/interim/dictionaries/vars/*')
     dictionary_path = '../data/interim/dictionaries/'
@@ -154,7 +152,7 @@ def df_concatenator(dataframes_dict):
 def df_to_netcdf(dataframes_dict, triplet):
     ds = xr.Dataset()
 
-    for i, date in enumerate(dataframes_dict):
+    for date in dataframes_dict:
         df_path = dataframes_dict[date]
         df = pd.read_pickle(df_path)
         lon = np.arange(df['lon'].min(), df['lon'].max() + 0.0625, 0.0625)
@@ -178,7 +176,7 @@ def df_to_netcdf(dataframes_dict, triplet):
                 ds_unit_m = xr.Dataset({var: da})
                 ds_unit = xr.merge([ds_unit, ds_unit_m])
 
-        if(i == 0):
+        if not ds:
             ds = ds_unit
         else:
             ds = xr.concat([ds, ds_unit], 'time')
