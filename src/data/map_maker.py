@@ -38,30 +38,30 @@ def plotter(ds, varname, filter):
     edp.map_plotter(var, varname + '_' + filter, 'm/s', 0, vmax)
 
 
-def main(pressure=850):
-    ds = xr.open_dataset(PATH+str(pressure)+'_july.nc')
+def main(pressure=850, dt=3600):
+    ds = xr.open_dataset(PATH+str(dt)+'_'+str(pressure)+'_july.nc')
     filter = 'df'
     ds = ds.sel(filter=filter)
     ds = ds_averager(ds)
-    plotter(ds, 'error_mag', filter)
+    plotter(ds, str(dt)+'_'+str(pressure) + '_error_mag', filter)
 
-    ds = xr.open_dataset(PATH+str(pressure)+'_full_july.nc')
+    ds = xr.open_dataset(PATH+str(dt)+'_'+str(pressure)+'_full_july.nc')
     filter = 'full_exp2'
     ds = ds.sel(filter=filter)
     ds = ds_averager(ds)
-    plotter(ds, 'error_mag', filter)
+    plotter(ds, str(dt)+'_'+str(pressure) + '_error_mag', filter)
 
-    ds = xr.open_dataset(PATH+str(pressure)+'_full_july.nc')
+    ds = xr.open_dataset(PATH+str(dt)+'_'+str(pressure)+'_full_july.nc')
     filter = 'full_exp2'
     ds = ds.sel(filter=filter)
     ds = ds_averager(ds)
-    plotter(ds, 'error_mag_rean', filter)
+    plotter(ds, str(dt)+'_'+str(pressure) + '_error_mag_rean', filter)
 
-    ds = xr.open_dataset(PATH_JPL + str(pressure) + '_july.nc')
+    ds = xr.open_dataset(PATH_JPL+str(dt)+'_'+str(pressure) + '_july.nc')
     filter = 'jpl'
     ds = ds_averager(ds, rean=False)
-    plotter(ds, 'error_mag', filter)
+    plotter(ds, str(dt)+'_'+str(pressure) + '_error_mag', filter)
 
 
-if __name__ == "__main__":
-    main()
+# if __name__ == "__main__":
+    # main()

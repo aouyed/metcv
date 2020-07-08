@@ -46,8 +46,8 @@ def map_plotter(var, title, units, vmin, vmax):
     fig, ax = plt.subplots()
     ax = plt.axes(projection=ccrs.PlateCarree())
     ax.coastlines()
-    #pmap = plt.cm.gnuplot
-    pmap = cmocean.cm.haline
+    pmap = plt.cm.gnuplot
+    #pmap = cmocean.cm.haline
     # pmap = plt.cm.coolwarm
     # pmap.set_bad(color='grey')
     if abs(vmax) > 0:

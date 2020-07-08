@@ -10,14 +10,14 @@ import cmocean
 KG_TO_GRAMS = 1000
 METERS_TO_KM = 1/1000
 GRADIENT_TO_KM = KG_TO_GRAMS/METERS_TO_KM
-HIST_X_EDGES = {'grad_mag_qv': [0, 0.3], 'qv': [
-    0, 17.5], 'speed': [0, 30], 'angle': [-180, 180]}
+HIST_X_EDGES = {'grad_mag_qv': [0, 0.05], 'qv': [
+    0, 6], 'speed': [0, 30], 'angle': [-180, 180]}
 
 
 def big_histogram(dataframes, var, filter, column_x, column_y, s,  bins=100):
     """Creates a big histogram out of chunks in order to fit it in memory. """
     xedges = HIST_X_EDGES[column_x]
-    yedges = [-5, 5]
+    yedges = [-7.5, 7.5]
 
     xbins = np.linspace(xedges[0], xedges[1], bins+1)
     ybins = np.linspace(yedges[0], yedges[1], bins+1)
@@ -44,7 +44,7 @@ def histogram_plot(dataframes, var, filename, column_a, column_b, filter, xlabel
     print('plotting...')
     fig, ax = plt.subplots()
     im = ax.imshow(img, extent=extent, origin='lower',
-                   cmap=cmocean.cm.haline, aspect='auto')
+                   cmap=cm.jet, aspect='auto')
     cbar = fig.colorbar(im, ax=ax, fraction=0.025, pad=0.04)
     plt.xlabel(xlabel)
     plt.ylabel("speed difference [m/s] ")
@@ -100,22 +100,23 @@ def histogram_sequence(filter, prefix, dataframes):
                    'speed_diff', filter, 'Wind speed [m/s]')
     histogram_plot(dataframes, 'qv', prefix+'_qv', 'qv',
                    'speed_diff', filter, 'Moisture [g/kg]')
-    histogram_plot(dataframes, 'grad_mag_qv', prefix+'_qv_mag',
+    histogram_plot(dataframes, 'grad_mag_qv', prefix+'_grad_mag_qv',
                    'grad_mag_qv', 'speed_diff', filter, 'Moisture gradient [g/(kg km)]')
     histogram_plot(dataframes, 'angle', prefix+'_angle', 'angle',
                    'speed_diff', filter, 'Wind-moisture gradient angle [deg]')
 
 
-def main(pressure=500):
+def main(pressure=500, dt=3600):
     dataframes = glob.glob('../data/interim/experiments/dataframes/ua/*')
 
-    histogram_sequence('exp2', str(pressure)+'_ua', dataframes)
-    histogram_sequence('df',  str(pressure)+'_df', dataframes)
-    histogram_sequence('reanalysis',  str(pressure)+'_rean', dataframes)
-    histogram_sequence('ground_t', str(pressure)+'_gt', dataframes)
+    histogram_sequence('exp2', str(dt)+'_' + str(pressure)+'_ua', dataframes)
+    histogram_sequence('df',  str(dt)+'_'+str(pressure)+'_df', dataframes)
+    histogram_sequence('reanalysis', str(dt)+'_' +
+                       str(pressure)+'_rean', dataframes)
+    histogram_sequence('ground_t', str(dt)+'_'+str(pressure)+'_gt', dataframes)
 
     dataframes = glob.glob('../data/interim/experiments/dataframes/jpl/*')
-    histogram_sequence('jpl', str(pressure) + '_jpl', dataframes)
+    histogram_sequence('jpl', str(dt)+'_' + str(pressure) + '_jpl', dataframes)
 
 
 if __name__ == "__main__":

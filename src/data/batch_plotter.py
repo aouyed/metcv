@@ -149,16 +149,17 @@ def plot_preprocessor(ds, ds_track, ds_qv_grad):
     return df_results
 
 
-def run(pressure=500):
-    file = '../data/processed/experiments/'+str(pressure)+'_july.nc'
+def run(pressure=500, dt=3600):
+    file = '../data/processed/experiments/' + \
+        str(dt)+'_'+str(pressure)+'_july.nc'
     ds = xr.open_dataset(file)
     ds_track = xr.open_dataset(
-        '../data/interim/experiments/july/tracked/60min/combined/'+str(pressure)+'_july.nc')
+        '../data/interim/experiments/july/tracked/60min/combined/'+str(dt)+'_'+str(pressure)+'_july.nc')
     ds_qv_grad = xr.open_dataset(
-        '../data/interim/experiments/july/tracked/60min/combined/'+str(pressure)+'_july_qv_grad.nc')
+        '../data/interim/experiments/july/tracked/60min/combined/'+str(dt)+'_'+str(pressure)+'_july_qv_grad.nc')
     df = plot_preprocessor(ds, ds_track, ds_qv_grad)
     df = edp.sorting_latlon(df)
     print(df)
     df.to_pickle(PATH_DF+str(pressure)+'_df_results.pkl')
-    edp.filter_plotter(df, PATH_PLOT+str(pressure) +
+    edp.filter_plotter(df, PATH_PLOT+str(dt)+'_'+str(pressure) +
                        '_results_test', 'training data size = 5%')
