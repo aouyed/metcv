@@ -22,7 +22,7 @@ for day in day_list:
 
 
 # print(triplet_times)
-files = glob.glob('../data/processed/experiments/*')
+files = glob.glob('../data/processed/experiments/200*.nc')
 if files:
     sh.rm(files)
 pressure = pressures[0]
@@ -35,6 +35,7 @@ for dt in dts:
             ssr.run(triplet_time)
     tp.run(pressure=pressure, dt=dt)
     bp.run(pressure=pressure, dt=dt)
-    hist.main(pressure=pressure, dt=dt)
     mm.main(pressure=pressure, dt=dt)
+    hist.main(pressure=pressure, dt=dt)
+
 print("--- %s seconds ---" % (time.time() - start_time))

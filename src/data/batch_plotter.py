@@ -161,5 +161,3 @@ def run(pressure=500, dt=3600):
     df = edp.sorting_latlon(df)
     print(df)
     df.to_pickle(PATH_DF+str(pressure)+'_df_results.pkl')
-    edp.filter_plotter(df, PATH_PLOT+str(dt)+'_'+str(pressure) +
-                       '_results_test', 'training data size = 5%')

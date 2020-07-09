@@ -10,6 +10,8 @@ import seaborn as sns
 import pandas as pd
 import cmocean
 
+ERROR_MAX = 8.5
+
 
 def quiver_plotter(df, title, uname, vname):
     grid = 10
@@ -46,8 +48,8 @@ def map_plotter(var, title, units, vmin, vmax):
     fig, ax = plt.subplots()
     ax = plt.axes(projection=ccrs.PlateCarree())
     ax.coastlines()
-    pmap = plt.cm.gnuplot
-    #pmap = cmocean.cm.haline
+    #pmap = plt.cm.gnuplot
+    pmap = cmocean.cm.thermal_r
     # pmap = plt.cm.coolwarm
     # pmap.set_bad(color='grey')
     if abs(vmax) > 0:
@@ -68,31 +70,6 @@ def map_plotter(var, title, units, vmin, vmax):
                 '.png', bbox_inches='tight', dpi=300)
 
 
-def scatter_plotter(df,  values, title, units):
-    grid = 10
-
-    factor = 0.0625/grid
-
-    fig, ax = plt.subplots()
-    ax = plt.axes(projection=ccrs.PlateCarree())
-    ax.coastlines()
-    pmap = plt.cm.RdPu
-
-    im = ax.scatter(df['lon'], df['lat'], c=df[values],
-                    s=1, cmap=pmap, vmin=0, vmax=100)
-    cbar = fig.colorbar(im, ax=ax, fraction=0.025, pad=0.04)
-
-    gl = ax.gridlines(crs=ccrs.PlateCarree(), draw_labels=True,
-                      linewidth=2, color='gray', alpha=0, linestyle='--')
-    gl.xlabels_top = False
-    gl.ylabels_right = False
-    plt.xlabel("lon")
-    plt.ylabel("lat")
-    ax.set_title(title)
-    directory = '../data/processed/density_plots'
-    plt.savefig(values+'.png', bbox_inches='tight', dpi=300)
-
-
 def filter_plotter(df0, values, title):
     fig, ax = plt.subplots()
 
@@ -110,7 +87,7 @@ def filter_plotter(df0, values, title):
     ax.plot(df['latlon'], df['rmse'], '-o', label='JPL')
 
     ax.legend(frameon=None)
-    ax.set_ylim(0, 8)
+    ax.set_ylim(0, ERROR_MAX)
     ax.set_xlabel("Region")
     ax.set_ylabel("RMSVD [m/s]")
     ax.set_title(title)

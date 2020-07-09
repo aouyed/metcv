@@ -2,8 +2,9 @@ import xarray as xr
 from datetime import datetime
 from data import extra_data_plotter as edp
 import numpy as np
-
-VMAX = 16.748113280632353
+from data import batch_plotter as bp
+import pandas as pd
+VMAX = 20
 PATH = '../data/processed/experiments/'
 PATH_JPL = '../data/interim/experiments/july/tracked/60min/combined/'
 
@@ -29,38 +30,57 @@ def ds_averager(ds, rean=True):
     return ds_average
 
 
-def plotter(ds, varname, filter):
+def ds_error(ds, rean=True):
+    ds['v_error'] = ds['vtrack']-ds['vmean']
+    ds['u_error'] = ds['utrack']-ds['umean']
+    ds['error_mag'] = np.sqrt(
+        ds['v_error']**2+ds['u_error']**2)
+    if rean:
+        ds['error_mag_rean'] = np.sqrt(
+            ds['v_error_rean']**2+ds['u_error_rean']**2)
+
+    return ds
+
+
+def plotter(ds, varname, dt, pressure, filter):
 
     var = ds[varname].values
     vmin = 0
     #vmax = np.quantile(np.nan_to_num(var), 0.99)
     vmax = VMAX
-    edp.map_plotter(var, varname + '_' + filter, 'm/s', 0, vmax)
+    edp.map_plotter(var, str(dt)+'_'+str(pressure) + '_' +
+                    varname + '_' + filter, 'm/s', 0, vmax)
 
 
 def main(pressure=850, dt=3600):
+
+    df = pd.read_pickle(bp.PATH_DF+str(pressure)+'_df_results.pkl')
+    edp.filter_plotter(df, bp.PATH_PLOT+str(dt)+'_'+str(pressure) +
+                       '_results_test', 'training data size = 5%')
+
     ds = xr.open_dataset(PATH+str(dt)+'_'+str(pressure)+'_july.nc')
     filter = 'df'
-    ds = ds.sel(filter=filter)
-    ds = ds_averager(ds)
-    plotter(ds, str(dt)+'_'+str(pressure) + '_error_mag', filter)
+    ds = ds.sel(filter=filter, time=ds.time.values[0])
+    ds = ds_error(ds)
+    plotter(ds, 'error_mag', dt, pressure, filter)
 
     ds = xr.open_dataset(PATH+str(dt)+'_'+str(pressure)+'_full_july.nc')
     filter = 'full_exp2'
-    ds = ds.sel(filter=filter)
-    ds = ds_averager(ds)
-    plotter(ds, str(dt)+'_'+str(pressure) + '_error_mag', filter)
+    ds = ds.sel(filter=filter, time=ds.time.values[0])
+    ds = ds_error(ds)
+    plotter(ds, 'error_mag', dt, pressure, filter)
 
     ds = xr.open_dataset(PATH+str(dt)+'_'+str(pressure)+'_full_july.nc')
     filter = 'full_exp2'
-    ds = ds.sel(filter=filter)
-    ds = ds_averager(ds)
-    plotter(ds, str(dt)+'_'+str(pressure) + '_error_mag_rean', filter)
+    ds = ds.sel(filter=filter, time=ds.time.values[0])
+    ds = ds_error(ds)
+    plotter(ds, 'error_mag_rean', dt, pressure, filter)
 
     ds = xr.open_dataset(PATH_JPL+str(dt)+'_'+str(pressure) + '_july.nc')
     filter = 'jpl'
-    ds = ds_averager(ds, rean=False)
-    plotter(ds, str(dt)+'_'+str(pressure) + '_error_mag', filter)
+    ds = ds.sel(time=ds.time.values[0])
+    ds = ds_error(ds, rean=False)
+    plotter(ds, 'error_mag', dt, pressure, filter)
 
 
 # if __name__ == "__main__":
