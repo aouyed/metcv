@@ -11,22 +11,18 @@ from data import map_maker as mm
 # triplet_times = (datetime(2006, 7, 1, 0, 0, 0, 0), datetime(2006, 7, 1, 6, 0, 0, 0),
 #                datetime(2006, 7, 1, 12, 0, 0, 0), datetime(2006, 7, 1, 18, 0, 0, 0))
 
-pressures = (850, 500)
+pressure = 500
 dt = 3600
-files = glob.glob('../data/processed/experiments/*')
+files = glob.glob('../data/processed/experiments/2006*')
 # if files:
 #   sh.rm(files)
-#triplet_times = [datetime(2006, 7, 1, 0, 0, 0, 0)]
-# for triplet_time in triplet_times:
-#    os.system("python3 first_stage/first_stage_run.py  -p " + str(pressure) + " -dt 3600   -tri " +
-#             triplet_time.strftime("%Y-%m-%d-%H:%M"))
-#  ssr.run(triplet_time)
-
+triplet_time = datetime(2006, 7, 1, 0, 0, 0, 0)
+# os.system("python3 first_stage/first_stage_run.py  -p " + str(pressure) + " -dt 3600   -tri " +
+#         triplet_time.strftime("%Y-%m-%d-%H:%M"))
+#ssr.run(triplet_time, pressure)
 # tp.run(pressure)
 # bp.run(pressure)
-#
-#mm.main(pressure=500, dt=dt)
+#mm.main(pressure=pressure, dt=dt)
 print('plotting maps...')
-for pressure in pressures:
-    hist.main(pressure=pressure, dt=dt)
-    mm.main(pressure=pressure, dt=dt)
+hist.main(pressure=pressure, dt=dt)
+#   mm.main(pressure=pressure, dt=dt)

@@ -15,17 +15,6 @@ PATH_DF = '../data/processed/dataframes/'
 PATH_PLOT = '../data/processed/plots/'
 
 
-def rmsvd_calculator(df, coord, rmsvd_num, rmsvd_den):
-    df_unit = df[(df.lat >= coord[0]) & (df.lat <= coord[1])]
-    df_unit['cos_weight'] = np.cos(df_unit.lat/180*np.pi)
-    erroru = df_unit.utrack-df_unit.umean
-    errorv = df_unit.vtrack-df_unit.vmean
-    df_unit['vec_diff'] = df_unit.cos_weight * (erroru**2 + errorv**2)
-    rmsvd_num = rmsvd_num + df_unit['vec_diff'].sum()
-    rmsvd_den = rmsvd_den + df_unit['cos_weight'].sum()
-    return rmsvd_num, rmsvd_den
-
-
 def df_builder(ds, ds_track, ds_qv_grad, date):
     ds = ds.sel(time=date)
     ds = ds.astype(np.float32)
@@ -70,11 +59,15 @@ def coord_to_string(coord):
     return stringd
 
 
-def rmsvd_calculator(df, coord, rmsvd_num, rmsvd_den):
+def rmsvd_calculator(df, coord, rmsvd_num, rmsvd_den, filter):
     df_unit = df[(df.lat >= coord[0]) & (df.lat <= coord[1])]
     df_unit['cos_weight'] = np.cos(df_unit.lat/180*np.pi)
-    erroru = df_unit.utrack-df_unit.umean
-    errorv = df_unit.vtrack-df_unit.vmean
+    if filter is 'rean':
+        erroru = df_unit.u_error_rean
+        errorv = df_unit.v_error_rean
+    else:
+        erroru = df_unit.utrack-df_unit.umean
+        errorv = df_unit.vtrack-df_unit.vmean
     df_unit['vec_diff'] = df_unit.cos_weight * (erroru**2 + errorv**2)
     rmsvd_num = rmsvd_num + df_unit['vec_diff'].sum()
     rmsvd_den = rmsvd_den + df_unit['cos_weight'].sum()
@@ -99,7 +92,7 @@ def plot_preprocessor(ds, ds_track, ds_qv_grad):
     dates = ds.time.values
     coords = [(-30, 30), (-60, -30), (-90, -60), (30, 60), (60, 90)]
     # coords = [(-90, 90)]
-    filters = ['df', 'exp2', 'ground_t', 'jpl']
+    filters = ['df', 'exp2', 'ground_t', 'jpl', 'rean']
     rmsvds = []
     region = []
     filter_res = []
@@ -129,15 +122,17 @@ def plot_preprocessor(ds, ds_track, ds_qv_grad):
             rmsvd_num = 0
             rmsvd_den = 0
             for i, date in enumerate(dates):
-                if (filter is 'jpl'):
+                if filter is 'jpl':
                     df_unit = pd.read_pickle(files_t[i])
+                elif filter is 'rean':
+                    df_unit = pd.read_pickle(files[i])
+                    df_unit = df_unit[df_unit['filter'] == 'exp2']
                 else:
                     df_unit = pd.read_pickle(files[i])
                     df_unit = df_unit[df_unit['filter'] == filter]
                 df_unit = df_unit.dropna()
-
                 rmsvd_num, rmsvd_den = rmsvd_calculator(
-                    df_unit, coord, rmsvd_num, rmsvd_den)
+                    df_unit, coord, rmsvd_num, rmsvd_den, filter)
 
             stringc = coord_to_string(coord)
             rmsvds.append(np.sqrt(rmsvd_num/rmsvd_den))

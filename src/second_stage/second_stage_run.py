@@ -35,7 +35,7 @@ def ds_to_dataframe(ds, triplet_time, deltatime):
     return df
 
 
-def run(triplet_time):
+def run(triplet_time, pressure):
     """Initialize second stage of UA algorithm."""
 
     filename = '../data/processed/experiments/' + \
@@ -55,7 +55,7 @@ def run(triplet_time):
     exp_filters = ['exp2', 'ground_t', 'df']
     print('process data...')
     dft = df.copy()
-    df = re.error_calc(df)
+    df = re.error_calc(df, pressure)
 
     for exp_filter in exp_filters:
         print('fitting with filter ' + str(exp_filter))

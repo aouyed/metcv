@@ -26,16 +26,16 @@ files = glob.glob('../data/processed/experiments/200*.nc')
 if files:
     sh.rm(files)
 pressure = pressures[0]
-start_time = time.time()
+
 for dt in dts:
     for pressure in pressures:
+        start_time = time.time()
         for triplet_time in triplet_times:
             os.system("python3 first_stage/first_stage_run.py   -p " + str(pressure) + " -dt " + str(dt) + " -tri " +
                       triplet_time.strftime("%Y-%m-%d-%H:%M"))
-            ssr.run(triplet_time)
-    tp.run(pressure=pressure, dt=dt)
-    bp.run(pressure=pressure, dt=dt)
-    mm.main(pressure=pressure, dt=dt)
-    hist.main(pressure=pressure, dt=dt)
-
-print("--- %s seconds ---" % (time.time() - start_time))
+            ssr.run(triplet_time, pressure)
+        tp.run(pressure=pressure, dt=dt)
+        bp.run(pressure=pressure, dt=dt)
+        mm.main(pressure=pressure, dt=dt)
+        hist.main(pressure=pressure, dt=dt)
+        print("--- seconds ---" + str(time.time() - start_time))

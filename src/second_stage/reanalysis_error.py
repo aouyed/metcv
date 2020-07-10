@@ -7,14 +7,14 @@ import datetime
 from scipy.interpolate import LinearNDInterpolator as interpolator
 
 
-def error_calc(df_0):
+def error_calc(df_0, pressure):
     """Calculates forecasting error from reanalysis."""
-
+    pressure = str(pressure)
     print('era dataset')
     ds0 = xr.open_dataset(
-        "../data/raw/experiments/reanalysis/era5/u_850_2006_07_01_12_00_00_era5.nc")
+        "../data/raw/experiments/reanalysis/era5/u_" + pressure + "_2006_07_01_12:00:00_era5.nc")
     ds1 = xr.open_dataset(
-        "../data/raw/experiments/reanalysis/era5/v_850_2006_07_01_12_00_00_era5.nc")
+        "../data/raw/experiments/reanalysis/era5/v_" + pressure + "_2006_07_01_12:00:00_era5.nc")
     ds = xr.merge([ds0, ds1])
     print(ds)
     df = ds.to_dataframe()
@@ -28,7 +28,9 @@ def error_calc(df_0):
     df = ds.to_dataframe()
     df = df.reset_index()
 
-    df_cfs = df[['latitude', 'longitude', 'UGRD_850mb', 'VGRD_850mb']]
+    df_cfs = df[['latitude', 'longitude', 'UGRD_' +
+        pressure+'mb', 'VGRD_'+pressure+'mb']]
+  # df_cfs = df[['latitude', 'longitude', 'UGRD_850mb', 'VGRD_850mb']]
     df_cfs['longitude'] = df_cfs['longitude']-180
 
     # print(df_cfs)

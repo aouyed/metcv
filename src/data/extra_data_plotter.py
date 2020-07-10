@@ -74,14 +74,14 @@ def filter_plotter(df0, values, title):
     fig, ax = plt.subplots()
 
     df = df0[df0.exp_filter == 'exp2']
-    ax.plot(df['latlon'], df['rmse'], '-o', label='UA (RF+VEM)')
+    ax.plot(df['latlon'], df['rmse'], '-o', label='UA')
 
-    df = df0[df0.exp_filter == 'ground_t']
+    df = df0[df0.exp_filter == 'rean']
     ax.plot(df['latlon'], df['rmse'], '-o',
             label='error from reanalysis')
 
     df = df0[df0.exp_filter == 'df']
-    ax.plot(df['latlon'], df['rmse'], '-o', label='VEM')
+    ax.plot(df['latlon'], df['rmse'], '-o', label='UA First Stage')
 
     df = df0[df0.exp_filter == 'jpl']
     ax.plot(df['latlon'], df['rmse'], '-o', label='JPL')
