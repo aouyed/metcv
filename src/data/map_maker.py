@@ -6,7 +6,8 @@ from data import batch_plotter as bp
 import pandas as pd
 VMAX = 20
 PATH = '../data/processed/experiments/'
-PATH_JPL = '../data/interim/experiments/july/tracked/60min/combined/'
+PATH_JPL_60MIN = '../data/interim/experiments/july/tracked/60min/combined/'
+PATH_JPL_30MIN = '../data/interim/experiments/july/tracked/30min/combined/'
 
 
 def ds_averager(ds, rean=True):
@@ -46,7 +47,6 @@ def plotter(ds, varname, dt, pressure, filter):
 
     var = ds[varname].values
     vmin = 0
-    #vmax = np.quantile(np.nan_to_num(var), 0.99)
     vmax = VMAX
     edp.map_plotter(var, str(dt)+'_'+str(pressure) + '_' +
                     varname + '_' + filter, 'm/s', 0, vmax)
@@ -76,12 +76,19 @@ def main(pressure=850, dt=3600):
     ds = ds_error(ds)
     plotter(ds, 'error_mag_rean', dt, pressure, filter)
 
-    ds = xr.open_dataset(PATH_JPL+str(dt)+'_'+str(pressure) + '_july.nc')
+    if dt == 3600:
+        path_jpl = PATH_JPL_60MIN
+    elif dt == 1800:
+        path_jpl = PATH_JPL_30MIN
+    else:
+        raise ValueError('not supported value in dt')
+
+    ds = xr.open_dataset(path_jpl+str(dt)+'_'+str(pressure) + '_july.nc')
     filter = 'jpl'
     ds = ds.sel(time=ds.time.values[0])
     ds = ds_error(ds, rean=False)
     plotter(ds, 'error_mag', dt, pressure, filter)
 
 
-# if __name__ == "__main__":
-    # main()
+if __name__ == "__main__":
+    main()

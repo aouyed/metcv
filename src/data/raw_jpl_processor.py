@@ -8,7 +8,7 @@ from datetime import datetime
 import sh
 
 PRESSURES = (500, 850)
-PATH_FILES = '../../data/interim/experiments/july/tracked/30min/*.nc'
+PATH_FILES = '../../data/interim/experiments/july/tracked/60min/*.nc'
 
 
 def daterange(start_date, end_date, dhour):
@@ -57,17 +57,15 @@ for pressure in PRESSURES:
             '../../data/interim/experiments/july/tracked/30min/' + str(day)+'.nc')
         print(ds_total)
 
+    ds_total = xr.Dataset()
+    files = natsorted(glob.glob(PATH_FILES))
 
-ds_total = xr.Dataset()
-files = natsorted(glob.glob(PATH_FILES))
-
-for file in files:
-    ds = xr.open_dataset(file)
-    if not ds_total:
-        ds_total = ds
-    else:
-        ds_total = xr.concat([ds_total, ds], 'time')
-
-ds_total.to_netcdf(
-    '../../data/interim/experiments/july/tracked/30min/combined/'+str(pressure)+'_july.nc')
-print(ds_total)
+    for file in files:
+        ds = xr.open_dataset(file)
+        if not ds_total:
+            ds_total = ds
+        else:
+            ds_total = xr.concat([ds_total, ds], 'time')
+        ds_total.to_netcdf(
+            '../../data/interim/experiments/july/tracked/30min/combined/'+str(pressure)+'_july.nc')
+        print(ds_total)

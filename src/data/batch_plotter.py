@@ -1,3 +1,4 @@
+import time
 import pdb
 import matplotlib.pyplot as plt
 import xarray as xr
@@ -10,6 +11,8 @@ from natsort import natsorted
 import pandas as pd
 from data import extra_data_plotter as edp
 import sh
+import dask
+import dask.dataframe as dd
 from sklearn.utils import resample
 PATH_DF = '../data/processed/dataframes/'
 PATH_PLOT = '../data/processed/plots/'
@@ -24,12 +27,17 @@ def df_builder(ds, ds_track, ds_qv_grad, date):
     ds_qv_grad = ds_qv_grad.astype(np.float32)
     df = ds.to_dataframe().reset_index()
     dft = ds_track.to_dataframe().reset_index()
+    dft = dft.dropna()
     df_qv_grad = ds_qv_grad.to_dataframe().reset_index()
     df_qv_grad = df_qv_grad.drop(columns=['time'])
-    df_tot = df.merge(dft.dropna(), on=[
-        'lat', 'lon'], how='left')
+
+    start_time = time.time()
+
+    df_tot = pd.merge(df, dft, on=[
+        'lat', 'lon'], how='outer')
     df_tot = df_tot[df_tot.utrack_y.notna()]
-    df_tot = df_tot.merge(df_qv_grad.dropna(), on=['lat', 'lon'], how='left')
+    df_tot = pd.merge(df_tot, df_qv_grad.dropna(),
+                      on=['lat', 'lon'], how='outer')
     dft = df_tot.drop(
         columns=['time_x', 'time_y', 'utrack_x', 'vtrack_x', 'umean_x', 'vmean_x'])
     df_tot = df_tot.drop(
@@ -42,6 +50,8 @@ def df_builder(ds, ds_track, ds_qv_grad, date):
     dft['filter'] = 'jpl'
     df_tot = df_tot.drop_duplicates(['lat', 'lon', 'filter'], keep='first')
     dft = dft.drop_duplicates(['lat', 'lon', 'filter'], keep='first')
+    print("--- seconds ---" + str(time.time() - start_time))
+
     return df_tot, dft
 
 
@@ -122,6 +132,7 @@ def plot_preprocessor(ds, ds_track, ds_qv_grad):
             rmsvd_num = 0
             rmsvd_den = 0
             for i, date in enumerate(dates):
+                start_time = time.time()
                 if filter is 'jpl':
                     df_unit = pd.read_pickle(files_t[i])
                 elif filter is 'rean':
@@ -130,9 +141,11 @@ def plot_preprocessor(ds, ds_track, ds_qv_grad):
                 else:
                     df_unit = pd.read_pickle(files[i])
                     df_unit = df_unit[df_unit['filter'] == filter]
+
                 df_unit = df_unit.dropna()
                 rmsvd_num, rmsvd_den = rmsvd_calculator(
                     df_unit, coord, rmsvd_num, rmsvd_den, filter)
+                print("--- seconds ---" + str(time.time() - start_time))
 
             stringc = coord_to_string(coord)
             rmsvds.append(np.sqrt(rmsvd_num/rmsvd_den))
@@ -145,13 +158,22 @@ def plot_preprocessor(ds, ds_track, ds_qv_grad):
 
 
 def run(pressure=500, dt=3600):
+    time_string = None
+
+    if dt == 3600:
+        time_string = '60min'
+    elif dt == 1800:
+        time_string = '30min'
+    else:
+        raise ValueError('not supported value in dt')
+
     file = '../data/processed/experiments/' + \
         str(dt)+'_'+str(pressure)+'_july.nc'
     ds = xr.open_dataset(file)
     ds_track = xr.open_dataset(
-        '../data/interim/experiments/july/tracked/60min/combined/'+str(dt)+'_'+str(pressure)+'_july.nc')
+        '../data/interim/experiments/july/tracked/'+time_string+'/combined/' + str(dt)+'_'+str(pressure)+'_july.nc')
     ds_qv_grad = xr.open_dataset(
-        '../data/interim/experiments/july/tracked/60min/combined/'+str(dt)+'_'+str(pressure)+'_july_qv_grad.nc')
+        '../data/interim/experiments/july/tracked/' + time_string + '/combined/' + str(dt)+'_'+str(pressure)+'_july_qv_grad.nc')
     df = plot_preprocessor(ds, ds_track, ds_qv_grad)
     df = edp.sorting_latlon(df)
     print(df)

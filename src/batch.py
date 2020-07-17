@@ -9,7 +9,8 @@ from data import batch_plotter as bp
 from data import histograms as hist
 from data import map_maker as mm
 pressures = [850]
-dts = [3600]
+#dts = [3600]
+dts = [1800]
 triplet_times = []
 month = 7
 day_list = (1, 2, 3)
@@ -33,7 +34,7 @@ for dt in dts:
         for triplet_time in triplet_times:
             os.system("python3 first_stage/first_stage_run.py   -p " + str(pressure) + " -dt " + str(dt) + " -tri " +
                       triplet_time.strftime("%Y-%m-%d-%H:%M"))
-            ssr.run(triplet_time, pressure)
+            ssr.run(triplet_time, pressure, dt)
         tp.run(pressure=pressure, dt=dt)
         bp.run(pressure=pressure, dt=dt)
         mm.main(pressure=pressure, dt=dt)

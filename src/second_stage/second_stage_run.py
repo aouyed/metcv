@@ -35,14 +35,14 @@ def ds_to_dataframe(ds, triplet_time, deltatime):
     return df
 
 
-def run(triplet_time, pressure):
+def run(triplet_time, pressure, dt):
     """Initialize second stage of UA algorithm."""
 
     filename = '../data/processed/experiments/' + \
         triplet_time.strftime("%Y-%m-%d-%H:%M")+'.nc'
 
     ds = xr.open_dataset(filename)
-    triplet_delta = datetime.timedelta(hours=1)
+    triplet_delta = datetime.timedelta(hours=dt/3600)
     df = ds_to_dataframe(ds, triplet_time, triplet_delta)
     df = df.dropna()
     df['land'] = globe.is_land(df.lat, df.lon)
