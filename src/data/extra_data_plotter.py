@@ -10,7 +10,7 @@ import seaborn as sns
 import pandas as pd
 import cmocean
 
-ERROR_MAX = 8.5
+ERROR_MAX = 9
 
 
 def quiver_plotter(df, title, uname, vname):

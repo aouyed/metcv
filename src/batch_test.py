@@ -11,7 +11,7 @@ from data import map_maker as mm
 # triplet_times = (datetime(2006, 7, 1, 0, 0, 0, 0), datetime(2006, 7, 1, 6, 0, 0, 0),
 #                datetime(2006, 7, 1, 12, 0, 0, 0), datetime(2006, 7, 1, 18, 0, 0, 0))
 
-pressure = 850
+pressure = 500
 dt = 1800
 files = glob.glob('../data/processed/experiments/2006*')
 # if files:
