@@ -32,8 +32,9 @@ def preprocessing_loop(exp_filters, name):
     ds_total.to_netcdf(PATH + name+'.nc',  mode='w')
 
 
-def run(pressure=500, dt=3600):
+def run(triplet, pressure=500, dt=3600):
     exp_filters = ('exp2', 'ground_t', 'df')
-    preprocessing_loop(exp_filters, str(dt)+'_'+str(pressure) + '_july')
+    preprocessing_loop(exp_filters, str(dt)+'_' +
+                       str(pressure) + '_'+triplet.strftime("%B").lower())
     preprocessing_loop(['full_exp2'], str(dt) + '_' +
-                       str(pressure) + '_full_july')
+                       str(pressure) + '_full_'+triplet.strftime("%B").lower())

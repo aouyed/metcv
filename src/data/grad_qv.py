@@ -14,7 +14,7 @@ def build_datarray(data, lat, lon, date):
     return da
 
 
-file = '../../data/interim/experiments/july/tracked/60min/combined/500_july.nc'
+file = '../../data/interim/experiments/january/tracked/60min/combined/850_january.nc'
 ds = xr.open_dataset(file)
 lat = ds.lat.values
 lon = ds.lon.values
@@ -44,4 +44,4 @@ for date in ds.time.values:
         ds_tot = ds_unit
 print(ds_tot)
 ds_tot.to_netcdf(
-    '../../data/interim/experiments/july/tracked/60min/combined/500_july_qv_grad.nc')
+    '../../data/interim/experiments/january/tracked/60min/combined/850_january_qv_grad.nc')

@@ -157,9 +157,10 @@ def plot_preprocessor(ds, ds_track, ds_qv_grad):
     return df_results
 
 
-def run(pressure=500, dt=3600):
+def run(triplet, pressure=500, dt=3600):
     time_string = None
 
+    month = triplet.strftime("%B").lower()
     if dt == 3600:
         time_string = '60min'
     elif dt == 1800:
@@ -168,12 +169,12 @@ def run(pressure=500, dt=3600):
         raise ValueError('not supported value in dt')
 
     file = '../data/processed/experiments/' + \
-        str(dt)+'_'+str(pressure)+'_july.nc'
+        str(dt)+'_'+str(pressure)+'_'+month+'.nc'
     ds = xr.open_dataset(file)
     ds_track = xr.open_dataset(
-        '../data/interim/experiments/july/tracked/'+time_string+'/combined/' + str(dt)+'_'+str(pressure)+'_july.nc')
+        '../data/interim/experiments/'+month+'/tracked/'+time_string+'/combined/' + str(dt)+'_'+str(pressure)+'_'+month+'.nc')
     ds_qv_grad = xr.open_dataset(
-        '../data/interim/experiments/july/tracked/' + time_string + '/combined/' + str(dt)+'_'+str(pressure)+'_july_qv_grad.nc')
+        '../data/interim/experiments/july/tracked/' + time_string + '/combined/' + str(dt)+'_'+str(pressure)+'_'+month+'_qv_grad.nc')
     df = plot_preprocessor(ds, ds_track, ds_qv_grad)
     df = edp.sorting_latlon(df)
     print(df)

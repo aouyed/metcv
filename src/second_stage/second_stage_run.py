@@ -55,7 +55,7 @@ def run(triplet_time, pressure, dt):
     exp_filters = ['exp2', 'ground_t', 'df']
     print('process data...')
     dft = df.copy()
-    df = re.error_calc(df, pressure)
+    df = re.error_calc(df, pressure, triplet_time.month)
 
     for exp_filter in exp_filters:
         print('fitting with filter ' + str(exp_filter))

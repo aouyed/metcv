@@ -6,8 +6,6 @@ from data import batch_plotter as bp
 import pandas as pd
 VMAX = 20
 PATH = '../data/processed/experiments/'
-PATH_JPL_60MIN = '../data/interim/experiments/july/tracked/60min/combined/'
-PATH_JPL_30MIN = '../data/interim/experiments/july/tracked/30min/combined/'
 
 
 def ds_averager(ds, rean=True):
@@ -52,38 +50,42 @@ def plotter(ds, varname, dt, pressure, filter):
                     varname + '_' + filter, 'm/s', 0, vmax)
 
 
-def main(pressure=850, dt=3600):
+def main(triplet, pressure=850, dt=3600):
+
+    month = triplet.strftime("%B").lower()
+    path_jpl_60min = '../data/interim/experiments/july/tracked/60min/combined/'
+    path_jpl_30min = '../data/interim/experiments/july/tracked/30min/combined/'
 
     df = pd.read_pickle(bp.PATH_DF+str(pressure)+'_df_results.pkl')
     edp.filter_plotter(df, bp.PATH_PLOT+str(dt)+'_'+str(pressure) +
                        '_results_test', 'training data size = 5%')
 
-    ds = xr.open_dataset(PATH+str(dt)+'_'+str(pressure)+'_july.nc')
+    ds = xr.open_dataset(PATH+str(dt)+'_'+str(pressure)+'_'+month+'.nc')
     filter = 'df'
     ds = ds.sel(filter=filter, time=ds.time.values[0])
     ds = ds_error(ds)
     plotter(ds, 'error_mag', dt, pressure, filter)
 
-    ds = xr.open_dataset(PATH+str(dt)+'_'+str(pressure)+'_full_july.nc')
+    ds = xr.open_dataset(PATH+str(dt)+'_'+str(pressure)+'_full_'+month+'.nc')
     filter = 'full_exp2'
     ds = ds.sel(filter=filter, time=ds.time.values[0])
     ds = ds_error(ds)
     plotter(ds, 'error_mag', dt, pressure, filter)
 
-    ds = xr.open_dataset(PATH+str(dt)+'_'+str(pressure)+'_full_july.nc')
+    ds = xr.open_dataset(PATH+str(dt)+'_'+str(pressure)+'_full_'+month+'.nc')
     filter = 'full_exp2'
     ds = ds.sel(filter=filter, time=ds.time.values[0])
     ds = ds_error(ds)
     plotter(ds, 'error_mag_rean', dt, pressure, filter)
 
     if dt == 3600:
-        path_jpl = PATH_JPL_60MIN
+        path_jpl = path_jpl_60min
     elif dt == 1800:
-        path_jpl = PATH_JPL_30MIN
+        path_jpl = path_jpl_30min
     else:
         raise ValueError('not supported value in dt')
 
-    ds = xr.open_dataset(path_jpl+str(dt)+'_'+str(pressure) + '_july.nc')
+    ds = xr.open_dataset(path_jpl+str(dt)+'_'+str(pressure) + '_'+month+'.nc')
     filter = 'jpl'
     ds = ds.sel(time=ds.time.values[0])
     ds = ds_error(ds, rean=False)

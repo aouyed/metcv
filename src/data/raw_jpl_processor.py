@@ -8,7 +8,7 @@ from datetime import datetime
 import sh
 
 PRESSURES = (500, 850)
-PATH_FILES = '../../data/interim/experiments/july/tracked/60min/*.nc'
+PATH_FILES = '../../data/interim/experiments/january/tracked/30min/*.nc'
 
 
 def daterange(start_date, end_date, dhour):
@@ -28,11 +28,11 @@ if rm_files:
 for pressure in PRESSURES:
     for day in (1, 2, 3):
 
-        date_list = (datetime(2006, 7, day, 0, 0, 0, 0), datetime(2006, 7, day, 6, 0, 0, 0),
-                     datetime(2006, 7, day, 12, 0, 0, 0), datetime(2006, 7, day, 18, 0, 0, 0))
+        date_list = (datetime(2006, 1, day, 0, 0, 0, 0), datetime(2006, 1, day, 6, 0, 0, 0),
+                     datetime(2006, 1, day, 12, 0, 0, 0), datetime(2006, 1, day, 18, 0, 0, 0))
 
         files = natsorted(
-            glob.glob('../../data/raw/experiments/jpl/tracked/july/'+str(day)+'/'+str(pressure)+'/30min/*.nc'))
+            glob.glob('../../data/raw/experiments/jpl/tracked/january/'+str(day)+'/'+str(pressure)+'/30min/*.nc'))
         print(files)
         ds_total = xr.Dataset()
         for i, file in enumerate(files):
@@ -54,7 +54,7 @@ for pressure in PRESSURES:
                 ds_total = xr.concat([ds_total, ds], 'time')
         print('saving..')
         ds_total.to_netcdf(
-            '../../data/interim/experiments/july/tracked/30min/' + str(day)+'.nc')
+            '../../data/interim/experiments/january/tracked/30min/' + str(day)+'.nc')
         print(ds_total)
 
     ds_total = xr.Dataset()
@@ -67,5 +67,5 @@ for pressure in PRESSURES:
         else:
             ds_total = xr.concat([ds_total, ds], 'time')
         ds_total.to_netcdf(
-            '../../data/interim/experiments/july/tracked/30min/combined/'+str(pressure)+'_july.nc')
+            '../../data/interim/experiments/january/tracked/30min/combined/'+str(pressure)+'_january.nc')
         print(ds_total)

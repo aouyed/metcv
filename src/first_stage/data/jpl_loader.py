@@ -38,7 +38,8 @@ def loader(var, pressure,  dt,  triplet,   **kwargs):
     date_list = (d0, d1, d2)
 
     file_paths = {}
-    filename = "../data/interim/experiments/july/" + str(triplet.day) + ".nc"
+    filename = "../data/interim/experiments/" + \
+        triplet.strftime("%B").lower()+"/" + str(triplet.day) + ".nc"
     ds_n = xr.open_dataset(filename)
     ds_n = ds_n.sel(pressure=pressure)
 
