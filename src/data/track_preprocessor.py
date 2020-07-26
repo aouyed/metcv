@@ -9,6 +9,7 @@ def preprocessing_loop(exp_filters, name):
     ds_total = xr.Dataset()
     for i, exp_filter in enumerate(exp_filters):
         files = glob.glob('../data/processed/experiments/'+exp_filter+'*')
+        print(files)
         ds_con = xr.Dataset()
         for j, file in enumerate(files):
             print('var file:')

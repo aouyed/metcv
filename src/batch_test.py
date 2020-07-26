@@ -21,11 +21,12 @@ files = glob.glob('../data/processed/experiments/2006*')
 # os.system("python3 first_stage/first_stage_run.py  -p " + str(pressure) + " -dt 3600   -tri " +
 #         triplet_time.strftime("%Y-%m-%d-%H:%M"))
 #ssr.run(triplet_time, pressure)
-# tp.run(pressure)
+#tp.run(triplet, pressure=pressure, dt=dt)
 #mm.main(pressure=pressure, dt=dt)
 
-#bp.run(pressure, dt)
+#bp.run(triplet, pressure=pressure, dt=dt)
 
 print('plotting maps...')
-hist.main(triplet, pressure=pressure, dt=dt)
+
 mm.main(triplet, pressure=pressure, dt=dt)
+hist.main(pressure=pressure, dt=dt)

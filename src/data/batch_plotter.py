@@ -174,8 +174,8 @@ def run(triplet, pressure=500, dt=3600):
     ds_track = xr.open_dataset(
         '../data/interim/experiments/'+month+'/tracked/'+time_string+'/combined/' + str(dt)+'_'+str(pressure)+'_'+month+'.nc')
     ds_qv_grad = xr.open_dataset(
-        '../data/interim/experiments/july/tracked/' + time_string + '/combined/' + str(dt)+'_'+str(pressure)+'_'+month+'_qv_grad.nc')
+        '../data/interim/experiments/' + month + '/tracked/' + time_string + '/combined/' + str(dt)+'_'+str(pressure)+'_'+month+'_qv_grad.nc')
     df = plot_preprocessor(ds, ds_track, ds_qv_grad)
     df = edp.sorting_latlon(df)
     print(df)
-    df.to_pickle(PATH_DF+str(pressure)+'_df_results.pkl')
+    df.to_pickle(PATH_DF + month+'_'+str(pressure)+'_df_results.pkl')

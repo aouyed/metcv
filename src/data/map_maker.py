@@ -53,10 +53,10 @@ def plotter(ds, varname, dt, pressure, filter):
 def main(triplet, pressure=850, dt=3600):
 
     month = triplet.strftime("%B").lower()
-    path_jpl_60min = '../data/interim/experiments/july/tracked/60min/combined/'
-    path_jpl_30min = '../data/interim/experiments/july/tracked/30min/combined/'
+    path_jpl_60min = '../data/interim/experiments/'+month+'/tracked/60min/combined/'
+    path_jpl_30min = '../data/interim/experiments/'+month+'/tracked/30min/combined/'
 
-    df = pd.read_pickle(bp.PATH_DF+str(pressure)+'_df_results.pkl')
+    df = pd.read_pickle(bp.PATH_DF+month+'_'+str(pressure)+'_df_results.pkl')
     edp.filter_plotter(df, bp.PATH_PLOT+str(dt)+'_'+str(pressure) +
                        '_results_test', 'training data size = 5%')
 

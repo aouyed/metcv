@@ -8,7 +8,7 @@ from data import track_preprocessor as tp
 from data import batch_plotter as bp
 from data import histograms as hist
 from data import map_maker as mm
-pressures = [500]
+pressures = [850]
 # dts = [3600]
 dts = [1800]
 triplet_times = []

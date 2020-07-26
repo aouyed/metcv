@@ -10,7 +10,7 @@ import seaborn as sns
 import pandas as pd
 import cmocean
 
-ERROR_MAX = 9
+ERROR_MAX = 10.5
 
 
 def quiver_plotter(df, title, uname, vname):
@@ -68,6 +68,7 @@ def map_plotter(var, title, units, vmin, vmax):
     ax.set_title(title)
     plt.savefig('../data/processed/plots/'+title +
                 '.png', bbox_inches='tight', dpi=300)
+    plt.close()
 
 
 def filter_plotter(df0, values, title):
@@ -93,6 +94,7 @@ def filter_plotter(df0, values, title):
     ax.set_title(title)
     directory = '../data/processed/density_plots'
     plt.savefig(values+'.png', bbox_inches='tight', dpi=300)
+    plt.close()
 
 
 def sorting_latlon(df0):
