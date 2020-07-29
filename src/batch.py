@@ -9,8 +9,8 @@ from data import batch_plotter as bp
 from data import histograms as hist
 from data import map_maker as mm
 pressures = [850]
-# dts = [3600]
-dts = [1800]
+dts = [3600]
+#dts = [1800]
 triplet_times = []
 month = 1
 day_list = (1, 2, 3)
@@ -34,10 +34,11 @@ for dt in dts:
         for triplet_time in triplet_times:
             os.system("python3 first_stage/first_stage_run.py   -p " + str(pressure) + " -dt " + str(dt) + " -tri " +
                       triplet_time.strftime("%Y-%m-%d-%H:%M"))
+            print('done first stage')
             ssr.run(triplet_time, pressure, dt)
             final_triplet = triplet_time
         tp.run(final_triplet, pressure=pressure, dt=dt)
         bp.run(final_triplet, pressure=pressure, dt=dt)
         mm.main(final_triplet, pressure=pressure, dt=dt)
-        hist.main(pressure=pressure, dt=dt)
+        hist.main(final_triplet, pressure=pressure, dt=dt)
         print("--- seconds ---" + str(time.time() - start_time))

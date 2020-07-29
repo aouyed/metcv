@@ -12,8 +12,8 @@ from data import map_maker as mm
 #                datetime(2006, 7, 1, 12, 0, 0, 0), datetime(2006, 7, 1, 18, 0, 0, 0))
 
 triplet = datetime(2006, 1, 3, 18, 0, 0, 0)
-pressure = 500
-dt = 1800
+pressure = 850
+dt = 3600
 files = glob.glob('../data/processed/experiments/2006*')
 # if files:
 #   sh.rm(files)
@@ -29,4 +29,4 @@ files = glob.glob('../data/processed/experiments/2006*')
 print('plotting maps...')
 
 mm.main(triplet, pressure=pressure, dt=dt)
-hist.main(pressure=pressure, dt=dt)
+hist.main(triplet, pressure=pressure, dt=dt)

@@ -46,7 +46,7 @@ def plotter(ds, varname, dt, pressure, filter):
     var = ds[varname].values
     vmin = 0
     vmax = VMAX
-    edp.map_plotter(var, str(dt)+'_'+str(pressure) + '_' +
+    edp.map_plotter(var, dt+'_'+str(pressure) + '_' +
                     varname + '_' + filter, 'm/s', 0, vmax)
 
 
@@ -64,19 +64,19 @@ def main(triplet, pressure=850, dt=3600):
     filter = 'df'
     ds = ds.sel(filter=filter, time=ds.time.values[0])
     ds = ds_error(ds)
-    plotter(ds, 'error_mag', dt, pressure, filter)
+    plotter(ds, 'error_mag', month+'_'+str(dt), pressure, filter)
 
     ds = xr.open_dataset(PATH+str(dt)+'_'+str(pressure)+'_full_'+month+'.nc')
     filter = 'full_exp2'
     ds = ds.sel(filter=filter, time=ds.time.values[0])
     ds = ds_error(ds)
-    plotter(ds, 'error_mag', dt, pressure, filter)
+    plotter(ds, 'error_mag', month+'_'+str(dt), pressure, filter)
 
     ds = xr.open_dataset(PATH+str(dt)+'_'+str(pressure)+'_full_'+month+'.nc')
     filter = 'full_exp2'
     ds = ds.sel(filter=filter, time=ds.time.values[0])
     ds = ds_error(ds)
-    plotter(ds, 'error_mag_rean', dt, pressure, filter)
+    plotter(ds, 'error_mag_rean', month+'_' + str(dt), pressure, filter)
 
     if dt == 3600:
         path_jpl = path_jpl_60min
@@ -85,11 +85,11 @@ def main(triplet, pressure=850, dt=3600):
     else:
         raise ValueError('not supported value in dt')
 
-    ds = xr.open_dataset(path_jpl+str(dt)+'_'+str(pressure) + '_'+month+'.nc')
+    ds = xr.open_dataset(path_jpl+str(pressure) + '_'+month+'.nc')
     filter = 'jpl'
     ds = ds.sel(time=ds.time.values[0])
     ds = ds_error(ds, rean=False)
-    plotter(ds, 'error_mag', dt, pressure, filter)
+    plotter(ds, 'error_mag', month+'_'+str(dt), pressure, filter)
 
 
 if __name__ == "__main__":

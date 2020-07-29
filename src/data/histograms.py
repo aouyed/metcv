@@ -117,17 +117,21 @@ def histogram_sequence(filter, prefix, dataframes):
                    'speed_diff', filter, 'Wind-moisture gradient angle [deg]')
 
 
-def main(pressure=500, dt=3600):
+def main(triplet, pressure=500, dt=3600):
     dataframes = glob.glob('../data/interim/experiments/dataframes/ua/*')
+    month = triplet.strftime("%B").lower()
 
-    histogram_sequence('exp2', str(dt)+'_' + str(pressure)+'_ua', dataframes)
-    histogram_sequence('df',  str(dt)+'_'+str(pressure)+'_df', dataframes)
-    histogram_sequence('reanalysis', str(dt)+'_' +
+    histogram_sequence('exp2', month+'_' + str(dt)+'_' +
+                       str(pressure)+'_ua', dataframes)
+    histogram_sequence('df',  month+'_'+str(dt)+'_' +
+                       str(pressure)+'_df', dataframes)
+    histogram_sequence('reanalysis', month+'_' + str(dt)+'_' +
                        str(pressure)+'_rean', dataframes)
     histogram_sequence('ground_t', str(dt)+'_'+str(pressure)+'_gt', dataframes)
 
     dataframes = glob.glob('../data/interim/experiments/dataframes/jpl/*')
-    histogram_sequence('jpl', str(dt)+'_' + str(pressure) + '_jpl', dataframes)
+    histogram_sequence('jpl', month+'_'+str(dt)+'_' +
+                       str(pressure) + '_jpl', dataframes)
 
 
 if __name__ == "__main__":
