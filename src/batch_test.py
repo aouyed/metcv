@@ -17,14 +17,13 @@ dt = 3600
 files = glob.glob('../data/processed/experiments/2006*')
 # if files:
 #   sh.rm(files)
-#triplet_time = datetime(2006, 7, 1, 0, 0, 0, 0)
+# triplet_time = datetime(2006, 7, 1, 0, 0, 0, 0)
 # os.system("python3 first_stage/first_stage_run.py  -p " + str(pressure) + " -dt 3600   -tri " +
-#         triplet_time.strftime("%Y-%m-%d-%H:%M"))
-#ssr.run(triplet_time, pressure)
-#tp.run(triplet, pressure=pressure, dt=dt)
-#mm.main(pressure=pressure, dt=dt)
+#         triplet.strftime("%Y-%m-%d-%H:%M"))
+ssr.run(triplet, pressure, dt=dt)
+tp.run(triplet, pressure=pressure, dt=dt)
 
-#bp.run(triplet, pressure=pressure, dt=dt)
+bp.run(triplet, pressure=pressure, dt=dt)
 
 print('plotting maps...')
 

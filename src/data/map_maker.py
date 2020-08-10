@@ -57,7 +57,7 @@ def main(triplet, pressure=850, dt=3600):
     path_jpl_30min = '../data/interim/experiments/'+month+'/tracked/30min/combined/'
 
     df = pd.read_pickle(bp.PATH_DF+month+'_'+str(pressure)+'_df_results.pkl')
-    edp.filter_plotter(df, bp.PATH_PLOT+str(dt)+'_'+str(pressure) +
+    edp.filter_plotter(df, bp.PATH_PLOT+month+'_'+str(dt)+'_'+str(pressure) +
                        '_results_test', 'training data size = 5%')
 
     ds = xr.open_dataset(PATH+str(dt)+'_'+str(pressure)+'_'+month+'.nc')

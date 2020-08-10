@@ -80,7 +80,7 @@ def ml_fitter(df, tsize):
     y_train0 = X_train0[['umeanh', 'vmeanh']]
     X_train = X_train0[['lat', 'lon',
                         'u_scaled_approx', 'v_scaled_approx', 'land']]
-    # X_train = X_train0[['lat', 'lon', 'land']]
+    #X_train = X_train0[['lat', 'lon', 'land']]
     y_train = y_train0[['umeanh', 'vmeanh']]
 
     regressor = RandomForestRegressor(
@@ -107,7 +107,8 @@ def ml_predictor(category, name, rmse,  regressor, X_test0, y_test0, X_full0):
                       'u_scaled_approx', 'v_scaled_approx', 'land']]
     X_full = X_full0[['lat', 'lon',
                       'u_scaled_approx', 'v_scaled_approx', 'land']]
-    # X_test = X_test0[['lat', 'lon', 'land']]
+    #X_full = X_full[['lat', 'lon', 'land']]
+   # X_test = X_test0[['lat', 'lon', 'land']]
     y_pred = regressor.predict(X_test)
     y_pred_full = regressor.predict(X_full)
 

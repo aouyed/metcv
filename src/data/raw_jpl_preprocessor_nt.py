@@ -16,7 +16,7 @@ def daterange(start_date, end_date, dhour):
     return date_list
 
 
-days = [1, 2, 3]
+days = [3]
 for day in days:
     #d0 = datetime.datetime(2005, 12, (day-1), 23, 0, 0, 0)
     d1 = datetime.datetime(2006, 1, day, 19, 0, 0, 0)
