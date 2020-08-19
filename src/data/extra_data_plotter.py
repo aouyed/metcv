@@ -65,7 +65,7 @@ def map_plotter(var, title, units, vmin, vmax):
     cbar.set_label(units)
     plt.xlabel("lon")
     plt.ylabel("lat")
-    ax.set_title(title)
+    # ax.set_title(title)
     plt.savefig('../data/processed/plots/'+title +
                 '.png', bbox_inches='tight', dpi=300)
     plt.close()
