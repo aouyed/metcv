@@ -8,7 +8,9 @@ from data import track_preprocessor as tp
 from data import batch_plotter as bp
 from data import histograms as hist
 from data import map_maker as mm
-pressures = [500]
+from data import summary_statistics as ss
+
+pressures = [850]
 dts = [3600]
 #dts = [1800]
 triplet_times = []
@@ -26,7 +28,14 @@ for day in day_list:
 files = glob.glob('../data/processed/experiments/200*.nc')
 if files:
     sh.rm(files)
+
+plots = glob.glob('../data/processed/plots/*')
+
+if plots:
+    sh.rm(plots)
+
 pressure = pressures[0]
+
 
 for dt in dts:
     for pressure in pressures:
@@ -41,4 +50,5 @@ for dt in dts:
         bp.run(final_triplet, pressure=pressure, dt=dt)
         mm.main(final_triplet, pressure=pressure, dt=dt)
         hist.main(final_triplet, pressure=pressure, dt=dt)
+        ss.main(final_triplet, pressure=pressure, dt=dt)
         print("--- seconds ---" + str(time.time() - start_time))

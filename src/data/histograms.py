@@ -15,7 +15,8 @@ METERS_TO_KM = 1/1000
 GRADIENT_TO_KM = KG_TO_GRAMS/METERS_TO_KM
 HIST_X_EDGES = {'grad_mag_qv': [0, 0.05], 'qv': [
     0, 6], 'speed': [0, 30], 'angle': [-180, 180]}
-CMAP = cm.gist_stern_r
+CMAP = cm.CMRmap_r
+VMAX_F = 1.5
 
 
 def big_hist_fun(input):
@@ -61,11 +62,17 @@ def histogram_plot(dataframes, var, filename, column_a, column_b, filter, xlabel
         dataframes, var,  filter, column_a, column_b, 1)
     print('plotting...')
     fig, ax = plt.subplots()
-    if column_a in ('speed', 'angle'):
+    if column_a in ('speed', 'angle', 'grad_mag_qv', 'qv'):
         if column_a is 'speed':
             vmax = 0.0015
-        else:
+        elif column_a is 'angle':
             vmax = 0.0008
+        elif column_a is 'grad_mag_qv':
+            vmax = 0.002
+        else:
+            vmax = 0.00175
+
+        vmax = vmax*VMAX_F
         divnorm = mcolors.TwoSlopeNorm(vmin=0, vcenter=vmax/4, vmax=vmax)
         im = ax.imshow(img, extent=extent, origin='lower',
                        cmap=CMAP, aspect='auto', vmin=0, vmax=vmax, norm=divnorm)
@@ -137,9 +144,6 @@ def histogram_sequence(filter, prefix, dataframes):
 
 
 def main(triplet, pressure=500, dt=3600):
-
-    skew_dict = {'filter': [], 'var': [],
-                 'mean_skew': [], 'mean_stdev': [], 'mean': []}
 
     month = triplet.strftime("%B").lower()
 
