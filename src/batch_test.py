@@ -16,8 +16,8 @@ dt = 3600
 files = glob.glob('../data/processed/experiments/2006*')
 plots = glob.glob('../data/processed/plots/*')
 
-if plots:
-    sh.rm(plots)
+# if plots:
+#   sh.rm(plots)
 
 # os.system("python3 first_stage/first_stage_run.py  -p " + str(pressure) + " -dt 3600   -tri " +
 #         triplet.strftime("%Y-%m-%d-%H:%M"))
@@ -28,5 +28,5 @@ if plots:
 print('plotting maps...')
 
 #mm.main(triplet, pressure=pressure, dt=dt)
-hist.main(triplet, pressure=pressure, dt=dt)
+#hist.main(triplet, pressure=pressure, dt=dt)
 ss.main(triplet, pressure=pressure, dt=dt)

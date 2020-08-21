@@ -10,11 +10,11 @@ from data import histograms as hist
 from data import map_maker as mm
 from data import summary_statistics as ss
 
-pressures = [850]
+pressures = [850, 500]
 dts = [3600]
 #dts = [1800]
 triplet_times = []
-month = 1
+month = 7
 day_list = (1, 2, 3)
 hour_list = (0, 6, 12, 18)
 # day_list = [1]
@@ -33,8 +33,6 @@ plots = glob.glob('../data/processed/plots/*')
 
 if plots:
     sh.rm(plots)
-
-pressure = pressures[0]
 
 
 for dt in dts:
