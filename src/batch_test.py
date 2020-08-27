@@ -11,8 +11,8 @@ from data import summary_statistics as ss
 
 
 triplet = datetime(2006, 1, 3, 18, 0, 0, 0)
-pressure = 850
-dt = 3600
+pressure = 500
+dt = 1800
 files = glob.glob('../data/processed/experiments/2006*')
 plots = glob.glob('../data/processed/plots/*')
 
@@ -23,10 +23,11 @@ plots = glob.glob('../data/processed/plots/*')
 #         triplet.strftime("%Y-%m-%d-%H:%M"))
 #ssr.run(triplet, pressure, dt=dt)
 #tp.run(triplet, pressure=pressure, dt=dt)
-#bp.run(triplet, pressure=pressure, dt=dt)
+print('triplet: '+str(triplet))
+bp.run(triplet, pressure=pressure, dt=dt)
 
 print('plotting maps...')
 
-#mm.main(triplet, pressure=pressure, dt=dt)
-#hist.main(triplet, pressure=pressure, dt=dt)
+mm.main(triplet, pressure=pressure, dt=dt)
+hist.main(triplet, pressure=pressure, dt=dt)
 ss.main(triplet, pressure=pressure, dt=dt)

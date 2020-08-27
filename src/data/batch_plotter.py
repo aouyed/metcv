@@ -19,6 +19,8 @@ PATH_PLOT = '../data/processed/plots/'
 
 
 def df_builder(ds, ds_track, ds_qv_grad, date):
+    date = str(date)
+    print('string date: ' + date)
     ds = ds.sel(time=date)
     ds = ds.astype(np.float32)
     ds_track = ds_track.sel(time=date)
