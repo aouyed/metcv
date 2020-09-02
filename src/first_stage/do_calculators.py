@@ -51,11 +51,4 @@ def analysis(parameters):
 
 
 def df_sumnmary(df):
-    today = date.today()
-    df_path = '../data/interim/dataframes/'+str(today)
-    plot_path = '../data/processed/summary_plots/'+str(today)
-    if not os.path.exists(df_path):
-        os.makedirs(df_path)
-    if not os.path.exists(plot_path):
-        os.makedirs(plot_path)
     print(df[["corr_speed", "corr_u", "corr_v", "ratio_count", "mean", "std"]])

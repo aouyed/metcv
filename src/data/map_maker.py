@@ -44,6 +44,7 @@ def ds_error(ds, rean=True):
 def plotter(ds, varname, dt, pressure, filter):
 
     var = ds[varname].values
+    var = np.squeeze(var)
     vmin = 0
     vmax = VMAX
     edp.map_plotter(var, dt+'_'+str(pressure) + '_' +
@@ -56,25 +57,27 @@ def main(triplet, pressure=850, dt=3600):
     path_jpl_60min = '../data/interim/experiments/'+month+'/tracked/60min/combined/'
     path_jpl_30min = '../data/interim/experiments/'+month+'/tracked/30min/combined/'
 
-    df = pd.read_pickle(bp.PATH_DF+month+'_'+str(pressure)+'_df_results.pkl')
+    df = pd.read_pickle(bp.PATH_DF+str(dt)+'_'+month+'_' +
+                        str(pressure)+'_df_results.pkl')
     edp.filter_plotter(df, bp.PATH_PLOT+month+'_'+str(dt)+'_'+str(pressure) +
                        '_results_test', 'training data size = 5%')
 
     ds = xr.open_dataset(PATH+str(dt)+'_'+str(pressure)+'_'+month+'.nc')
     filter = 'df'
-    ds = ds.sel(filter=filter, time=ds.time.values[0])
+
+    ds = ds.sel(filter=filter, time=str(ds.time.values[0]))
     ds = ds_error(ds)
     plotter(ds, 'error_mag', month+'_'+str(dt), pressure, filter)
 
     ds = xr.open_dataset(PATH+str(dt)+'_'+str(pressure)+'_full_'+month+'.nc')
     filter = 'full_exp2'
-    ds = ds.sel(filter=filter, time=ds.time.values[0])
+    ds = ds.sel(filter=filter, time=str(ds.time.values[0]))
     ds = ds_error(ds)
     plotter(ds, 'error_mag', month+'_'+str(dt), pressure, filter)
 
     ds = xr.open_dataset(PATH+str(dt)+'_'+str(pressure)+'_full_'+month+'.nc')
     filter = 'full_exp2'
-    ds = ds.sel(filter=filter, time=ds.time.values[0])
+    ds = ds.sel(filter=filter, time=str(ds.time.values[0]))
     ds = ds_error(ds)
     plotter(ds, 'error_mag_rean', month+'_' + str(dt), pressure, filter)
 
@@ -87,7 +90,7 @@ def main(triplet, pressure=850, dt=3600):
 
     ds = xr.open_dataset(path_jpl+str(pressure) + '_'+month+'.nc')
     filter = 'jpl'
-    ds = ds.sel(time=ds.time.values[0])
+    ds = ds.sel(time=str(ds.time.values[0]))
     ds = ds_error(ds, rean=False)
     plotter(ds, 'error_mag', month+'_'+str(dt), pressure, filter)
 

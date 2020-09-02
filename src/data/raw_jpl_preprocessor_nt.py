@@ -18,7 +18,7 @@ def daterange(start_date, end_date, dhour):
 
 days = [1, 2, 3]
 for day in days:
-    d1 = datetime.datetime(2006, 1, day, 19, 0, 0, 0)
+    d1 = datetime.datetime(2006, 7, day, 19, 0, 0, 0)
     d0 = d1 - datetime.timedelta(hours=20)
     print('d0 ' + str(d0))
     start_dates = daterange(d0, d1, 6)
@@ -29,8 +29,8 @@ for day in days:
         date_list = date_list + daterange(start_date, end_dates[i], 0.5)
     day = str(day)
     files = natsorted(
-        glob.glob('../../data/raw/experiments/jpl/january/0'+day+'/*.nc'))
-    ds_total = 0
+        glob.glob('../../data/raw/experiments/jpl/july/0'+day+'/*.nc'))
+    ds_total = xr.Dataset()
     for i, file in enumerate(files):
         print('var file:')
         print(file)
@@ -48,5 +48,5 @@ for day in days:
         else:
             ds_total = xr.concat([ds_total, ds], 'time')
     print('saving..')
-    ds_total.to_netcdf('../../data/interim/experiments/january/'+day+'.nc')
+    ds_total.to_netcdf('../../data/interim/experiments/july/'+day+'.nc')
     print(ds_total)

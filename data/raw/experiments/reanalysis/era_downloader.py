@@ -4,7 +4,7 @@ c = cdsapi.Client()
 
 #var = 'v'
 year = '2006'
-month = '01'
+month = '07'
 #day = '01'
 #time = '12:00:00'
 pressures = ('500', '850')

@@ -181,7 +181,7 @@ def df_to_netcdf(dataframes_dict, triplet):
         else:
             ds = xr.concat([ds, ds_unit], 'time')
 
-    ds.to_netcdf('../data/processed/experiments/' +
+    ds.to_netcdf('../data/interim/experiments/first_stage_amvs/' +
                  triplet.strftime("%Y-%m-%d-%H:%M")+'.nc')
 
 

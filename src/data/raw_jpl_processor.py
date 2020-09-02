@@ -8,7 +8,6 @@ from datetime import datetime
 import sh
 
 PRESSURES = (500, 850)
-PATH_FILES = '../../data/interim/experiments/january/tracked/30min/*.nc'
 
 
 def daterange(start_date, end_date, dhour):
@@ -20,52 +19,63 @@ def daterange(start_date, end_date, dhour):
     return date_list
 
 
-rm_files = natsorted(glob.glob(PATH_FILES))
-
-if rm_files:
-    sh.rm(rm_files)
-
-for pressure in PRESSURES:
-    for day in (1, 2, 3):
-
-        date_list = (datetime(2006, 1, day, 0, 0, 0, 0), datetime(2006, 1, day, 6, 0, 0, 0),
-                     datetime(2006, 1, day, 12, 0, 0, 0), datetime(2006, 1, day, 18, 0, 0, 0))
-
-        files = natsorted(
-            glob.glob('../../data/raw/experiments/jpl/tracked/january/'+str(day)+'/'+str(pressure)+'/30min/*.nc'))
-        print(files)
-        ds_total = xr.Dataset()
-        for i, file in enumerate(files):
-            print('var file:')
-            print(file)
-            ds = xr.open_dataset(file)
-            ds = ds.expand_dims('time')
-            date = np.array([date_list[i]])
-            ds = ds.assign_coords(time=date)
-            for var in ds:
-                print('var', var)
-                ds[var].encoding['_FillValue'] = np.nan
-                ds[var].encoding['missing_value'] = np.nan
-            filename = Path(file).stem
-            print(ds.time)
-            if not ds_total:
-                ds_total = ds
+print('hello')
+months = [1, 7]
+dts = ['30min', '60min']
+for dt in dts:
+    for month in months:
+        for pressure in PRESSURES:
+            if month == 1:
+                month_str = 'january'
             else:
-                ds_total = xr.concat([ds_total, ds], 'time')
-        print('saving..')
-        ds_total.to_netcdf(
-            '../../data/interim/experiments/january/tracked/30min/' + str(day)+'.nc')
-        print(ds_total)
+                month_str = 'july'
+            path_files = '../../data/interim/experiments/'+month_str+'/tracked/'+dt+'/*.nc'
+            rm_files = natsorted(glob.glob(path_files))
 
-    ds_total = xr.Dataset()
-    files = natsorted(glob.glob(PATH_FILES))
+            for day in (1, 2, 3):
 
-    for file in files:
-        ds = xr.open_dataset(file)
-        if not ds_total:
-            ds_total = ds
-        else:
-            ds_total = xr.concat([ds_total, ds], 'time')
-        ds_total.to_netcdf(
-            '../../data/interim/experiments/january/tracked/30min/combined/'+str(pressure)+'_january.nc')
-        print(ds_total)
+                date_list = (datetime(2006, month, day, 0, 0, 0, 0), datetime(2006, month, day, 6, 0, 0, 0),
+                             datetime(2006, month, day, 12, 0, 0, 0), datetime(2006, month, day, 18, 0, 0, 0))
+
+                files = natsorted(
+                    glob.glob('../../data/raw/experiments/jpl/tracked/'+month_str+'/'+str(day)+'/'+str(pressure)+'/'+dt+'/*.nc'))
+                print(files)
+                ds_total = xr.Dataset()
+                for i, file in enumerate(files):
+                    print('var file:')
+                    print(file)
+                    ds = xr.open_dataset(file)
+                    ds = ds.expand_dims('time')
+                    date = np.array([date_list[i]])
+                    ds = ds.assign_coords(time=date)
+                    for var in ds:
+                        print('var', var)
+                        ds[var].encoding['_FillValue'] = np.nan
+                        ds[var].encoding['missing_value'] = np.nan
+                    filename = Path(file).stem
+                    print(ds.time)
+                    if not ds_total:
+                        ds_total = ds
+                    else:
+                        ds_total = xr.concat([ds_total, ds], 'time')
+                print('saving..')
+                ds_total.to_netcdf(
+                    '../../data/interim/experiments/'+month_str+'/tracked/'+dt+'/' + str(day)+'.nc')
+                print(ds_total)
+
+            ds_total = xr.Dataset()
+
+            files = natsorted(glob.glob(path_files))
+
+            for file in files:
+                ds = xr.open_dataset(file)
+                if not ds_total:
+                    ds_total = ds
+                else:
+                    ds_total = xr.concat([ds_total, ds], 'time')
+                file_path = '../../data/interim/experiments/'+month_str + \
+                    '/tracked/'+dt+'/combined/' + \
+                    str(pressure)+'_'+month_str+'.nc'
+                sh.rm(file_path)
+                ds_total.to_netcdf(file_path)
+                print(ds_total)

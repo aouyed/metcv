@@ -10,11 +10,11 @@ from data import histograms as hist
 from data import map_maker as mm
 from data import summary_statistics as ss
 
-pressures = [500]
+pressures = [850]
 #dts = [3600]
 dts = [1800]
 triplet_times = []
-month = 1
+month = 7
 day_list = (1, 2, 3)
 hour_list = (0, 6, 12, 18)
 # day_list = [1]
@@ -25,14 +25,17 @@ for day in day_list:
 
 
 # print(triplet_times)
-files = glob.glob('../data/processed/experiments/200*.nc')
+files = glob.glob('../data/interim/experiments/first_stage_amvs/200*.nc')
+if files:
+    sh.rm(files)
+files = glob.glob('../data/interim/dataframes/*')
 if files:
     sh.rm(files)
 
 plots = glob.glob('../data/processed/plots/*')
 
-if plots:
-    sh.rm(plots)
+# if plots:
+#   sh.rm(plots)
 
 
 for dt in dts:

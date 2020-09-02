@@ -3,6 +3,8 @@ from data import histograms as hist
 import numpy as np
 import glob
 
+PATH_DF = '../data/processed/dataframes/'
+
 
 def summary_stats(df_stats, skew_dict, filter, column_y, var):
     mean = df_stats['weighed'].sum()/df_stats['cos_weight'].sum()
@@ -70,7 +72,7 @@ def main(triplet, pressure=500, dt=3600):
 
     df = pd.DataFrame(skew_dict)
     print(df)
-    df.to_pickle(str(dt)+'_'+month+'_'+str(pressure)+'_df_stats.pkl')
+    df.to_pickle(PATH_DF+str(dt)+'_'+month+'_'+str(pressure)+'_df_stats.pkl')
 
 
 if __name__ == "__main__":

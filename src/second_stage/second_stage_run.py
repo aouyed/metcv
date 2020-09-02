@@ -38,7 +38,7 @@ def ds_to_dataframe(ds, triplet_time, deltatime):
 def run(triplet_time, pressure, dt):
     """Initialize second stage of UA algorithm."""
 
-    filename = '../data/processed/experiments/' + \
+    filename = '../data/interim/experiments/first_stage_amvs/' + \
         triplet_time.strftime("%Y-%m-%d-%H:%M")+'.nc'
 
     ds = xr.open_dataset(filename)

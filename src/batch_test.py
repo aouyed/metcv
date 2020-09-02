@@ -10,9 +10,10 @@ from data import map_maker as mm
 from data import summary_statistics as ss
 
 
-triplet = datetime(2006, 1, 3, 18, 0, 0, 0)
-pressure = 500
-dt = 1800
+month = 7
+triplet = datetime(2006, month, 3, 18, 0, 0, 0)
+pressure = 850
+dt = 3600
 files = glob.glob('../data/processed/experiments/2006*')
 plots = glob.glob('../data/processed/plots/*')
 
@@ -24,7 +25,7 @@ plots = glob.glob('../data/processed/plots/*')
 #ssr.run(triplet, pressure, dt=dt)
 #tp.run(triplet, pressure=pressure, dt=dt)
 print('triplet: '+str(triplet))
-bp.run(triplet, pressure=pressure, dt=dt)
+#bp.run(triplet, pressure=pressure, dt=dt)
 
 print('plotting maps...')
 
