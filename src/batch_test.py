@@ -10,7 +10,7 @@ from data import map_maker as mm
 from data import summary_statistics as ss
 
 
-month = 7
+month = 1
 triplet = datetime(2006, month, 3, 18, 0, 0, 0)
 pressure = 850
 dt = 3600
@@ -29,6 +29,6 @@ print('triplet: '+str(triplet))
 
 print('plotting maps...')
 
-mm.main(triplet, pressure=pressure, dt=dt)
-hist.main(triplet, pressure=pressure, dt=dt)
+#mm.main(triplet, pressure=pressure, dt=dt)
+#hist.main(triplet, pressure=pressure, dt=dt)
 ss.main(triplet, pressure=pressure, dt=dt)

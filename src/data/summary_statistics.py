@@ -20,6 +20,10 @@ def summary_stats(df_stats, skew_dict, filter, column_y, var):
     skew_dict['mean'].append(mean)
     skew_dict['skewness'].append(skewness)
     skew_dict['stdev'].append(stdev)
+    skew_dict['q50'].append(abs(df_stats[column_y]).quantile(0.5))
+    skew_dict['q68'].append(abs(df_stats[column_y]).quantile(0.68))
+    skew_dict['q95'].append(abs(df_stats[column_y]).quantile(0.95))
+    print(skew_dict)
 
     return skew_dict
 
@@ -45,8 +49,8 @@ def stat_calculator(filter, column_y, column_x, dataframes, skew_dict):
 
 def main(triplet, pressure=500, dt=3600):
 
-    skew_dict = {'filter': [], 'var': [],
-                 'skewness': [], 'stdev': [], 'mean': []}
+    skew_dict = {'filter': [], 'var': [],  'mean': [],
+                 'skewness': [], 'stdev': [], 'q50': [], 'q68': [], 'q95': []}
 
     month = triplet.strftime("%B").lower()
 

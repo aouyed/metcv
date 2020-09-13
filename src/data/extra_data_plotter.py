@@ -48,7 +48,7 @@ def map_plotter(var, title, units, vmin, vmax):
     fig, ax = plt.subplots()
     ax = plt.axes(projection=ccrs.PlateCarree())
     ax.coastlines()
-    #pmap = plt.cm.gnuplot
+    # pmap = plt.cm.gnuplot
     pmap = cmocean.cm.thermal_r
     # pmap = plt.cm.coolwarm
     # pmap.set_bad(color='grey')
@@ -57,8 +57,8 @@ def map_plotter(var, title, units, vmin, vmax):
         im = ax.imshow(var, cmap=pmap,
                        extent=[-180, 180, -90, 90], origin='lower', vmin=vmin, vmax=vmax, norm=divnorm)
     else:
-        im = ax.imshow(var, cmap=pmap,
-                       extent=[-180, 180, -90, 90], origin='lower')
+        im = ax.imshow(
+            var, cmap=pmap, extent=[-180, 180, -90, 90], origin='lower')
 
     cbar = fig.colorbar(im, ax=ax, fraction=0.025, pad=0.04)
 
