@@ -7,8 +7,10 @@ import pickle
 from datetime import datetime
 from datetime import timedelta
 import shutil
+import sh
 
 dictionary_path = '../data/interim/dictionaries/vars'
+netcdf_path = '../data/interim/netcdf'
 npy_stem = '../data/interim/npys'
 
 
@@ -42,7 +44,7 @@ def loader(var, pressure,  dt,  triplet,   **kwargs):
         triplet.strftime("%B").lower()+"/" + str(triplet.day) + ".nc"
     ds_n = xr.open_dataset(filename)
     ds_n = ds_n.sel(pressure=pressure)
-
+    ds_total = xr.Dataset()
     for i, date in enumerate(date_list):
         print('Downloading data for variable ' +
               var + ' for date: ' + str(date))
@@ -50,29 +52,19 @@ def loader(var, pressure,  dt,  triplet,   **kwargs):
         if not os.path.exists(directory_path):
             os.makedirs(directory_path)
 
-        if var == 'umeanh':
-            T_l = 0.5*(ds_n['u'].sel(time=d0)+ds_n['u'].sel(time=d1))
-            T_u = 0.5*(ds_n['u'].sel(time=d1)+ds_n['u'].sel(time=d2))
-            T = 0.5*(T_l+T_u)
-            T = T.values
-            T = np.squeeze(T)
-        elif var == 'vmeanh':
-            T_l = 0.5*(ds_n['v'].sel(time=d0)+ds_n['v'].sel(time=d1))
-            T_u = 0.5*(ds_n['v'].sel(time=d1)+ds_n['v'].sel(time=d2))
-            T = 0.5*(T_l+T_u)
-            T = T.values
-            T = np.squeeze(T)
+        ds_unit = ds_n[['u', 'v', 'qv']].sel(time=date)
+        T_l = 0.5*(ds_n['u'].sel(time=d0)+ds_n['u'].sel(time=d1))
+        T_u = 0.5*(ds_n['u'].sel(time=d1)+ds_n['u'].sel(time=d2))
+        ds_unit['umeanh'] = 0.5*(T_l+T_u)
+        T_l = 0.5*(ds_n['v'].sel(time=d0)+ds_n['v'].sel(time=d1))
+        T_u = 0.5*(ds_n['v'].sel(time=d1)+ds_n['v'].sel(time=d2))
+        ds_unit['vmeanh'] = 0.5*(T_l+T_u)
 
+        if not ds_total:
+            ds_total = ds_unit
         else:
-            T = ds_n[var.lower()].sel(time=date_list[i])
-            T = T.values
-            T = np.squeeze(T)
+            ds_total = xr.concat([ds_total, ds_unit], 'time')
 
-        print('shape of downloaded array: ' + str(T.shape))
-        file_path = str(directory_path+'/'+str(date)+".npy")
-        np.save(file_path, T)
-        file_paths[date] = file_path
-    if not os.path.exists(dictionary_path):
-        os.makedirs(dictionary_path)
-    f = open(dictionary_path+'/' + var+'.pkl', "wb")
-    pickle.dump(file_paths, f)
+    if not os.path.exists(netcdf_path):
+        os.makedirs(netcdf_path)
+    ds_total.to_netcdf(netcdf_path+'/first_stage_raw.nc')

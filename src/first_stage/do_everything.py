@@ -39,27 +39,9 @@ def downloader(parameters):
 
     print('initializing  downloader...')
 
-    parameters.var = 'u'
+   # parameters.var = 'u'
     kwargs = vars(parameters)
     downloader_function(parameters)
-
-    parameters.var = 'v'
-    kwargs = vars(parameters)
-    downloader_function(parameters)
-
-    parameters.var = 'qv'
-    kwargs = vars(parameters)
-    downloader_function(parameters)
-
-    parameters.var = 'umeanh'
-    kwargs = vars(parameters)
-    downloader_function(parameters)
-    parameters.var = 'vmeanh'
-    kwargs = vars(parameters)
-    downloader_function(parameters)
-
-    if parameters.grid > 0.0625:
-        dc.coarsener(parameters)
 
     print('finished downloader.')
 

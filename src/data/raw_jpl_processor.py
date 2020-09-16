@@ -6,6 +6,7 @@ from pathlib import Path
 from natsort import natsorted
 from datetime import datetime
 import sh
+from dateutil.parser import parse
 
 PRESSURES = (500, 850)
 
@@ -17,6 +18,24 @@ def daterange(start_date, end_date, dhour):
         date_list.append(start_date)
         start_date += delta
     return date_list
+
+
+def date_test(file, date, dt, pressure):
+    file_string = Path(file).stem
+    file_string = file_string.split('_')
+    dt_string = file_string[3]
+    if dt == '60min':
+        dt = 'dt2'
+    else:
+        dt = 'dt1'
+    pstring = file_string[2]
+    pressure = str(pressure) + 'hPa'
+
+    date_file = file_string[-2] + file_string[-1]
+    date_file = parse(date_file)
+    assert dt_string == dt
+    assert date == date_file
+    assert pstring == pressure
 
 
 print('hello')
@@ -47,6 +66,7 @@ for dt in dts:
                     ds = xr.open_dataset(file)
                     ds = ds.expand_dims('time')
                     date = np.array([date_list[i]])
+                    date_test(file, date, dt, pressure)
                     ds = ds.assign_coords(time=date)
                     for var in ds:
                         print('var', var)

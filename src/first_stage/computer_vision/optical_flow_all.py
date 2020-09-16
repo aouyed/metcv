@@ -23,13 +23,15 @@ import sh
 
 
 def optical_flow(triplet, dt,  var, **kwargs):
-    file_paths = pickle.load(
-        open('../data/interim/dictionaries/vars/'+var+'.pkl', 'rb'))
+    #    file_paths = pickle.load(
+ #       open('../data/interim/dictionaries/vars/'+var+'.pkl', 'rb'))
+    netcdf_path = '../data/interim/netcdf'
 
+    ds = xr.open_dataset(netcdf_path+'/first_stage_raw.nc')
     triplet_delta = datetime.timedelta(hours=dt/3600)
     start_date = triplet-triplet_delta
 
-    frame1 = np.load(file_paths[start_date])
+    frame1 = ds['qv'].sel(time=start_date).values
     frame1 = ofc.drop_nan(frame1)
     frame1 = cv2.normalize(src=frame1, dst=None,
                            alpha=0, beta=255, norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_8UC1)
@@ -42,19 +44,20 @@ def optical_flow(triplet, dt,  var, **kwargs):
     file_paths_flow = {}
     dates = []
 
-    file_paths.pop(start_date, None)
-
     path = '../data/interim/flow_frames/'
     files = glob.glob(path + '*')
     if files:
         sh.rm(files)
 
-    for date in file_paths:
+    for date in ds.time.values[1:]:
+        print(date)
+        breakpoint()
         dates.append(date)
         print('flow calculation for date: ' + str(date))
 
-        file = file_paths[date]
-        frame2 = np.load(file)
+        #file = file_paths[date]
+        frame2 = ds['qv'].sel(time=date).values
+        #frame2 = np.load(file)
         #frame2 = ds[var].sel(time=date).values
 
         frame2 = ofc.drop_nan(frame2)
@@ -77,9 +80,9 @@ def optical_flow(triplet, dt,  var, **kwargs):
 
         if not os.path.exists(path):
             os.makedirs(path)
-        file_path = path + var + '_'+filename+'.npy'
-        np.save(file_path, flow)
-        file_paths_flow[date] = file_path
+        #file_path = path + var + '_'+filename+'.npy'
+        #np.save(file_path, flow)
+        #file_paths_flow[date] = file_path
         prvs = next_frame
         shape = list(np.shape(frame2))
         shape.append(2)

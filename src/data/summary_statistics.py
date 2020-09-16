@@ -36,7 +36,11 @@ def stat_calculator(filter, column_y, column_x, dataframes, skew_dict):
         print(df)
         df = hist.initialize_dataframe(filter, column_x, df)
         if column_x == 'angle':
-            df = df[abs(df.angle) == 90]
+            print('size of complete df: ' + str(df.shape))
+            df_unit = df[(abs(df.angle) <= 91) & (abs(df.angle) >= 89)]
+            df_unit2 = df[(abs(df.angle) <= 181) & (abs(df.angle) >= 179)]
+            df = pd.concat([df_unit, df_unit2])
+            print('size for angle=90: ' + str(df.shape))
         if not df_stats.empty:
             df_stats = pd.concat([df_stats, df[['cos_weight', column_y]]])
         else:
@@ -56,9 +60,9 @@ def main(triplet, pressure=500, dt=3600):
 
     dataframes = glob.glob('../data/interim/experiments/dataframes/jpl/*')
     skew_dict = stat_calculator(
-        'jpl', 'speed_diff', 'speed', dataframes, skew_dict)
-    skew_dict = stat_calculator(
         'jpl', 'speed_diff', 'angle', dataframes, skew_dict)
+    skew_dict = stat_calculator(
+        'jpl', 'speed_diff', 'speed', dataframes, skew_dict)
 
     dataframes = glob.glob('../data/interim/experiments/dataframes/ua/*')
     skew_dict = stat_calculator(
