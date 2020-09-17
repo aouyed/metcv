@@ -39,25 +39,6 @@ def daterange(start_date, end_date):
     return date_list
 
 
-def dataframe_quantum(file, date, dictionary_dict):
-    """creates a datafrane for a particular date meant for being concatenated"""
-    frame = np.load(file)
-
-    df = pd.DataFrame(frame[:, :, 0]).stack().rename_axis(
-        ['y', 'x']).reset_index(name='flow_u')
-    df_1 = pd.DataFrame(frame[:, :, 1]).stack().rename_axis(
-        ['y', 'x']).reset_index(name='flow_v')
-    df['flow_v'] = df_1['flow_v']
-    df['datetime'] = pd.Timestamp(date)
-    for state_var in dictionary_dict:
-        state_files = dictionary_dict[state_var]
-        frame = np.load(state_files[date])
-        df_1 = pd.DataFrame(frame).stack().rename_axis(
-            ['y', 'x']).reset_index(name=state_var.lower())
-        df = df.merge(df_1, how='left')
-    return df
-
-
 def dataframe_pivot(frame, var):
     df = pd.DataFrame(frame).stack().rename_axis(
         ['y', 'x']).reset_index(name=var.lower())

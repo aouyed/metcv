@@ -92,11 +92,11 @@ def build_datarray(data, lat, lon, date):
     return da
 
 
-def div_calc(u, v, dx, dy, kernel):
+def div_calc(u, v, dx, dy, kernel, is_track):
     div = mpcalc.divergence(
         u * units['m/s'], v * units['m/s'], dx, dy, dim_order='yx')
     div = div.magnitude
-    if kernel > 0:
+    if (kernel > 0 and is_track == True):
         div = np.nan_to_num(div)
         div = cv2.blur(div, (kernel, kernel))
     div = SCALE*div
@@ -119,11 +119,11 @@ def div_calc_amir(u, v, dx, dy, kernel):
     return div
 
 
-def vort_calc(u, v, dx, dy, kernel):
+def vort_calc(u, v, dx, dy, kernel, is_track):
     vort = mpcalc.vorticity(
         u * units['m/s'], v * units['m/s'], dx, dy, dim_order='yx')
     vort = vort.magnitude
-    if kernel > 0:
+    if kernel > 0 and is_track == True:
         vort = np.nan_to_num(vort)
         vort = cv2.blur(vort, (kernel, kernel))
     vort = SCALE*vort

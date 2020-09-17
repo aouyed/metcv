@@ -22,7 +22,7 @@ import xarray as xr
 
 def df_loop(df, grid, dt):
     dt_inv = 1/dt
-    df = dfc.latlon_converter(df, grid)
+    # df = dfc.latlon_converter(df, grid)
     df = dfc.scaling_df_approx(df, grid, dt_inv)
     return df
 
@@ -57,43 +57,27 @@ def df_summary(df, count):
 
 
 def dataframe_builder(var, grid, dt,  **kwargs):
-    """build dataframe that includes data from all relevant dates"""
-    dictionary_paths = glob.glob('../data/interim/dictionaries/vars/*')
-    dictionary_path = '../data/interim/dictionaries/'
+    netcdf_path = '../data/interim/netcdf'
 
-    dict_optical_paths = glob.glob(
-        '../data/interim/dictionaries_optical_flow/*')
-    dictionary_dict = {}
-    dictionary_dict_optical = {}
-    dictionary_dataframes = {}
-
-    for path in dictionary_paths:
-        var_name = os.path.basename(path).split('.')[0]
-        dictionary_dict[var_name] = pickle.load(open(path, 'rb'))
-
-    for path in dict_optical_paths:
-        var_name = os.path.basename(path).split('.')[0]
-        dictionary_dict_optical[var_name] = pickle.load(open(path, 'rb'))
-
+    ds = xr.open_dataset(netcdf_path+'/first_stage.nc')
     df_path = '../data/interim/dataframes'
     if not os.path.exists(df_path):
         os.makedirs(df_path)
-    flow_files = dictionary_dict_optical[var]
 
-    for date in flow_files:
+    ds_total = xr.Dataset()
+    for date in ds.time.values:
+        date = str(date)
+        ds_unit = ds.sel(time=date)
+
         print('building dataframe for the date: ' + str(date))
-        file = flow_files[date]
         start_time = time.time()
-        df = dfc.dataframe_quantum(file, date, dictionary_dict)
-
+        df = ds_unit.to_dataframe()
+        df = df.reset_index()
         df = parallelize_dataframe(df, grid, dt)
-        print("--- %s seconds ---" % (time.time() - start_time))
-        df.set_index('datetime', inplace=True)
-        path = df_path+'/'+var+'_'+str(date)+'.pkl'
-        df.to_pickle(path)
-        dictionary_dataframes[date] = path
-        f = open(dictionary_path+'/dataframes.pkl', "wb")
-        pickle.dump(dictionary_dataframes, f)
+        df = df.set_index(['lat', 'lon'])
+        ds = df.to_xarray()
+        breakpoint()
+        # pickle.dump(dictionary_dataframes, f)
 
 
 def df_printer(df, directory):
@@ -192,6 +176,7 @@ def data_analysis(triplet,  **kwargs):
     pd.set_option('display.expand_frame_repr', False)
     dict_path = '../data/interim/dictionaries/dataframes.pkl'
     dataframes_dict = pickle.load(open(dict_path, 'rb'))
+
     df = df_concatenator(dataframes_dict)
     df_to_netcdf(dataframes_dict, triplet)
     count = df.shape[0]

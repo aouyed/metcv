@@ -65,6 +65,8 @@ def loader(var, pressure,  dt,  triplet,   **kwargs):
         else:
             ds_total = xr.concat([ds_total, ds_unit], 'time')
 
-    if not os.path.exists(netcdf_path):
-        os.makedirs(netcdf_path)
-    ds_total.to_netcdf(netcdf_path+'/first_stage_raw.nc')
+    filename = glob.glob(netcdf_path+'/first_stage*.nc')
+    if filename:
+        sh.rm(filename)
+    ds_total.to_netcdf(netcdf_path+'/first_stage.nc')
+    print('done')

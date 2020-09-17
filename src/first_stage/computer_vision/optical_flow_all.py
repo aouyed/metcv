@@ -27,7 +27,9 @@ def optical_flow(triplet, dt,  var, **kwargs):
  #       open('../data/interim/dictionaries/vars/'+var+'.pkl', 'rb'))
     netcdf_path = '../data/interim/netcdf'
 
-    ds = xr.open_dataset(netcdf_path+'/first_stage_raw.nc')
+    ds = xr.open_dataset(netcdf_path+'/first_stage.nc')
+    ds['flow_u'] = ds['qv'].copy()
+    ds['flow_v'] = ds['qv'].copy()
     triplet_delta = datetime.timedelta(hours=dt/3600)
     start_date = triplet-triplet_delta
 
@@ -51,14 +53,14 @@ def optical_flow(triplet, dt,  var, **kwargs):
 
     for date in ds.time.values[1:]:
         print(date)
-        breakpoint()
+        date = str(date)
         dates.append(date)
         print('flow calculation for date: ' + str(date))
 
-        #file = file_paths[date]
+        # file = file_paths[date]
         frame2 = ds['qv'].sel(time=date).values
-        #frame2 = np.load(file)
-        #frame2 = ds[var].sel(time=date).values
+        # frame2 = np.load(file)
+        # frame2 = ds[var].sel(time=date).values
 
         frame2 = ofc.drop_nan(frame2)
         start_time = time.time()
@@ -75,21 +77,14 @@ def optical_flow(triplet, dt,  var, **kwargs):
         print("--- %s seconds ---" % (time.time() - start_time))
         print('done with deep flow')
 
-        filename = os.path.basename(file)
-        filename = os.path.splitext(filename)[0]
-
-        if not os.path.exists(path):
-            os.makedirs(path)
-        #file_path = path + var + '_'+filename+'.npy'
-        #np.save(file_path, flow)
-        #file_paths_flow[date] = file_path
+        ds['flow_u'].loc[dict(time=date)] = flow[:, :, 0]
+        ds['flow_v'].loc[dict(time=date)] = flow[:, :, 1]
         prvs = next_frame
         shape = list(np.shape(frame2))
         shape.append(2)
         shape = tuple(shape)
 
-    path = '../data/interim/dictionaries_optical_flow'
-    if not os.path.exists(path):
-        os.makedirs(path)
-    file_dictionary = open(path+'/'+var+'.pkl', "wb")
-    pickle.dump(file_paths_flow, file_dictionary)
+    filename = glob.glob(netcdf_path+'/first_stage*.nc')
+    if filename:
+        sh.rm(filename)
+    ds.to_netcdf(netcdf_path+'/first_stage.nc')

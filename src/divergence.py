@@ -22,8 +22,8 @@ def grad_calculator(ds, dy, dx, date, kernel):
     v = ds['vmean'].sel(time=str(date)).values
     u = np.squeeze(u)
     v = np.squeeze(v)
-    div = tc.div_calc(u.copy(), v.copy(), dx.copy(), dy.copy(), kernel)
-    vort = tc.vort_calc(u, v, dx, dy, kernel)
+    div = tc.div_calc(u.copy(), v.copy(), dx.copy(), dy.copy(), kernel, False)
+    vort = tc.vort_calc(u, v, dx, dy, kernel, False)
     print('building data arrays...')
     da3 = tc.build_datarray(div, lat, lon, date)
     da4 = tc.build_datarray(vort, lat, lon, date)
@@ -41,8 +41,8 @@ def grad_calculator(ds, dy, dx, date, kernel):
     u = np.squeeze(u)
     v = np.squeeze(v)
 
-    div = tc.div_calc(u.copy(), v.copy(), dx.copy(), dy.copy(), kernel)
-    vort = tc.vort_calc(u, v, dx, dy, kernel)
+    div = tc.div_calc(u.copy(), v.copy(), dx.copy(), dy.copy(), kernel, True)
+    vort = tc.vort_calc(u, v, dx, dy, kernel, True)
     da3 = tc.build_datarray(div, lat, lon, date)
     da4 = tc.build_datarray(vort, lat, lon, date)
     ds_unit = xr.merge(
@@ -50,7 +50,7 @@ def grad_calculator(ds, dy, dx, date, kernel):
     ds_unit = xr.merge(
         [ds_unit, xr.Dataset({'vorticity_track': da4})])
     ds_unit['cos_weight'] = np.cos(ds_unit.lat/180*np.pi)
-    #ds_unit['cos_weight'] = ds['cos_weight'].sel(time=str(date))
+    # ds_unit['cos_weight'] = ds['cos_weight'].sel(time=str(date))
     ds_unit['error_div'] = abs(ds_unit.divergence-ds_unit.divergence_track)
     ds_unit['error_vort'] = abs(ds_unit.vorticity-ds_unit.vorticity_track)
     print(ds_unit)
@@ -60,11 +60,11 @@ def grad_calculator(ds, dy, dx, date, kernel):
 months = [7]
 pressures = [850, 500]
 dts = [3600]
-file_name = '3600_850_full_july.nc'
-
-files = ['../data/processed/experiments/'+file_name]
-file = '../data/interim/experiments/july/tracked/60min/combined/850_july.nc'
-files.append(file)
+file_name = '3600_850_july.nc'
+files = []
+file1 = '../data/processed/experiments/'+file_name
+#file2 = '../data/interim/experiments/july/tracked/60min/combined/850_july.nc'
+files.append(file1)
 
 
 for file in files:
@@ -79,7 +79,7 @@ for file in files:
     times = ds.time.values
     times = [times[0]]
     kernels = [0, 5, 10, 20]
-    kernels = [0]
+    kernels = [44]
     for kernel in kernels:
         ds_tot = xr.Dataset()
         rmses = []
@@ -105,8 +105,8 @@ for file in files:
         print(df_results)
         tc.filter_plotter(df_results, 'div_vort_'+name, ' ')
         ds_tot = ds_tot.sel(time=str(ds_tot.time.values[0]))
-        #ds_tot['divergence'] = abs(ds_tot.divergence)
-        #ds_tot['vorticity'] = abs(ds_tot.vorticity)
+        # ds_tot['divergence'] = abs(ds_tot.divergence)
+        # ds_tot['vorticity'] = abs(ds_tot.vorticity)
         tc.plotter(ds_tot, 'error_div', '850', '850', name)
         tc.plotter(ds_tot, 'error_vort', '850', '850', name)
         tc.plotter(ds_tot, 'divergence', '850', '850', name)
