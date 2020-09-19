@@ -21,15 +21,9 @@ from second_stage import reanalysis_error as re
 import xarray as xr
 
 
-def ds_to_dataframe(ds, triplet_time, deltatime):
+def ds_to_dataframe(ds, triplet_time):
     """Get dataframe from an xarray dataset."""
-
-    ds_unit = ds.sel(time=triplet_time)
-    ds_unit['u_scaled_approx'] = 0.5*(ds['u_scaled_approx'].sel(time=triplet_time) +
-                                      ds['u_scaled_approx'].sel(time=(triplet_time+deltatime)))
-    ds_unit['v_scaled_approx'] = 0.5*(ds['v_scaled_approx'].sel(time=triplet_time) +
-                                      ds['v_scaled_approx'].sel(time=(triplet_time+deltatime)))
-    df = ds_unit.to_dataframe()
+    df = ds.to_dataframe()
     df = df.reset_index()
     df['cos_weight'] = np.cos(df['lat']/180*np.pi)
     return df
@@ -42,8 +36,7 @@ def run(triplet_time, pressure, dt):
         triplet_time.strftime("%Y-%m-%d-%H:%M")+'.nc'
 
     ds = xr.open_dataset(filename)
-    triplet_delta = datetime.timedelta(hours=dt/3600)
-    df = ds_to_dataframe(ds, triplet_time, triplet_delta)
+    df = ds_to_dataframe(ds.copy(), triplet_time)
     df = df.dropna()
     df['land'] = globe.is_land(df.lat, df.lon)
     df = df.reset_index(drop=True)

@@ -18,6 +18,7 @@ import time
 import gc
 from tqdm import tqdm
 import xarray as xr
+import sh
 
 
 def df_loop(df, grid, dt):
@@ -74,10 +75,17 @@ def dataframe_builder(var, grid, dt,  **kwargs):
         df = ds_unit.to_dataframe()
         df = df.reset_index()
         df = parallelize_dataframe(df, grid, dt)
-        df = df.set_index(['lat', 'lon'])
-        ds = df.to_xarray()
-        breakpoint()
-        # pickle.dump(dictionary_dataframes, f)
+        df = df.set_index(['lat', 'lon', 'time'])
+        ds_unit = df.to_xarray()
+        if not ds_total:
+            ds_total = ds_unit
+        else:
+            ds_total = xr.concat([ds_total, ds_unit], 'time')
+
+    filename = glob.glob(netcdf_path+'/first_stage*.nc')
+    if filename:
+        sh.rm(filename)
+    ds_total.to_netcdf(netcdf_path+'/first_stage.nc')
 
 
 def df_printer(df, directory):
@@ -107,6 +115,17 @@ def error_df(df):
     df['speed_error'] = df['error_u']*df['error_u']+df['error_v']*df['error_v']
 
     return df
+
+
+def error_ds(ds):
+    ds["error_u"] = ds['umeanh']-ds['u_scaled_approx']
+    ds["error_v"] = ds['vmeanh']-ds['v_scaled_approx']
+    ds['speed'] = np.sqrt(ds['umeanh']*ds['umeanh']+ds['vmeanh']*ds['vmeanh'])
+    ds['speed_approx'] = np.sqrt(
+        ds['u_scaled_approx']*ds['u_scaled_approx']+ds['v_scaled_approx']*ds['v_scaled_approx'])
+    ds['speed_error'] = ds['error_u']*ds['error_u']+ds['error_v']*ds['error_v']
+
+    return ds
 
 
 def df_concatenator(dataframes_dict):
@@ -174,11 +193,23 @@ def data_analysis(triplet,  **kwargs):
 
     pd.set_option('display.max_colwidth', -1)
     pd.set_option('display.expand_frame_repr', False)
-    dict_path = '../data/interim/dictionaries/dataframes.pkl'
-    dataframes_dict = pickle.load(open(dict_path, 'rb'))
+    netcdf_path = '../data/interim/netcdf'
 
-    df = df_concatenator(dataframes_dict)
-    df_to_netcdf(dataframes_dict, triplet)
+    ds = xr.open_dataset(netcdf_path+'/first_stage.nc')
+
+    ds_final = ds.sel(time=str(ds.time.values[0]))
+    dl = ds['u_scaled_approx'].sel(time=str(ds.time.values[0]))
+    du = ds['u_scaled_approx'].sel(time=str(ds.time.values[1]))
+    ds_final['u_scaled_approx'] = 0.5*(dl+du)
+
+    dl = ds['v_scaled_approx'].sel(time=str(ds.time.values[0]))
+    du = ds['v_scaled_approx'].sel(time=str(ds.time.values[1]))
+    ds_final['v_scaled_approx'] = 0.5*(dl+du)
+    ds_final = error_ds(ds_final)
+    ds_final.to_netcdf('../data/interim/experiments/first_stage_amvs/' +
+                       triplet.strftime("%Y-%m-%d-%H:%M")+'.nc')
+    df = ds_final.to_dataframe()
+    df = df.reset_index()
     count = df.shape[0]
     df = df.dropna()
     df_stats = df_summary(df, count)

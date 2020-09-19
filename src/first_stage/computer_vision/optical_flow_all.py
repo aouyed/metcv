@@ -45,13 +45,15 @@ def optical_flow(triplet, dt,  var, **kwargs):
     prvs = np.nan_to_num(prvs)
     file_paths_flow = {}
     dates = []
+    ds = ds.loc[dict(time=slice(
+        str(ds.time.values[1]), str(ds.time.values[2])))]
 
     path = '../data/interim/flow_frames/'
     files = glob.glob(path + '*')
     if files:
         sh.rm(files)
 
-    for date in ds.time.values[1:]:
+    for date in ds.time.values:
         print(date)
         date = str(date)
         dates.append(date)

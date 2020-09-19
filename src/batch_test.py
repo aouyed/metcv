@@ -22,13 +22,13 @@ plots = glob.glob('../data/processed/plots/*')
 
 os.system("python3 first_stage/first_stage_run.py  -p " + str(pressure) + " -dt 3600   -tri " +
           triplet.strftime("%Y-%m-%d-%H:%M"))
-#ssr.run(triplet, pressure, dt=dt)
-#tp.run(triplet, pressure=pressure, dt=dt)
+ssr.run(triplet, pressure, dt=dt)
+tp.run(triplet, pressure=pressure, dt=dt)
 print('triplet: '+str(triplet))
-#bp.run(triplet, pressure=pressure, dt=dt)
+bp.run(triplet, pressure=pressure, dt=dt)
 
 #print('plotting maps...')
 
-#mm.main(triplet, pressure=pressure, dt=dt)
-#hist.main(triplet, pressure=pressure, dt=dt)
-#ss.main(triplet, pressure=pressure, dt=dt)
+mm.main(triplet, pressure=pressure, dt=dt)
+hist.main(triplet, pressure=pressure, dt=dt)
+ss.main(triplet, pressure=pressure, dt=dt)

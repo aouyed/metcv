@@ -10,7 +10,7 @@ from data import histograms as hist
 from data import map_maker as mm
 from data import summary_statistics as ss
 
-pressures = [500]
+pressures = [850]
 dts = [3600]
 #dts = [1800]
 triplet_times = []

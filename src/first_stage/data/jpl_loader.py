@@ -53,12 +53,12 @@ def loader(var, pressure,  dt,  triplet,   **kwargs):
             os.makedirs(directory_path)
 
         ds_unit = ds_n[['u', 'v', 'qv']].sel(time=date)
-        T_l = 0.5*(ds_n['u'].sel(time=d0)+ds_n['u'].sel(time=d1))
-        T_u = 0.5*(ds_n['u'].sel(time=d1)+ds_n['u'].sel(time=d2))
-        ds_unit['umeanh'] = 0.5*(T_l+T_u)
-        T_l = 0.5*(ds_n['v'].sel(time=d0)+ds_n['v'].sel(time=d1))
-        T_u = 0.5*(ds_n['v'].sel(time=d1)+ds_n['v'].sel(time=d2))
-        ds_unit['vmeanh'] = 0.5*(T_l+T_u)
+        #T_l = 0.5*(ds_n['u'].sel(time=d0)+ds_n['u'].sel(time=d1))
+        #T_u = 0.5*(ds_n['u'].sel(time=d1)+ds_n['u'].sel(time=d2))
+        ds_unit['umeanh'] = ds_n['u'].sel(time=d1)
+        #T_l = 0.5*(ds_n['v'].sel(time=d0)+ds_n['v'].sel(time=d1))
+        #T_u = 0.5*(ds_n['v'].sel(time=d1)+ds_n['v'].sel(time=d2))
+        ds_unit['vmeanh'] = ds_n['v'].sel(time=d1)
 
         if not ds_total:
             ds_total = ds_unit
