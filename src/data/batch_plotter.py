@@ -34,7 +34,6 @@ def df_builder(ds, ds_track, ds_qv_grad, date):
     df_qv_grad = df_qv_grad.drop(columns=['time'])
 
     start_time = time.time()
-
     df_tot = pd.merge(df, dft, on=[
         'lat', 'lon'], how='outer')
     df_tot = df_tot[df_tot.utrack_y.notna()]
@@ -43,18 +42,24 @@ def df_builder(ds, ds_track, ds_qv_grad, date):
     dft = df_tot.drop(
         columns=['time_x', 'time_y', 'utrack_x', 'vtrack_x', 'umean_x', 'vmean_x'])
     df_tot = df_tot.drop(
-        columns=['time_x', 'time_y', 'utrack_y', 'vtrack_y', 'umean_y', 'vmean_y'])
+        columns=['time_y', 'time_x', 'utrack_y', 'vtrack_y', 'umean_y', 'vmean_y'])
 
     df_tot = df_tot.rename(columns={
-                           'utrack_x': 'utrack', 'vtrack_x': 'vtrack', 'umean_x': 'umean', 'vmean_x': 'vmean'})
-    dft = dft.rename(columns={
+        'utrack_x': 'utrack', 'vtrack_x': 'vtrack', 'umean_x': 'umean', 'vmean_x': 'vmean'})
+    dft = df_tot.rename(columns={
         'utrack_y': 'utrack', 'vtrack_y': 'vtrack', 'umean_y': 'umean', 'vmean_y': 'vmean'})
     dft['filter'] = 'jpl'
-    df_tot = df_tot.drop_duplicates(['lat', 'lon', 'filter'], keep='first')
+    df_tot = df_tot.drop_duplicates(
+        ['lat', 'lon', 'filter'], keep='first')
     dft = dft.drop_duplicates(['lat', 'lon', 'filter'], keep='first')
+    df_tot = df_tot.set_index(['lat', 'lon', 'filter'])
+    ds = xr.Dataset.from_dataframe(df_tot)
+    dft = dft.set_index(['lat', 'lon', 'filter'])
+    ds_t = xr.Dataset.from_dataframe(dft)
+    ds = xr.concat([ds, ds_t], 'filter')
+    breakpoint()
     print("--- seconds ---" + str(time.time() - start_time))
-
-    return df_tot, dft
+    return ds
 
 
 def coord_to_string(coord):
@@ -72,18 +77,27 @@ def coord_to_string(coord):
 
 
 def rmsvd_calculator(df, coord, rmsvd_num, rmsvd_den, filter):
-    df_unit = df[(df.lat >= coord[0]) & (df.lat <= coord[1])]
-    df_unit['cos_weight'] = np.cos(df_unit.lat/180*np.pi)
+    ds['cos_weight'] = np.cos(ds['lat']/180*np.pi)
     if filter is 'rean':
-        erroru = df_unit.u_error_rean
-        errorv = df_unit.v_error_rean
+        erroru = ds['u_error_rean']
+        errorv = ds['v_error_rean']
     else:
-        erroru = df_unit.utrack-df_unit.umean
+        erroru = ds['utrack']-df_unit.umean
         errorv = df_unit.vtrack-df_unit.vmean
     df_unit['vec_diff'] = df_unit.cos_weight * (erroru**2 + errorv**2)
     rmsvd_num = rmsvd_num + df_unit['vec_diff'].sum()
     rmsvd_den = rmsvd_den + df_unit['cos_weight'].sum()
     return rmsvd_num, rmsvd_den
+
+
+def error_calc(ds):
+    """Calculates and stores error of tracker algorithm into dataframe."""
+
+    error_uj = (ds['umean'] - ds['utrack'])
+    error_vj = (ds['vmean'] - ds['vtrack'])
+    speed_errorj = (error_uj**2+error_vj**2)*ds['cos_weight']
+    rmsvd = np.sqrt(speed_errorj.sum()/df['cos_weight'].sum())
+    return rmsvd
 
 
 def coord_to_string(coord):
@@ -104,7 +118,7 @@ def plot_preprocessor(ds, ds_track, ds_qv_grad):
     dates = ds.time.values
     coords = [(-30, 30), (-60, -30), (-90, -60), (30, 60), (60, 90)]
     # coords = [(-90, 90)]
-    filters = ['df', 'exp2', 'ground_t', 'jpl', 'rean']
+   # filters = ['df', 'exp2', 'ground_t', 'jpl', 'rean']
     rmsvds = []
     region = []
     filter_res = []
@@ -117,20 +131,20 @@ def plot_preprocessor(ds, ds_track, ds_qv_grad):
         sh.rm(files)
     if files_t:
         sh.rm(files_t)
+    ds_total = xr.Dataset()
     for i, date in enumerate(dates):
         print('preprocessing: ' + str(date))
-        df_unit, df_t = df_builder(ds, ds_track[[
+        ds_unit = df_builder(ds, ds_track[[
             'time', 'qv', 'utrack', 'vtrack', 'umean', 'vmean', 'lat', 'lon']], ds_qv_grad, date)
-        df_t['filter'] = 'jpl'
-        df_unit.to_pickle('../data/interim/experiments/dataframes/ua/' +
-                          str(i)+'.pkl')
-        df_t.to_pickle('../data/interim/experiments/dataframes/jpl/' +
-                       str(i)+'.pkl')
-
-    files = natsorted(glob.glob(ua_directory))
-    files_t = natsorted(glob.glob(jpl_directory))
+        ds_unit = ds_unit.assign_coords(time=str(date))
+        ds_unit = ds_unit.astype(np.float32)
+        if ds_total:
+            ds_total = xr.concat([ds_total, ds_unit], 'time')
+        else:
+            ds_total = ds_unit
+    breakpoint()
     for coord in tqdm(coords):
-        for filter in filters:
+        for filter in ds_total.filter.values:
             rmsvd_num = 0
             rmsvd_den = 0
             for i, date in enumerate(dates):
