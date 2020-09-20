@@ -29,6 +29,7 @@ bp.run(triplet, pressure=pressure, dt=dt)
 
 #print('plotting maps...')
 
-mm.main(triplet, pressure=pressure, dt=dt)
-hist.main(triplet, pressure=pressure, dt=dt)
-ss.main(triplet, pressure=pressure, dt=dt)
+
+#mm.main(triplet, pressure=pressure, dt=dt)
+#hist.main(triplet, pressure=pressure, dt=dt)
+#ss.main(triplet, pressure=pressure, dt=dt)
