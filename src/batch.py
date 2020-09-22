@@ -11,7 +11,7 @@ from data import map_maker as mm
 from data import summary_statistics as ss
 
 pressures = [850]
-dts = [3600]
+dts = [3600, 1800]
 #dts = [1800]
 triplet_times = []
 month = 1
@@ -34,8 +34,8 @@ if files:
 
 plots = glob.glob('../data/processed/plots/*')
 
-# if plots:
-#   sh.rm(plots)
+if plots:
+    sh.rm(plots)
 
 
 for dt in dts:
@@ -52,4 +52,7 @@ for dt in dts:
         mm.main(final_triplet, pressure=pressure, dt=dt)
         hist.main(final_triplet, pressure=pressure, dt=dt)
         ss.main(final_triplet, pressure=pressure, dt=dt)
+        os.system(
+            "rsync   --progress  ../data/processed/experiments/*  /run/media/amirouyed/reserarchDi/09_21_20/experiments/")
+        os.system('rm ../data/processed/experiments/*')
         print("--- seconds ---" + str(time.time() - start_time))

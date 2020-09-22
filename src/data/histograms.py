@@ -7,6 +7,7 @@ import pdb
 import glob
 import cmocean
 import matplotlib.colors as mcolors
+import xarray as xr
 from joblib import Parallel, delayed
 
 
@@ -17,6 +18,7 @@ HIST_X_EDGES = {'grad_mag_qv': [0, 0.05], 'qv': [
     0, 6], 'speed': [0, 30], 'angle': [-180, 180]}
 CMAP = cm.CMRmap_r
 VMAX_F = 1.5
+PATH = '../data/processed/experiments/'
 
 
 def big_hist_fun(input):
@@ -32,7 +34,7 @@ def big_hist_fun(input):
         heatmap = heatmap/np.sum(heatmap)
 
 
-def big_histogram(dataframes, var, filter, column_x, column_y, s,  bins=100):
+def big_histogram(ds, var, filter, column_x, column_y, s,  bins=100):
     """Creates a big histogram out of chunks in order to fit it in memory. """
     xedges = HIST_X_EDGES[column_x]
     yedges = [-7.5, 7.5]
@@ -41,12 +43,10 @@ def big_histogram(dataframes, var, filter, column_x, column_y, s,  bins=100):
     ybins = np.linspace(yedges[0], yedges[1], bins+1)
     heatmap = np.zeros((bins, bins), np.uint)
 
-    for df in dataframes:
-        print(df)
-        df = initialize_dataframe(filter, var, df)
-        subtotal, _, _ = np.histogram2d(
-            df[column_x], df[column_y], bins=[xbins, ybins])
-        heatmap += subtotal.astype(np.uint)
+    df = initialize_dataframe(filter, var, ds)
+    subtotal, _, _ = np.histogram2d(
+        df[column_x], df[column_y], bins=[xbins, ybins])
+    heatmap += subtotal.astype(np.uint)
     if s > 0:
         heatmap = gaussian_filter(heatmap, sigma=s)
         heatmap = heatmap/np.sum(heatmap)
@@ -54,20 +54,20 @@ def big_histogram(dataframes, var, filter, column_x, column_y, s,  bins=100):
     return heatmap.T, extent
 
 
-def histogram_plot(dataframes, var, filename, column_a, column_b, filter, xlabel):
+def histogram_plot(ds, var, filename, column_a, column_b, filter, xlabel):
     """Initializes  histogram, plots it and saves it."""
     print('calculating histogram...')
     print(var)
     img, extent = big_histogram(
-        dataframes, var,  filter, column_a, column_b, 1)
+        ds, var,  filter, column_a, column_b, 1)
     print('plotting...')
     fig, ax = plt.subplots()
     if column_a in ('speed', 'angle', 'grad_mag_qv', 'qv'):
-        if column_a is 'speed':
+        if column_a == 'speed':
             vmax = 0.0015
-        elif column_a is 'angle':
+        elif column_a == 'angle':
             vmax = 0.0008
-        elif column_a is 'grad_mag_qv':
+        elif column_a == 'grad_mag_qv':
             vmax = 0.002
         else:
             vmax = 0.00175
@@ -88,16 +88,16 @@ def histogram_plot(dataframes, var, filename, column_a, column_b, filter, xlabel
                 filename+'.png', bbox_inches='tight', dpi=300)
 
 
-def initialize_dataframe(filter, var,  file):
+def initialize_dataframe(filter_u, var,  ds):
     """Reads pickled dataframe and calculates important quantities such as wind speed."""
-    print('initializing  ' + var + ' histogram...')
-    df = pd.read_pickle(file)
-    if filter is not 'jpl':
-        if filter is 'reanalysis':
-            df = df[df['filter'] == 'df']
-        else:
-            df = df[df['filter'] == filter]
-    df = df.drop_duplicates(['lat', 'lon'], keep='first')
+
+    if filter_u == 'reanalysis':
+        ds = ds.sel(filter='df')
+    else:
+        ds = ds.sel(filter=filter_u)
+
+    df = ds.to_dataframe()
+    df = df.reset_index()
     if var is 'angle':
         df = angle(df)
     if var is 'qv':
@@ -131,15 +131,15 @@ def angle(df):
     return df
 
 
-def histogram_sequence(filter, prefix, dataframes):
+def histogram_sequence(filter, prefix, ds):
     """Calculates batch of histogram plots"""
-    histogram_plot(dataframes, 'speed', prefix + '_speed', 'speed',
+    histogram_plot(ds, 'speed', prefix + '_speed', 'speed',
                    'speed_diff', filter, 'Wind speed [m/s]')
-    histogram_plot(dataframes, 'qv', prefix+'_qv', 'qv',
+    histogram_plot(ds, 'qv', prefix+'_qv', 'qv',
                    'speed_diff', filter, 'Moisture [g/kg]')
-    histogram_plot(dataframes, 'grad_mag_qv', prefix+'_grad_mag_qv',
+    histogram_plot(ds, 'grad_mag_qv', prefix+'_grad_mag_qv',
                    'grad_mag_qv', 'speed_diff', filter, 'Moisture gradient [g/(kg km)]')
-    histogram_plot(dataframes, 'angle', prefix+'_angle', 'angle',
+    histogram_plot(ds, 'angle', prefix+'_angle', 'angle',
                    'speed_diff', filter, 'Wind-moisture gradient angle [deg]')
 
 
@@ -147,20 +147,24 @@ def main(triplet, pressure=500, dt=3600):
 
     month = triplet.strftime("%B").lower()
 
-    dataframes = glob.glob('../data/interim/experiments/dataframes/jpl/*')
-    histogram_sequence('jpl', month+'_'+str(dt)+'_' +
-                       str(pressure) + '_jpl', dataframes)
+    ds_name = str(dt)+'_' + str(pressure) + '_' + \
+        triplet.strftime("%B").lower() + '_merged'
 
-    dataframes = glob.glob('../data/interim/experiments/dataframes/ua/*')
+    filename = PATH + ds_name+'.nc'
+    ds = xr.open_dataset(filename)
+
+#    histogram_sequence('reanalysis', month+'_' + str(dt)+'_' +
+ #                      str(pressure)+'_rean', ds)
+
+    histogram_sequence('jpl', month+'_'+str(dt)+'_' +
+                       str(pressure) + '_jpl', ds)
 
     histogram_sequence('exp2', month+'_' + str(dt)+'_' +
-                       str(pressure)+'_ua', dataframes)
+                       str(pressure)+'_ua', ds)
     histogram_sequence('df',  month+'_'+str(dt)+'_' +
-                       str(pressure)+'_df', dataframes)
-    histogram_sequence('reanalysis', month+'_' + str(dt)+'_' +
-                       str(pressure)+'_rean', dataframes)
-    histogram_sequence('ground_t', str(
-        dt)+'_'+str(pressure)+'_gt', dataframes)
+                       str(pressure)+'_df', ds)
+  #  histogram_sequence('ground_t', str(
+   #     dt)+'_'+str(pressure)+'_gt', ds)
 
 
 if __name__ == "__main__":
