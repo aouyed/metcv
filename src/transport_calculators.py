@@ -53,8 +53,8 @@ def plotter(ds, varname, dt, pressure, filter):
     var = np.squeeze(var)
     print('test')
     print(np.mean(np.nan_to_num(var)))
-    vmin = 0
-    vmax = 1
+    vmin = -1.25
+    vmax = 5
     # if varname == 'error_vort':
     #   vmin = 0
     #  vmax = 0.006
@@ -144,11 +144,11 @@ def coord_to_string(coord):
     return stringd
 
 
-def rmse_lists(df, rmses, region, filter_res):
+def rmse_lists(df, rmses, region, filter_res, utrack_name, vtrack_name):
     for coord in COORDS:
 
         rmse_div, rmse_vort, rmsvd,  mean_div, mean_vort = rmse_calculator(
-            df, coord)
+            df, coord, utrack_name, vtrack_name)
 
         stringc = coord_to_string(coord)
         filter_res.append('rmsvd')
@@ -168,17 +168,17 @@ def rmse_lists(df, rmses, region, filter_res):
         region.append(stringc)
 
 
-def error_calc(df):
+def error_calc(df, utrack_name, vtrack_name):
     """Calculates and stores error of tracker algorithm into dataframe."""
 
-    error_uj = (df['umean'] - df['utrack'])
-    error_vj = (df['vmean'] - df['vtrack'])
+    error_uj = (df['umean'] - df[utrack_name])
+    error_vj = (df['vmean'] - df[vtrack_name])
     speed_errorj = (error_uj**2+error_vj**2)*df['cos_weight']
     rmsvd = np.sqrt(speed_errorj.sum()/df['cos_weight'].sum())
     return rmsvd
 
 
-def rmse_calculator(df, coord):
+def rmse_calculator(df, coord, utrack_name, vtrack_name):
     df_unit = df[(df.lat >= coord[0]) & (df.lat <= coord[1])]
     df_unit['delta_div'] = df_unit.cos_weight * \
         (df_unit.divergence-df_unit.divergence_track)**2
@@ -190,7 +190,7 @@ def rmse_calculator(df, coord):
     rmse_div = np.sqrt(df_unit['delta_div'].sum()/df_unit['cos_weight'].sum())
     rmse_vort = np.sqrt(df_unit['delta_vort'].sum() /
                         df_unit['cos_weight'].sum())
-    rmsvd = error_calc(df_unit.copy())
+    rmsvd = error_calc(df_unit.copy(), utrack_name, vtrack_name)
     mean_div = df_unit['weighed_abs_div'].sum()/df_unit['cos_weight'].sum()
     mean_vort = df_unit['weighed_abs_vort'].sum()/df_unit['cos_weight'].sum()
 
