@@ -53,8 +53,8 @@ def plotter(ds, varname, dt, pressure, filter):
     var = np.squeeze(var)
     print('test')
     print(np.mean(np.nan_to_num(var)))
-    vmin = -1.25
-    vmax = 5
+    vmin = -0.25
+    vmax = 1
     # if varname == 'error_vort':
     #   vmin = 0
     #  vmax = 0.006

@@ -10,10 +10,10 @@ from data import histograms as hist
 from data import map_maker as mm
 from data import summary_statistics as ss
 
-pressures = [500, 850]
-#dts = [3600, 1800]
-dts = [1800]
-months = [7]
+pressures = [850, 500]
+dts = [3600, 1800]
+#dts = [3600]
+months = [1]
 day_list = (1, 2, 3)
 hour_list = (0, 6, 12, 18)
 # day_list = [1]
@@ -25,9 +25,7 @@ files = glob.glob('../data/processed/experiments/*')
 if files:
     sh.rm(files)
 
-files = glob.glob('../data/interim/experiments/first_stage_amvs/200*.nc')
-if files:
-    sh.rm(files)
+
 files = glob.glob('../data/interim/dataframes/*')
 if files:
     sh.rm(files)
@@ -35,7 +33,7 @@ if files:
 plots = glob.glob('../data/processed/plots/*')
 
 # if plots:
-#   sh.rm(plots)
+#  sh.rm(plots)
 
 for month in months:
     triplet_times = []
@@ -48,6 +46,10 @@ for month in months:
         for pressure in pressures:
             start_time = time.time()
             for triplet_time in triplet_times:
+                files = glob.glob(
+                    '../data/interim/experiments/first_stage_amvs/*.nc')
+                if files:
+                    sh.rm(files)
                 os.system("python3 first_stage/first_stage_run.py   -p " + str(pressure) + " -dt " + str(dt) + " -tri " +
                           triplet_time.strftime("%Y-%m-%d-%H:%M"))
                 print('done first stage')
@@ -59,6 +61,6 @@ for month in months:
             hist.main(final_triplet, pressure=pressure, dt=dt)
             ss.main(final_triplet, pressure=pressure, dt=dt)
             os.system(
-                "rsync   --progress  ../data/processed/experiments/*  /run/media/amirouyed/reserarchDi/09_21_20/experiments/")
+                "rsync   --progress  ../data/processed/experiments/*  /run/media/amirouyed/reserarchDi/10_02_20/experiments/")
             os.system('rm ../data/processed/experiments/*')
             print("--- seconds ---" + str(time.time() - start_time))

@@ -14,24 +14,23 @@ month = 1
 triplet = datetime(2006, month, 3, 18, 0, 0, 0)
 pressure = 850
 dt = 3600
-files = glob.glob('../data/processed/experiments/2006*')
 plots = glob.glob('../data/processed/plots/*')
+files = glob.glob('../data/interim/experiments/first_stage_amvs/*')
 
-# if plots:
-#   sh.rm(plots)
+# if files:
+#   sh.rm(files)
 
 # os.system("python3 first_stage/first_stage_run.py  -p " + str(pressure) + " -dt 3600   -tri " +
 #         triplet.strftime("%Y-%m-%d-%H:%M"))
 #ssr.run(triplet, pressure, dt=dt)
 #tp.run(triplet, pressure=pressure, dt=dt)
-#print('triplet: '+str(triplet))
+print('triplet: '+str(triplet))
 #bp.run(triplet, pressure=pressure, dt=dt)
 
-#print('plotting maps...')
+# print('plotting maps...')
 
 
-#mm.main(triplet, pressure=pressure, dt=dt)
-#hist.main(triplet, pressure=pressure, dt=dt)
-#ss.main(triplet, pressure=pressure, dt=dt)
-#os.system("rsync   --progress  ../data/processed/experiments/*  /run/media/amirouyed/reserarchDi/09_21_20/experiments/")
-os.system('rm ../data/processed/experiments/*')
+mm.main(triplet, pressure=pressure, dt=dt)
+hist.main(triplet, pressure=pressure, dt=dt)
+ss.main(triplet, pressure=pressure, dt=dt)
+os.system("rsync   --progress  ../data/processed/experiments/*  /run/media/amirouyed/reserarchDi/10_02_20/experiments/")

@@ -14,46 +14,34 @@ def error_calc(df_0, pressure, triplet_time):
     month = triplet_time.strftime('%m')
     hour = triplet_time.strftime("%H")
     day = triplet_time.strftime('%d')
-    # minute = triplet_time
-    # month = str(month)
     print('era dataset')
     ds0 = xr.open_dataset(
         "../data/raw/experiments/reanalysis/era5/u_" + pressure + "_2006_"+month+"_"+day+"_"+hour+":00:00_era5.nc")
     ds1 = xr.open_dataset(
         "../data/raw/experiments/reanalysis/era5/v_" + pressure + "_2006_"+month+"_"+day+"_"+hour+":00:00_era5.nc")
     ds = xr.merge([ds0, ds1])
-    print(ds)
+
+    ds = ds.assign_coords(longitude=(((ds.longitude + 180) % 360) - 180))
+    print(ds['longitude'])
     df = ds.to_dataframe()
     df = df.reset_index()
     df_era = df[['latitude', 'longitude', 'u', 'v']]
-    df_era['longitude'] = df_era['longitude']-180
+    df_era.loc[df_era['longitude'] > 180,
+        'longitude'] = df_era.loc[df_era['longitude'] > 180, 'longitude']-360
 
     print('cfs dataset')
     ds = xr.open_dataset(
         "../data/raw/experiments/reanalysis/cfs/pgbhnl.gdas.2006"+month+day+hour+".nc")
+    ds = ds.assign_coords(longitude=(((ds.longitude + 180) % 360) - 180))
+    print(ds['longitude'])
     df = ds.to_dataframe()
     df = df.reset_index()
 
     df_cfs = df[['latitude', 'longitude', 'UGRD_' +
         pressure+'mb', 'VGRD_'+pressure+'mb']]
-  # df_cfs = df[['latitude', 'longitude', 'UGRD_850mb', 'VGRD_850mb']]
-    df_cfs['longitude'] = df_cfs['longitude']-180
-
-    # print(df_cfs)
-    # print('merra dataset')
-    # ds = xr.open_dataset("MERRA2_300.inst3_3d_asm_Np.20060101.nc4")
-    # df = ds.to_dataframe()
-    # df = df.reset_index()
-    # date = datetime.datetime(2006, 1, 1, 12, 0, 0, 0)
-    # df = df[(df.lev == 850) & (df.time == date)]
-    # df = df.reset_index()
-    # df_merra = df[['lat', 'lon', 'U', 'V']]
-
-    # df_merra.columns = ['lat', 'lon', 'u', 'v']
     df_era.columns = ['lat', 'lon', 'u', 'v']
     df_cfs.columns = ['lat', 'lon', 'u', 'v']
     df_era = df_era.dropna()
-    # df_merra = df_merra.dropna()
     df_cfs = df_cfs.dropna()
 
     dict_path = '../data/interim/dictionaries/dataframes.pkl'
@@ -88,12 +76,6 @@ def error_calc(df_0, pressure, triplet_time):
 
     df['v_era'] = era_v_function(
         df[['lat', 'lon']].values)
-
-    # df['u_merra'] = merra_u_function(
-     #   df[['lat', 'lon']].values)
-
-   # df['v_merra'] = merra_v_function(
-    #    df[['lat', 'lon']].values)
 
     df['u_cfs'] = cfs_u_function(
         df[['lat', 'lon']].values)
