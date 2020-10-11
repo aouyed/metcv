@@ -9,7 +9,7 @@ import cmocean
 import matplotlib.colors as mcolors
 import xarray as xr
 from joblib import Parallel, delayed
-
+import pickle
 
 KG_TO_GRAMS = 1000
 METERS_TO_KM = 1/1000
@@ -47,11 +47,20 @@ def big_histogram(ds, var, filter, column_x, column_y, s,  bins=100):
     subtotal, _, _ = np.histogram2d(
         df[column_x], df[column_y], bins=[xbins, ybins])
     heatmap += subtotal.astype(np.uint)
-    if s > 0:
-        heatmap = gaussian_filter(heatmap, sigma=s)
-        heatmap = heatmap/np.sum(heatmap)
+    heatmap = heatmap/np.sum(heatmap)
     extent = [xedges[0], xedges[-1], yedges[0], yedges[-1]]
+
     return heatmap.T, extent
+
+
+def histogram_dumper(img, extent, filename):
+    dump = {}
+    dump['extent'] = extent
+    dump['img'] = img
+    directory = '../data/processed/histograms/' + filename + '.pkl'
+    f = open(directory, 'wb')
+    pickle.dump(dump, f)
+    f.close()
 
 
 def histogram_plot(ds, var, filename, column_a, column_b, filter, xlabel):
@@ -60,6 +69,7 @@ def histogram_plot(ds, var, filename, column_a, column_b, filter, xlabel):
     print(var)
     img, extent = big_histogram(
         ds, var,  filter, column_a, column_b, 1)
+    histogram_dumper(img, extent, filename)
     print('plotting...')
     fig, ax = plt.subplots()
     if column_a in ('speed', 'angle', 'grad_mag_qv', 'qv'):
@@ -153,9 +163,6 @@ def main(triplet, pressure=500, dt=3600):
     filename = PATH + ds_name+'.nc'
     ds = xr.open_dataset(filename)
 
-#    histogram_sequence('reanalysis', month+'_' + str(dt)+'_' +
- #                      str(pressure)+'_rean', ds)
-
     histogram_sequence('jpl', month+'_'+str(dt)+'_' +
                        str(pressure) + '_jpl', ds)
 
@@ -163,8 +170,6 @@ def main(triplet, pressure=500, dt=3600):
                        str(pressure)+'_ua', ds)
     histogram_sequence('df',  month+'_'+str(dt)+'_' +
                        str(pressure)+'_df', ds)
-  #  histogram_sequence('ground_t', str(
-   #     dt)+'_'+str(pressure)+'_gt', ds)
 
 
 if __name__ == "__main__":

@@ -26,8 +26,6 @@ def error_calc(df_0, pressure, triplet_time):
     df = ds.to_dataframe()
     df = df.reset_index()
     df_era = df[['latitude', 'longitude', 'u', 'v']]
-    df_era.loc[df_era['longitude'] > 180,
-        'longitude'] = df_era.loc[df_era['longitude'] > 180, 'longitude']-360
 
     print('cfs dataset')
     ds = xr.open_dataset(

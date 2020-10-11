@@ -17,8 +17,6 @@ dt = 3600
 plots = glob.glob('../data/processed/plots/*')
 files = glob.glob('../data/interim/experiments/first_stage_amvs/*')
 
-# if files:
-#   sh.rm(files)
 
 # os.system("python3 first_stage/first_stage_run.py  -p " + str(pressure) + " -dt 3600   -tri " +
 #         triplet.strftime("%Y-%m-%d-%H:%M"))
@@ -30,7 +28,7 @@ print('triplet: '+str(triplet))
 # print('plotting maps...')
 
 
-mm.main(triplet, pressure=pressure, dt=dt)
+#mm.main(triplet, pressure=pressure, dt=dt)
 hist.main(triplet, pressure=pressure, dt=dt)
-ss.main(triplet, pressure=pressure, dt=dt)
-os.system("rsync   --progress  ../data/processed/experiments/*  /run/media/amirouyed/reserarchDi/10_02_20/experiments/")
+#ss.main(triplet, pressure=pressure, dt=dt)
+#os.system("rsync   --progress  ../data/processed/experiments/*  /run/media/amirouyed/reserarchDi/10_02_20/experiments/")

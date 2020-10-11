@@ -13,7 +13,7 @@ from data import summary_statistics as ss
 pressures = [850, 500]
 dts = [3600, 1800]
 #dts = [3600]
-months = [1]
+months = [7]
 day_list = (1, 2, 3)
 hour_list = (0, 6, 12, 18)
 # day_list = [1]
@@ -50,7 +50,8 @@ for month in months:
                     '../data/interim/experiments/first_stage_amvs/*.nc')
                 if files:
                     sh.rm(files)
-                os.system("python3 first_stage/first_stage_run.py   -p " + str(pressure) + " -dt " + str(dt) + " -tri " +
+                print('starting first stage')
+                os.system("python3 -u first_stage/first_stage_run.py   -p " + str(pressure) + " -dt " + str(dt) + " -tri " +
                           triplet_time.strftime("%Y-%m-%d-%H:%M"))
                 print('done first stage')
                 ssr.run(triplet_time, pressure, dt)
@@ -61,6 +62,6 @@ for month in months:
             hist.main(final_triplet, pressure=pressure, dt=dt)
             ss.main(final_triplet, pressure=pressure, dt=dt)
             os.system(
-                "rsync   --progress  ../data/processed/experiments/*  /run/media/amirouyed/reserarchDi/10_02_20/experiments/")
+                "rsync   --progress  ../data/processed/experiments/*  /run/media/amirouyed/reserarchDi/10_03_20/experiments/")
             os.system('rm ../data/processed/experiments/*')
             print("--- seconds ---" + str(time.time() - start_time))
