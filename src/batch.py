@@ -11,7 +11,7 @@ from data import map_maker as mm
 from data import summary_statistics as ss
 
 pressures = [850, 500]
-dts = [3600, 1800]
+dts = [3600]
 #dts = [3600]
 months = [7]
 day_list = (1, 2, 3)

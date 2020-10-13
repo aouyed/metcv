@@ -21,19 +21,6 @@ VMAX_F = 1.5
 PATH = '../data/processed/experiments/'
 
 
-def big_hist_fun(input):
-
-    dataframe = input[0]
-    param = input[1]
-    df = initialize_dataframe(param.filter, param.var, dataframe)
-    subtotal, _, _ = np.histogram2d(
-        df[param.column_x], df[param.column_y], bins=[param.xbins, param.ybins])
-    heatmap += subtotal.astype(np.uint)
-    if s > 0:
-        heatmap = gaussian_filter(heatmap, sigma=param.s)
-        heatmap = heatmap/np.sum(heatmap)
-
-
 def big_histogram(ds, var, filter, column_x, column_y, s,  bins=100):
     """Creates a big histogram out of chunks in order to fit it in memory. """
     xedges = HIST_X_EDGES[column_x]
@@ -43,7 +30,7 @@ def big_histogram(ds, var, filter, column_x, column_y, s,  bins=100):
     ybins = np.linspace(yedges[0], yedges[1], bins+1)
     heatmap = np.zeros((bins, bins), np.uint)
 
-    df = initialize_dataframe(filter, var, ds)
+    df = initialize_dataframe(filter, column_x, ds)
     subtotal, _, _ = np.histogram2d(
         df[column_x], df[column_y], bins=[xbins, ybins])
     heatmap += subtotal.astype(np.uint)
@@ -53,23 +40,21 @@ def big_histogram(ds, var, filter, column_x, column_y, s,  bins=100):
     return heatmap.T, extent
 
 
-def histogram_dumper(img, extent, filename):
-    dump = {}
-    dump['extent'] = extent
-    dump['img'] = img
-    directory = '../data/processed/histograms/' + filename + '.pkl'
-    f = open(directory, 'wb')
-    pickle.dump(dump, f)
-    f.close()
+def histogram_dumper(img, extent, filename, hist_dict, column_a, filter):
+
+    hist_dict[(filter, column_a, 'extent')] = extent
+    hist_dict[(filter, column_a, 'img')] = img
+    return hist_dict
 
 
-def histogram_plot(ds, var, filename, column_a, column_b, filter, xlabel):
+def histogram_plot(ds, var, filename, column_a, column_b, filter, xlabel, hist_dict):
     """Initializes  histogram, plots it and saves it."""
     print('calculating histogram...')
     print(var)
     img, extent = big_histogram(
-        ds, var,  filter, column_a, column_b, 1)
-    histogram_dumper(img, extent, filename)
+        ds, var,  filter, column_a, column_b)
+    hist_dict = histogram_dumper(
+        img, extent, filename, hist_dict, column_a, filter)
     print('plotting...')
     fig, ax = plt.subplots()
     if column_a in ('speed', 'angle', 'grad_mag_qv', 'qv'):
@@ -96,6 +81,7 @@ def histogram_plot(ds, var, filename, column_a, column_b, filter, xlabel):
     plt.tight_layout()
     plt.savefig('../data/processed/plots/histogram_' +
                 filename+'.png', bbox_inches='tight', dpi=300)
+    return hist_dict
 
 
 def initialize_dataframe(filter_u, var,  ds):
@@ -141,20 +127,22 @@ def angle(df):
     return df
 
 
-def histogram_sequence(filter, prefix, ds):
+def histogram_sequence(filter, prefix, ds, hist_dict):
     """Calculates batch of histogram plots"""
-    histogram_plot(ds, 'speed', prefix + '_speed', 'speed',
-                   'speed_diff', filter, 'Wind speed [m/s]')
-    histogram_plot(ds, 'qv', prefix+'_qv', 'qv',
-                   'speed_diff', filter, 'Moisture [g/kg]')
-    histogram_plot(ds, 'grad_mag_qv', prefix+'_grad_mag_qv',
-                   'grad_mag_qv', 'speed_diff', filter, 'Moisture gradient [g/(kg km)]')
-    histogram_plot(ds, 'angle', prefix+'_angle', 'angle',
-                   'speed_diff', filter, 'Wind-moisture gradient angle [deg]')
+    hist_dict = histogram_plot(ds, 'speed', prefix + '_speed', 'speed',
+                               'speed_diff', filter, 'Wind speed [m/s]', hist_dict)
+    hist_dict = histogram_plot(ds, 'qv', prefix+'_qv', 'qv',
+                               'speed_diff', filter, 'Moisture [g/kg]', hist_dict)
+    hist_dict = histogram_plot(ds, 'grad_mag_qv', prefix+'_grad_mag_qv',
+                               'grad_mag_qv', 'speed_diff', filter, 'Moisture gradient [g/(kg km)]', hist_dict)
+    hist_dict = histogram_plot(ds, 'angle', prefix+'_angle', 'angle',
+                               'speed_diff', filter, 'Wind-moisture gradient angle [deg]', hist_dict)
+    return hist_dict
 
 
 def main(triplet, pressure=500, dt=3600):
 
+    hist_dict = {}
     month = triplet.strftime("%B").lower()
 
     ds_name = str(dt)+'_' + str(pressure) + '_' + \
@@ -163,13 +151,18 @@ def main(triplet, pressure=500, dt=3600):
     filename = PATH + ds_name+'.nc'
     ds = xr.open_dataset(filename)
 
-    histogram_sequence('jpl', month+'_'+str(dt)+'_' +
-                       str(pressure) + '_jpl', ds)
+    hist_dict = histogram_sequence('jpl', month+'_'+str(dt)+'_' +
+                                   str(pressure) + '_jpl', ds, hist_dict)
 
-    histogram_sequence('exp2', month+'_' + str(dt)+'_' +
-                       str(pressure)+'_ua', ds)
-    histogram_sequence('df',  month+'_'+str(dt)+'_' +
-                       str(pressure)+'_df', ds)
+    hist_dict = histogram_sequence('exp2', month+'_' + str(dt)+'_' +
+                                   str(pressure)+'_ua', ds, hist_dict)
+    hist_dict = histogram_sequence('df',  month+'_'+str(dt)+'_' +
+                                   str(pressure)+'_df', ds, hist_dict)
+
+    directory = '../data/processed/histograms/' + ds_name + '.pkl'
+    f = open(directory, 'wb')
+    pickle.dump(hist_dict, f)
+    f.close()
 
 
 if __name__ == "__main__":
