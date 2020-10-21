@@ -14,6 +14,11 @@ import pickle
 import seaborn as sns
 import cmocean
 import matplotlib.colors as mcolors
+from sklearn.preprocessing import PolynomialFeatures
+from sklearn.linear_model import LinearRegression
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.model_selection import train_test_split
+import time
 
 COORDS = [(-30, 30), (-60, -30), (-90, -60), (30, 60), (60, 90)]
 KERNEL = 5
@@ -67,15 +72,14 @@ def plotter(ds, varname, dt, pressure, filter):
 
 def filter_plotter(df0, values, title):
     fig, ax = plt.subplots()
-    filters = ['vorticity_rmse', 'vorticity_mean',
-               'divergence_rmse', 'divergence_mean']
+    filters = ['vorticity_rmse', 'abs_vorticity_mean']
 
     for filter in filters:
         df = df0[df0.exp_filter == filter]
         ax.plot(df['latlon'], df['rmse'], '-o', label=filter)
 
     ax.legend(frameon=None)
-    # ax.set_ylim(0, ERROR_MAX)
+    ax.set_ylim(0, 1.5)
     ax.set_xlabel("Region")
     ax.set_ylabel("RMSE [1/s]")
     ax.set_title(title)
@@ -93,39 +97,29 @@ def build_datarray(data, lat, lon, date):
 
 
 def div_calc(u, v, dx, dy, kernel, is_track):
+    if (kernel > 0 and is_track == True):
+        u = np.nan_to_num(u)
+        u = cv2.blur(u, (kernel, kernel))
+        v = np.nan_to_num(v)
+        v = cv2.blur(v, (kernel, kernel))
+
     div = mpcalc.divergence(
         u * units['m/s'], v * units['m/s'], dx, dy, dim_order='yx')
     div = div.magnitude
-    if (kernel > 0 and is_track == True):
-        div = np.nan_to_num(div)
-        div = cv2.blur(div, (kernel, kernel))
     div = SCALE*div
     return div
 
 
-def div_calc_amir(u, v, dx, dy, kernel):
-    du = np.gradient(u)
-    dv = np.gradient(v)
-
-    dx = np.resize(dx, u.shape)
-    dy = np.resize(dy, v.shape)
-    dudx = du[1]/dx
-    dvdy = dv[0]/dy
-    div = dudx + dvdy
-    div = du[0]
-    if kernel > 0:
-        div = np.nan_to_num(div)
-        div = cv2.blur(div, (kernel, kernel))
-    return div
-
-
 def vort_calc(u, v, dx, dy, kernel, is_track):
+    if (kernel > 0 and is_track == True):
+        u = np.nan_to_num(u)
+        u = cv2.blur(u, (kernel, kernel))
+        v = np.nan_to_num(v)
+        v = cv2.blur(v, (kernel, kernel))
+
     vort = mpcalc.vorticity(
         u * units['m/s'], v * units['m/s'], dx, dy, dim_order='yx')
     vort = vort.magnitude
-    if kernel > 0 and is_track == True:
-        vort = np.nan_to_num(vort)
-        vort = cv2.blur(vort, (kernel, kernel))
     vort = SCALE*vort
     return vort
 
@@ -160,10 +154,10 @@ def rmse_lists(df, rmses, region, filter_res, utrack_name, vtrack_name):
         filter_res.append('vorticity_rmse')
         rmses.append(rmse_vort)
         region.append(stringc)
-        filter_res.append('divergence_mean')
+        filter_res.append('abs_divergence_mean')
         rmses.append(mean_div)
         region.append(stringc)
-        filter_res.append('vorticity_mean')
+        filter_res.append('abs_vorticity_mean')
         rmses.append(mean_vort)
         region.append(stringc)
 
@@ -195,3 +189,38 @@ def rmse_calculator(df, coord, utrack_name, vtrack_name):
     mean_vort = df_unit['weighed_abs_vort'].sum()/df_unit['cos_weight'].sum()
 
     return rmse_div, rmse_vort, rmsvd, mean_div, mean_vort
+
+
+def ml_fitter(ds, tsize):
+    """fits random forest to tracked values calculated by optical flow."""
+    df = ds.to_dataframe()
+    df = df.reset_index()
+    df = df.dropna()
+    X_full = df[['lat', 'lon', 'vorticity_track', 'utrack', 'vtrack']]
+    y_full = df[['vorticity']]
+
+    X_train, X_test, y_train, y_test = train_test_split(
+        X_full, y_full, test_size=tsize, random_state=1)
+
+    regressor = RandomForestRegressor(
+        n_estimators=100, random_state=0, n_jobs=-1)
+
+    print('fitting')
+    start_time = time.time()
+    regressor.fit(X_train, y_train)
+
+    y_pred = regressor.predict(X_test)
+    y_pred_full = regressor.predict(X_full)
+
+    X_test['vorticity_track'] = y_pred
+    X_test = X_test.set_index(['lat', 'lon'])
+    X_full['vorticity_track'] = y_pred_full
+    X_full = X_full.set_index(['lat', 'lon'])
+
+    ds_test = xr.Dataset.from_dataframe(X_test)
+    ds_full = xr.Dataset.from_dataframe(X_full)
+    ds['vorticity_track'] = ds_test['vorticity_track']
+    ds['vorticity_track_full'] = ds_full['vorticity_track']
+    print("--- %s seconds ---" % (time.time() - start_time))
+
+    return ds

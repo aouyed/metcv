@@ -8,7 +8,7 @@ from data import batch_plotter as bp
 from data import histograms as hist
 from data import map_maker as mm
 from data import summary_statistics as ss
-
+from data import pickled_results as pr
 
 month = 1
 triplet = datetime(2006, month, 3, 18, 0, 0, 0)
@@ -29,6 +29,7 @@ print('triplet: '+str(triplet))
 
 
 #mm.main(triplet, pressure=pressure, dt=dt)
-hist.main(triplet, pressure=pressure, dt=dt)
+#hist.main(triplet, pressure=pressure, dt=dt)
 #ss.main(triplet, pressure=pressure, dt=dt)
 #os.system("rsync   --progress  ../data/processed/experiments/*  /run/media/amirouyed/reserarchDi/10_02_20/experiments/")
+pr.main()

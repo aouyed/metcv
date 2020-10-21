@@ -21,7 +21,7 @@ VMAX_F = 1.5
 PATH = '../data/processed/experiments/'
 
 
-def big_histogram(ds, var, filter, column_x, column_y, s,  bins=100):
+def big_histogram(ds, var, filter, column_x, column_y,  bins=100):
     """Creates a big histogram out of chunks in order to fit it in memory. """
     xedges = HIST_X_EDGES[column_x]
     yedges = [-7.5, 7.5]

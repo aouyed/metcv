@@ -4,7 +4,7 @@ from data import extra_data_plotter as edp
 import numpy as np
 from data import batch_plotter as bp
 import pandas as pd
-VMAX = 20
+VMAX = 12
 PATH = '../data/processed/experiments/'
 
 
@@ -41,14 +41,12 @@ def ds_error(ds, rean=True):
     return ds
 
 
-def plotter(ds, varname, dt, pressure, filter):
+def plotter(ds, ds_full, ds_jpl,  varname, dt, pressure):
 
-    var = ds[varname].values
-    var = np.squeeze(var)
     vmin = 0
     vmax = VMAX
-    edp.map_plotter(var, dt+'_'+str(pressure) + '_' +
-                    varname + '_' + filter, 'm/s', 0, vmax)
+    edp.map_plotter_multiple(ds, ds_full, ds_jpl, str(dt)+'_'+str(pressure) + '_' +
+                             varname, 'm/s', 0, vmax)
 
 
 def main(triplet, pressure=850, dt=3600):
@@ -57,30 +55,6 @@ def main(triplet, pressure=850, dt=3600):
     path_jpl_60min = '../data/interim/experiments/'+month+'/tracked/60min/combined/'
     path_jpl_30min = '../data/interim/experiments/'+month+'/tracked/30min/combined/'
 
-    df = pd.read_pickle(bp.PATH_DF+str(dt)+'_'+month+'_' +
-                        str(pressure)+'_df_results.pkl')
-    edp.filter_plotter(df, bp.PATH_PLOT+month+'_'+str(dt)+'_'+str(pressure) +
-                       '_results_test', 'training data size = 5%')
-
-    ds = xr.open_dataset(PATH+str(dt)+'_'+str(pressure)+'_'+month+'.nc')
-    filter = 'df'
-
-    ds = ds.sel(filter=filter, time=str(ds.time.values[0]))
-    ds = ds_error(ds)
-    plotter(ds, 'error_mag', month+'_'+str(dt), pressure, filter)
-
-    ds = xr.open_dataset(PATH+str(dt)+'_'+str(pressure)+'_full_'+month+'.nc')
-    filter = 'full_exp2'
-    ds = ds.sel(filter=filter, time=str(ds.time.values[0]))
-    ds = ds_error(ds)
-    plotter(ds, 'error_mag', month+'_'+str(dt), pressure, filter)
-
-    ds = xr.open_dataset(PATH+str(dt)+'_'+str(pressure)+'_full_'+month+'.nc')
-    filter = 'full_exp2'
-    ds = ds.sel(filter=filter, time=str(ds.time.values[0]))
-    ds = ds_error(ds)
-    plotter(ds, 'error_mag_rean', month+'_' + str(dt), pressure, filter)
-
     if dt == 3600:
         path_jpl = path_jpl_60min
     elif dt == 1800:
@@ -88,11 +62,34 @@ def main(triplet, pressure=850, dt=3600):
     else:
         raise ValueError('not supported value in dt')
 
-    ds = xr.open_dataset(path_jpl+str(pressure) + '_'+month+'.nc')
-    filter = 'jpl'
+    df_dict = {}
+    for pressure_i in (850, 500):
+        for dt in (1800, 3600):
+            for month in ('january', 'july'):
+                df = pd.read_pickle(bp.PATH_DF+str(dt)+'_'+month+'_' +
+                                    str(pressure_i)+'_df_results.pkl')
+                df_dict[(dt, month, pressure_i)] = df
+
+    edp.multiple_filter_plotter(df_dict, bp.PATH_PLOT+'january' +
+                                '_results_test', 'january')
+    edp.multiple_filter_plotter(df_dict, bp.PATH_PLOT+'july' +
+                                '_results_test', 'july')
+
+    ds = xr.open_dataset(PATH+str(dt)+'_'+str(pressure)+'_'+month+'.nc')
     ds = ds.sel(time=str(ds.time.values[0]))
-    ds = ds_error(ds, rean=False)
-    plotter(ds, 'error_mag', month+'_'+str(dt), pressure, filter)
+    ds = ds_error(ds)
+
+    ds_full = xr.open_dataset(
+        PATH+str(dt)+'_'+str(pressure)+'_full_'+month+'.nc')
+    ds_full = ds_full.sel(time=str(ds_full.time.values[0]))
+    ds_full = ds_error(ds_full)
+
+    ds_jpl = xr.open_dataset(path_jpl+str(pressure) + '_'+month+'.nc')
+    ds_jpl = ds_jpl.sel(time=str(ds_jpl.time.values[0]))
+    ds_jpl = ds_error(ds_jpl, rean=False)
+
+    plotter(ds, ds_full, ds_jpl,  'error_mag',
+            month+'_'+str(dt), pressure)
 
 
 if __name__ == "__main__":

@@ -10,7 +10,7 @@ from data import histograms as hist
 from data import map_maker as mm
 from data import summary_statistics as ss
 
-pressures = [850, 500]
+pressures = [850]
 dts = [3600]
 #dts = [3600]
 months = [7]
@@ -63,5 +63,5 @@ for month in months:
             ss.main(final_triplet, pressure=pressure, dt=dt)
             os.system(
                 "rsync   --progress  ../data/processed/experiments/*  /run/media/amirouyed/reserarchDi/10_03_20/experiments/")
-            os.system('rm ../data/processed/experiments/*')
+            #os.system('rm ../data/processed/experiments/*')
             print("--- seconds ---" + str(time.time() - start_time))

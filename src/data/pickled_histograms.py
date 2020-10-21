@@ -59,13 +59,18 @@ def main(triplet, pressure=500, dt=3600):
     fig, axes = plt.subplots(nrows=3, ncols=3)
     axlist = axes.flat
     im = histogram_sequence(hist_dict, axlist)
-    cbar_ax = fig.add_axes([0.12, 0, 0.77, 0.05])
-    fig.colorbar(im, cax=cbar_ax, orientation='horizontal')
+    cbar_ax = fig.add_axes([0.12, -0.07, 0.77, 0.05])
+    fig.colorbar(im, cax=cbar_ax, orientation='horizontal', label='percent')
     axlist[0].text(0.4, 0.85, 'UA', transform=axlist[0].transAxes)
     axlist[1].text(0.4, 0.85, 'fsUA', transform=axlist[1].transAxes)
     axlist[2].text(0.4, 0.85, 'JPL', transform=axlist[2].transAxes)
+    axlist[3].set(ylabel='Speed difference [m/s]')
+    axlist[1].set(xlabel='Wind speed [m/s]')
+    axlist[4].set(xlabel='Moisture gradient [g/(kg km)]')
+    axlist[7].set(xlabel='Wind-moisture gradient angle [deg]')
+
     # fig.tight_layout()
-    fig.subplots_adjust(hspace=0.5)
+    fig.subplots_adjust(hspace=0.7)
     plt.savefig('../data/processed/plots/panel_histogram_' +
                 ds_name+'.png', bbox_inches='tight', dpi=300)
 

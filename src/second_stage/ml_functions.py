@@ -77,11 +77,9 @@ def ml_fitter(df, tsize):
 
     print('final shape')
     print(X_train0.shape[0])
-    y_train0 = X_train0[['umeanh', 'vmeanh']]
+    y_train = X_train0[['umeanh', 'vmeanh']]
     X_train = X_train0[['lat', 'lon',
                         'u_scaled_approx', 'v_scaled_approx', 'land']]
-    #X_train = X_train0[['lat', 'lon', 'land']]
-    y_train = y_train0[['umeanh', 'vmeanh']]
 
     regressor = RandomForestRegressor(
         n_estimators=100, random_state=0, n_jobs=-1)

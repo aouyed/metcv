@@ -33,13 +33,13 @@ def artificial_track(ds_unit, factor):
     return ds_unit
 
 
-def grad_calculator(ds, dy, dx,  kernel, utrack_name, vtrack_name):
+def grad_calculator(ds, dy, dx,  kernel, utrack_name, vtrack_name, lat, lon, date, is_ml):
     u = ds['umean'].values
     v = ds['vmean'].values
     u = np.squeeze(u)
     v = np.squeeze(v)
     div = tc.div_calc(u.copy(), v.copy(), dx.copy(), dy.copy(), kernel, False)
-    vort = tc.vort_calc(u, v, dx, dy, kernel, False)
+    vort = tc.vort_calc(u, v, dx, dy, kernel, True)
     print('building data arrays...')
     da3 = tc.build_datarray(div, lat, lon, date)
     da4 = tc.build_datarray(vort, lat, lon, date)
@@ -66,6 +66,9 @@ def grad_calculator(ds, dy, dx,  kernel, utrack_name, vtrack_name):
     ds_unit = xr.merge(
         [ds_unit, xr.Dataset({'vorticity_track': da4})])
     ds_unit['cos_weight'] = np.cos(ds_unit.lat/180*np.pi)
+    if is_ml:
+        ds_unit = tc.ml_fitter(ds_unit, 0.95)
+
     # ds_unit['cos_weight'] = ds['cos_weight'].sel(time=str(date))
     ds_unit['error_div'] = abs(ds_unit.divergence-ds_unit.divergence_track)
     ds_unit['error_vort'] = abs(ds_unit.vorticity-ds_unit.vorticity_track)
@@ -73,69 +76,79 @@ def grad_calculator(ds, dy, dx,  kernel, utrack_name, vtrack_name):
     return ds_unit
 
 
-months = [7]
-pressures = [850, 500]
-dts = [3600]
-file_name = '3600_850_full_july.nc'
-files = []
-file1 = '../data/processed/experiments/'+file_name
-#file2 = '../data/interim/experiments/july/tracked/60min/combined/850_july.nc'
-files.append(file1)
+def main():
+    months = [7]
+    pressures = [850, 500]
+    dts = [3600]
+    file_name = '3600_850_full_july.nc'
+    files = []
+    file1 = '../data/processed/experiments/'+file_name
+    #file2 = '../data/interim/experiments/july/tracked/60min/combined/850_july.nc'
+    files.append(file1)
 
+    is_ml = False
 
-for file in files:
-    ds = xr.open_dataset(file)
-    lat = ds.lat.values
-    lon = ds.lon.values
-    #ds = ds.sel(filter='exp2')
-    print('calculating deltas...')
-    dx, dy = mpcalc.lat_lon_grid_deltas(lon, lat)
+    for file in files:
+        ds = xr.open_dataset(file)
+        lat = ds.lat.values
+        lon = ds.lon.values
+        #ds = ds.sel(filter='exp2')
+        print('calculating deltas...')
+        dx, dy = mpcalc.lat_lon_grid_deltas(lon, lat)
 
-    ds_tot = xr.Dataset()
-    times = ds.time.values
-    times = [times[0]]
-    kernels = [0, 5, 10, 20]
-    kernel = 0
-    factors = [0.06, 0.12, 0.25, 0.5, 1, 2, 10]
-    #factors = [10]
-    utrack_name = 'utrack_a'
-    vtrack_name = 'vtrack_a'
-    for factor in factors:
-        print('factor: ' + str(factor))
         ds_tot = xr.Dataset()
-        rmses = []
-        region = []
-        filter_res = []
+        times = ds.time.values
+        times = [times[0]]
+        date = times[0]
+        #factors = [0.06, 0.12, 0.25, 0.5, 1, 2, 10]
+        factors = [1]
+        #factors = [10]
+        utrack_name = 'utrack'
+        vtrack_name = 'vtrack'
+        for kernel in (0, 10, 45):
+            for filter in ['exp2']:
+                ds_unit = ds
+                print(ds_unit)
+                #ds_unit = ds.sel(filter=filter)
 
-        for date in times:
-            print(date)
-            ds_unit = ds.sel(time=str(date))
-            ds_unit['error_u'] = abs(ds_unit['umean']-ds_unit['utrack'])
-            ds_unit['error_v'] = abs(ds_unit['vmean']-ds_unit['vtrack'])
-            ds_unit = artificial_track(ds_unit, factor)
+                print(filter)
+                print(kernel)
+                ds_tot = xr.Dataset()
+                rmses = []
+                region = []
+                filter_res = []
 
-            ds_unit = grad_calculator(
-                ds_unit, dy, dx,  kernel,  utrack_name, vtrack_name)
-            if len(ds_tot) > 0:
-                ds_tot = xr.concat([ds_tot, ds_unit], 'time')
-            else:
-                ds_tot = ds_unit
-        df = ds_tot.to_dataframe().dropna().reset_index()
-        print('shape ' + str(df.shape))
-        tc.rmse_lists(df, rmses, region, filter_res, utrack_name, vtrack_name)
-        d = {'latlon': region, 'exp_filter': filter_res, 'rmse': rmses}
-        df_results = pd.DataFrame(data=d)
-        name = str(factor)+'_'+str(kernel)+'_'+Path(file).stem
+                print(date)
+                ds_unit = ds_unit.sel(time=str(date))
+                ds_unit['error_u'] = abs(
+                    ds_unit['umean']-ds_unit['utrack'])
+                ds_unit['error_v'] = abs(
+                    ds_unit['vmean']-ds_unit['vtrack'])
+                # ds_unit = artificial_track(ds_unit, factor)
+                ds_unit = grad_calculator(
+                    ds_unit, dy, dx,  kernel,  utrack_name, vtrack_name, lat, lon, date, is_ml)
 
-        print(df_results)
-        df_results = edp.sorting_latlon(df_results)
+                if len(ds_tot) > 0:
+                    ds_tot = xr.concat([ds_tot, ds_unit], 'time')
+                else:
+                    ds_tot = ds_unit
+                df = ds_tot.to_dataframe().dropna().reset_index()
+                print('shape ' + str(df.shape))
+                tc.rmse_lists(df, rmses, region, filter_res,
+                              utrack_name, vtrack_name)
+                d = {'latlon': region, 'exp_filter': filter_res, 'rmse': rmses}
+                df_results = pd.DataFrame(data=d)
+                name = str(filter)+'_k'+str(kernel)+'_ml' + \
+                    str(is_ml)+'_'+Path(file).stem
 
-        tc.filter_plotter(df_results, 'div_vort_'+name, ' ')
-        ds_tot = ds_tot.sel(time=str(ds_tot.time.values[0]))
-        # ds_tot['divergence'] = abs(ds_tot.divergence)
-        # ds_tot['vorticity'] = abs(ds_tot.vorticity)
-        tc.plotter(ds_tot, 'error_div', '850', '850', name)
-        tc.plotter(ds_tot, 'error_vort', '850', '850', name)
-        tc.plotter(ds_tot, 'divergence', '850', '850', name)
-        tc.plotter(ds_tot, 'vorticity', '850', '850', name)
-        tc.plotter(ds_tot, 'vorticity_track', '850', '850', name)
+                print(df_results)
+                df_results = edp.sorting_latlon(df_results)
+
+                tc.filter_plotter(df_results, 'div_vort_'+name, ' ')
+                ds_tot = ds_tot.sel(time=str(ds_tot.time.values[0]))
+                tc.plotter(ds_tot, 'vorticity', '850', '850', name)
+                tc.plotter(ds_tot, 'vorticity_track', '850', '850', name)
+
+
+if __name__ == "__main__":
+    main()

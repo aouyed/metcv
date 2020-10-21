@@ -1,0 +1,1874 @@
+dt: 3600
+starting first stage
+resetting dictionaries and arrays...
+initializing  downloader...
+JPL loader running...
+pressure: 850.0
+Downloading data for variable qv for date: 2006-06-30 23:00:00
+Downloading data for variable qv for date: 2006-07-01 00:00:00
+Downloading data for variable qv for date: 2006-07-01 01:00:00
+done
+finished downloader.
+initializing processor...
+initializing optical flow...
+inpainted
+2006-07-01T00:00:00.000000000
+flow calculation for date: 2006-07-01T00:00:00.000000000
+inpainted
+--- 151.0509603023529 seconds ---
+done with deep flow
+2006-07-01T01:00:00.000000000
+flow calculation for date: 2006-07-01T01:00:00.000000000
+inpainted
+--- 152.0009515285492 seconds ---
+done with deep flow
+finished optical flow.
+initializing builder...
+building dataframe for the date: 2006-07-01T00:00:00.000000000
+start parallelization routine
+--- 0.48575758934020996 seconds ---
+building dataframe for the date: 2006-07-01T01:00:00.000000000
+start parallelization routine
+--- 0.4861314296722412 seconds ---
+finished builder.
+initializing analysis...
+/home/amirouyed@catnet.arizona.edu/Documents/metcv/src/first_stage/viz/amv_analysis.py:194: FutureWarning: Passing a negative integer is deprecated in version 1.0 and will not be supported in future version. Instead, use None to not limit the column width.
+  pd.set_option('display.max_colwidth', -1)
+/home/amirouyed@catnet.arizona.edu/Documents/metcv/src/first_stage/viz/amv_analysis.py:43: FutureWarning: Treating datetime data as categorical rather than numeric in `.describe` is deprecated and will be removed in a future version of pandas. Specify `datetime_is_numeric=True` to silence this warning and adopt the future behavior now.
+  df_d = df[column].describe()
+Done!
+finished analysis.
+                 corr_speed    corr_u    corr_v  ratio_count        mean         std
+lat              0.823491    0.911967  0.868696  0.890458     5.974137    48.247826 
+lon              0.823491    0.911967  0.868696  0.890458    -3.295210    105.194543
+time             0.823491    0.911967  0.868696  0.890458    NaN         NaN        
+pressure         0.823491    0.911967  0.868696  0.890458     949.664246  92.943474 
+u                0.823491    0.911967  0.868696  0.890458     2.038419    8.298173  
+v                0.823491    0.911967  0.868696  0.890458     0.335387    6.060929  
+qv               0.823491    0.911967  0.868696  0.890458     0.005703    0.003783  
+umeanh           0.823491    0.911967  0.868696  0.890458     2.038419    8.298173  
+vmeanh           0.823491    0.911967  0.868696  0.890458     0.335387    6.060929  
+flow_u           0.823491    0.911967  0.868696  0.890458     3.102948    7.787675  
+flow_v           0.823491    0.911967  0.868696  0.890458     0.052730    2.773924  
+u_scaled_approx  0.823491    0.911967  0.868696  0.890458     1.867328    7.235459  
+v_scaled_approx  0.823491    0.911967  0.868696  0.890458     0.125411    5.389738  
+error_u          0.823491    0.911967  0.868696  0.890458     0.172269    3.489582  
+error_v          0.823491    0.911967  0.868696  0.890458     0.210001    3.062868  
+speed            0.823491    0.911967  0.868696  0.890458     8.917230    5.666934  
+speed_approx     0.823491    0.911967  0.868696  0.890458     7.524399    5.318571  
+speed_error      0.823491    0.911967  0.868696  0.890458     21.632121   83.908384 
+finished processor.
+All tasks completed.
+done first stage
+process data...
+era dataset
+<xarray.DataArray 'longitude' (longitude: 1440)>
+array([ 0.  ,  0.25,  0.5 , ..., -0.75, -0.5 , -0.25], dtype=float32)
+Coordinates:
+  * longitude  (longitude) float32 0.0 0.25 0.5 0.75 ... -1.0 -0.75 -0.5 -0.25
+cfs dataset
+<xarray.DataArray 'longitude' (longitude: 720)>
+array([ 0. ,  0.5,  1. , ..., -1.5, -1. , -0.5])
+Coordinates:
+  * longitude  (longitude) float64 0.0 0.5 1.0 1.5 2.0 ... -2.0 -1.5 -1.0 -0.5
+interpolating era data...
+interpolating cfs data...
+regridding...
+fitting with filter exp2
+/home/amirouyed@catnet.arizona.edu/Documents/metcv/src/second_stage/ml_functions.py:71: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  sigma_u, sigma_v, X_train0['umeanh'], X_train0['vmeanh'])
+/home/amirouyed@catnet.arizona.edu/Documents/metcv/src/second_stage/ml_functions.py:76: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  sigma_lon, sigma_lat, X_train0['lon'], X_train0['lat'])
+final shape
+738837
+fitting
+--- 86.83012700080872 seconds ---
+/home/amirouyed@catnet.arizona.edu/Documents/metcv/src/second_stage/ml_functions.py:99: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  X_test0['cos_weight'] = np.cos(X_test0['lat']/180*np.pi)
+/home/amirouyed@catnet.arizona.edu/Documents/metcv/src/second_stage/ml_functions.py:100: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  X_full0['cos_weight'] = np.cos(X_full0['lat']/180*np.pi)
+--- 237.40990376472473 seconds ---
+fitting with filter ground_t
+predicting..
+--- 9.663015127182007 seconds ---
+fitting with filter df
+--- 8.063862562179565 seconds ---
+       rmse exp_filter
+0  1.921485         rf
+1  4.245816   ground_t
+2  3.505591         df
+done!
+starting first stage
+resetting dictionaries and arrays...
+initializing  downloader...
+JPL loader running...
+pressure: 850.0
+Downloading data for variable qv for date: 2006-07-01 05:00:00
+Downloading data for variable qv for date: 2006-07-01 06:00:00
+Downloading data for variable qv for date: 2006-07-01 07:00:00
+done
+finished downloader.
+initializing processor...
+initializing optical flow...
+inpainted
+2006-07-01T06:00:00.000000000
+flow calculation for date: 2006-07-01T06:00:00.000000000
+inpainted
+--- 150.59945011138916 seconds ---
+done with deep flow
+2006-07-01T07:00:00.000000000
+flow calculation for date: 2006-07-01T07:00:00.000000000
+inpainted
+--- 151.83449816703796 seconds ---
+done with deep flow
+finished optical flow.
+initializing builder...
+building dataframe for the date: 2006-07-01T06:00:00.000000000
+start parallelization routine
+--- 0.48348402976989746 seconds ---
+building dataframe for the date: 2006-07-01T07:00:00.000000000
+start parallelization routine
+--- 0.483104944229126 seconds ---
+finished builder.
+initializing analysis...
+/home/amirouyed@catnet.arizona.edu/Documents/metcv/src/first_stage/viz/amv_analysis.py:194: FutureWarning: Passing a negative integer is deprecated in version 1.0 and will not be supported in future version. Instead, use None to not limit the column width.
+  pd.set_option('display.max_colwidth', -1)
+/home/amirouyed@catnet.arizona.edu/Documents/metcv/src/first_stage/viz/amv_analysis.py:43: FutureWarning: Treating datetime data as categorical rather than numeric in `.describe` is deprecated and will be removed in a future version of pandas. Specify `datetime_is_numeric=True` to silence this warning and adopt the future behavior now.
+  df_d = df[column].describe()
+Done!
+finished analysis.
+                 corr_speed    corr_u    corr_v  ratio_count        mean         std
+lat              0.823339    0.919733  0.875973  0.890667     5.965947    48.249402 
+lon              0.823339    0.919733  0.875973  0.890667    -3.305642    105.189530
+time             0.823339    0.919733  0.875973  0.890667    NaN         NaN        
+pressure         0.823339    0.919733  0.875973  0.890667     949.681763  92.943176 
+u                0.823339    0.919733  0.875973  0.890667     2.014242    8.251110  
+v                0.823339    0.919733  0.875973  0.890667     0.369425    5.980769  
+qv               0.823339    0.919733  0.875973  0.890667     0.005679    0.003805  
+umeanh           0.823339    0.919733  0.875973  0.890667     2.014242    8.251110  
+vmeanh           0.823339    0.919733  0.875973  0.890667     0.369425    5.980769  
+flow_u           0.823339    0.919733  0.875973  0.890667     3.156702    7.990430  
+flow_v           0.823339    0.919733  0.875973  0.890667     0.038021    2.769914  
+u_scaled_approx  0.823339    0.919733  0.875973  0.890667     1.838531    7.256483  
+v_scaled_approx  0.823339    0.919733  0.875973  0.890667     0.095485    5.333825  
+error_u          0.823339    0.919733  0.875973  0.890667     0.175292    3.319224  
+error_v          0.823339    0.919733  0.875973  0.890667     0.273854    2.944235  
+speed            0.823339    0.919733  0.875973  0.890667     8.838233    5.587255  
+speed_approx     0.823339    0.919733  0.875973  0.890667     7.475375    5.349234  
+speed_error      0.823339    0.919733  0.875973  0.890667     19.791488   75.913613 
+finished processor.
+All tasks completed.
+done first stage
+process data...
+era dataset
+<xarray.DataArray 'longitude' (longitude: 1440)>
+array([ 0.  ,  0.25,  0.5 , ..., -0.75, -0.5 , -0.25], dtype=float32)
+Coordinates:
+  * longitude  (longitude) float32 0.0 0.25 0.5 0.75 ... -1.0 -0.75 -0.5 -0.25
+cfs dataset
+<xarray.DataArray 'longitude' (longitude: 720)>
+array([ 0. ,  0.5,  1. , ..., -1.5, -1. , -0.5])
+Coordinates:
+  * longitude  (longitude) float64 0.0 0.5 1.0 1.5 2.0 ... -2.0 -1.5 -1.0 -0.5
+interpolating era data...
+interpolating cfs data...
+regridding...
+fitting with filter exp2
+/home/amirouyed@catnet.arizona.edu/Documents/metcv/src/second_stage/ml_functions.py:71: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  sigma_u, sigma_v, X_train0['umeanh'], X_train0['vmeanh'])
+/home/amirouyed@catnet.arizona.edu/Documents/metcv/src/second_stage/ml_functions.py:76: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  sigma_lon, sigma_lat, X_train0['lon'], X_train0['lat'])
+final shape
+739011
+fitting
+--- 83.92728519439697 seconds ---
+/home/amirouyed@catnet.arizona.edu/Documents/metcv/src/second_stage/ml_functions.py:99: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  X_test0['cos_weight'] = np.cos(X_test0['lat']/180*np.pi)
+/home/amirouyed@catnet.arizona.edu/Documents/metcv/src/second_stage/ml_functions.py:100: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  X_full0['cos_weight'] = np.cos(X_full0['lat']/180*np.pi)
+--- 243.60375666618347 seconds ---
+fitting with filter ground_t
+predicting..
+--- 9.638511419296265 seconds ---
+fitting with filter df
+--- 8.069343090057373 seconds ---
+       rmse exp_filter
+0  1.862780         rf
+1  2.853411   ground_t
+2  3.296676         df
+done!
+starting first stage
+resetting dictionaries and arrays...
+initializing  downloader...
+JPL loader running...
+pressure: 850.0
+Downloading data for variable qv for date: 2006-07-01 11:00:00
+Downloading data for variable qv for date: 2006-07-01 12:00:00
+Downloading data for variable qv for date: 2006-07-01 13:00:00
+done
+finished downloader.
+initializing processor...
+initializing optical flow...
+inpainted
+2006-07-01T12:00:00.000000000
+flow calculation for date: 2006-07-01T12:00:00.000000000
+inpainted
+--- 150.6752588748932 seconds ---
+done with deep flow
+2006-07-01T13:00:00.000000000
+flow calculation for date: 2006-07-01T13:00:00.000000000
+inpainted
+--- 151.5029878616333 seconds ---
+done with deep flow
+finished optical flow.
+initializing builder...
+building dataframe for the date: 2006-07-01T12:00:00.000000000
+start parallelization routine
+--- 0.4897480010986328 seconds ---
+building dataframe for the date: 2006-07-01T13:00:00.000000000
+start parallelization routine
+--- 0.4830634593963623 seconds ---
+finished builder.
+initializing analysis...
+/home/amirouyed@catnet.arizona.edu/Documents/metcv/src/first_stage/viz/amv_analysis.py:194: FutureWarning: Passing a negative integer is deprecated in version 1.0 and will not be supported in future version. Instead, use None to not limit the column width.
+  pd.set_option('display.max_colwidth', -1)
+/home/amirouyed@catnet.arizona.edu/Documents/metcv/src/first_stage/viz/amv_analysis.py:43: FutureWarning: Treating datetime data as categorical rather than numeric in `.describe` is deprecated and will be removed in a future version of pandas. Specify `datetime_is_numeric=True` to silence this warning and adopt the future behavior now.
+  df_d = df[column].describe()
+Done!
+finished analysis.
+                 corr_speed    corr_u    corr_v  ratio_count        mean         std
+lat              0.833806    0.932165  0.890682  0.890377     5.971438    48.251531 
+lon              0.833806    0.932165  0.890682  0.890377    -3.294372    105.200109
+time             0.833806    0.932165  0.890682  0.890377    NaN         NaN        
+pressure         0.833806    0.932165  0.890682  0.890377     949.657532  92.943680 
+u                0.833806    0.932165  0.890682  0.890377     2.135394    8.189447  
+v                0.833806    0.932165  0.890682  0.890377     0.426949    6.002406  
+qv               0.833806    0.932165  0.890682  0.890377     0.005699    0.003809  
+umeanh           0.833806    0.932165  0.890682  0.890377     2.135394    8.189447  
+vmeanh           0.833806    0.932165  0.890682  0.890377     0.426949    6.002406  
+flow_u           0.833806    0.932165  0.890682  0.890377     3.614027    9.582728  
+flow_v           0.833806    0.932165  0.890682  0.890377     0.059053    2.662678  
+u_scaled_approx  0.833806    0.932165  0.890682  0.890377     1.962965    7.328169  
+v_scaled_approx  0.833806    0.932165  0.890682  0.890377     0.115868    5.189537  
+error_u          0.833806    0.932165  0.890682  0.890377     0.172334    3.037955  
+error_v          0.833806    0.932165  0.890682  0.890377     0.311061    2.798421  
+speed            0.833806    0.932165  0.890682  0.890377     8.833957    5.554043  
+speed_approx     0.833806    0.932165  0.890682  0.890377     7.488278    5.331576  
+speed_error      0.833806    0.932165  0.890682  0.890377     17.186789   64.527797 
+finished processor.
+All tasks completed.
+done first stage
+process data...
+era dataset
+<xarray.DataArray 'longitude' (longitude: 1440)>
+array([ 0.  ,  0.25,  0.5 , ..., -0.75, -0.5 , -0.25], dtype=float32)
+Coordinates:
+  * longitude  (longitude) float32 0.0 0.25 0.5 0.75 ... -1.0 -0.75 -0.5 -0.25
+cfs dataset
+<xarray.DataArray 'longitude' (longitude: 720)>
+array([ 0. ,  0.5,  1. , ..., -1.5, -1. , -0.5])
+Coordinates:
+  * longitude  (longitude) float64 0.0 0.5 1.0 1.5 2.0 ... -2.0 -1.5 -1.0 -0.5
+interpolating era data...
+interpolating cfs data...
+regridding...
+fitting with filter exp2
+/home/amirouyed@catnet.arizona.edu/Documents/metcv/src/second_stage/ml_functions.py:71: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  sigma_u, sigma_v, X_train0['umeanh'], X_train0['vmeanh'])
+/home/amirouyed@catnet.arizona.edu/Documents/metcv/src/second_stage/ml_functions.py:76: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  sigma_lon, sigma_lat, X_train0['lon'], X_train0['lat'])
+final shape
+738770
+fitting
+--- 86.24132370948792 seconds ---
+/home/amirouyed@catnet.arizona.edu/Documents/metcv/src/second_stage/ml_functions.py:99: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  X_test0['cos_weight'] = np.cos(X_test0['lat']/180*np.pi)
+/home/amirouyed@catnet.arizona.edu/Documents/metcv/src/second_stage/ml_functions.py:100: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  X_full0['cos_weight'] = np.cos(X_full0['lat']/180*np.pi)
+--- 242.26542830467224 seconds ---
+fitting with filter ground_t
+predicting..
+--- 9.65536093711853 seconds ---
+fitting with filter df
+--- 7.8182618618011475 seconds ---
+       rmse exp_filter
+0  1.737538         rf
+1  2.825728   ground_t
+2  3.168736         df
+done!
+starting first stage
+resetting dictionaries and arrays...
+initializing  downloader...
+JPL loader running...
+pressure: 850.0
+Downloading data for variable qv for date: 2006-07-01 17:00:00
+Downloading data for variable qv for date: 2006-07-01 18:00:00
+Downloading data for variable qv for date: 2006-07-01 19:00:00
+done
+finished downloader.
+initializing processor...
+initializing optical flow...
+inpainted
+2006-07-01T18:00:00.000000000
+flow calculation for date: 2006-07-01T18:00:00.000000000
+inpainted
+--- 150.86320614814758 seconds ---
+done with deep flow
+2006-07-01T19:00:00.000000000
+flow calculation for date: 2006-07-01T19:00:00.000000000
+inpainted
+--- 151.6219413280487 seconds ---
+done with deep flow
+finished optical flow.
+initializing builder...
+building dataframe for the date: 2006-07-01T18:00:00.000000000
+start parallelization routine
+--- 0.482943058013916 seconds ---
+building dataframe for the date: 2006-07-01T19:00:00.000000000
+start parallelization routine
+--- 0.4833180904388428 seconds ---
+finished builder.
+initializing analysis...
+/home/amirouyed@catnet.arizona.edu/Documents/metcv/src/first_stage/viz/amv_analysis.py:194: FutureWarning: Passing a negative integer is deprecated in version 1.0 and will not be supported in future version. Instead, use None to not limit the column width.
+  pd.set_option('display.max_colwidth', -1)
+/home/amirouyed@catnet.arizona.edu/Documents/metcv/src/first_stage/viz/amv_analysis.py:43: FutureWarning: Treating datetime data as categorical rather than numeric in `.describe` is deprecated and will be removed in a future version of pandas. Specify `datetime_is_numeric=True` to silence this warning and adopt the future behavior now.
+  df_d = df[column].describe()
+Done!
+finished analysis.
+                 corr_speed    corr_u    corr_v  ratio_count        mean         std
+lat              0.835612    0.935138  0.893266  0.890482     5.983452    48.241645 
+lon              0.835612    0.935138  0.893266  0.890482    -3.254082    105.188445
+time             0.835612    0.935138  0.893266  0.890482    NaN         NaN        
+pressure         0.835612    0.935138  0.893266  0.890482     949.666260  92.943413 
+u                0.835612    0.935138  0.893266  0.890482     2.170366    8.209410  
+v                0.835612    0.935138  0.893266  0.890482     0.440367    5.967607  
+qv               0.835612    0.935138  0.893266  0.890482     0.005716    0.003816  
+umeanh           0.835612    0.935138  0.893266  0.890482     2.170366    8.209410  
+vmeanh           0.835612    0.935138  0.893266  0.890482     0.440367    5.967607  
+flow_u           0.835612    0.935138  0.893266  0.890482     3.836540    10.062744 
+flow_v           0.835612    0.935138  0.893266  0.890482     0.052181    2.614094  
+u_scaled_approx  0.835612    0.935138  0.893266  0.890482     2.016487    7.370684  
+v_scaled_approx  0.835612    0.935138  0.893266  0.890482     0.106274    5.124286  
+error_u          0.835612    0.935138  0.893266  0.890482     0.155506    2.979859  
+error_v          0.835612    0.935138  0.893266  0.890482     0.334091    2.753675  
+speed            0.835612    0.935138  0.893266  0.890482     8.851963    5.540541  
+speed_approx     0.835612    0.935138  0.893266  0.890482     7.514537    5.309853  
+speed_error      0.835612    0.935138  0.893266  0.890482     16.598085   58.870694 
+finished processor.
+All tasks completed.
+done first stage
+process data...
+era dataset
+<xarray.DataArray 'longitude' (longitude: 1440)>
+array([ 0.  ,  0.25,  0.5 , ..., -0.75, -0.5 , -0.25], dtype=float32)
+Coordinates:
+  * longitude  (longitude) float32 0.0 0.25 0.5 0.75 ... -1.0 -0.75 -0.5 -0.25
+cfs dataset
+<xarray.DataArray 'longitude' (longitude: 720)>
+array([ 0. ,  0.5,  1. , ..., -1.5, -1. , -0.5])
+Coordinates:
+  * longitude  (longitude) float64 0.0 0.5 1.0 1.5 2.0 ... -2.0 -1.5 -1.0 -0.5
+interpolating era data...
+interpolating cfs data...
+regridding...
+fitting with filter exp2
+/home/amirouyed@catnet.arizona.edu/Documents/metcv/src/second_stage/ml_functions.py:71: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  sigma_u, sigma_v, X_train0['umeanh'], X_train0['vmeanh'])
+/home/amirouyed@catnet.arizona.edu/Documents/metcv/src/second_stage/ml_functions.py:76: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  sigma_lon, sigma_lat, X_train0['lon'], X_train0['lat'])
+final shape
+738857
+fitting
+--- 83.32315373420715 seconds ---
+/home/amirouyed@catnet.arizona.edu/Documents/metcv/src/second_stage/ml_functions.py:99: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  X_test0['cos_weight'] = np.cos(X_test0['lat']/180*np.pi)
+/home/amirouyed@catnet.arizona.edu/Documents/metcv/src/second_stage/ml_functions.py:100: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  X_full0['cos_weight'] = np.cos(X_full0['lat']/180*np.pi)
+--- 237.82953524589539 seconds ---
+fitting with filter ground_t
+predicting..
+--- 9.597996711730957 seconds ---
+fitting with filter df
+--- 7.802278518676758 seconds ---
+       rmse exp_filter
+0  1.951760         rf
+1  3.768611   ground_t
+2  3.267559         df
+done!
+starting first stage
+resetting dictionaries and arrays...
+initializing  downloader...
+JPL loader running...
+pressure: 850.0
+Downloading data for variable qv for date: 2006-07-01 23:00:00
+Downloading data for variable qv for date: 2006-07-02 00:00:00
+Downloading data for variable qv for date: 2006-07-02 01:00:00
+done
+finished downloader.
+initializing processor...
+initializing optical flow...
+inpainted
+2006-07-02T00:00:00.000000000
+flow calculation for date: 2006-07-02T00:00:00.000000000
+inpainted
+--- 151.18630361557007 seconds ---
+done with deep flow
+2006-07-02T01:00:00.000000000
+flow calculation for date: 2006-07-02T01:00:00.000000000
+inpainted
+--- 152.10186338424683 seconds ---
+done with deep flow
+finished optical flow.
+initializing builder...
+building dataframe for the date: 2006-07-02T00:00:00.000000000
+start parallelization routine
+--- 0.485210657119751 seconds ---
+building dataframe for the date: 2006-07-02T01:00:00.000000000
+start parallelization routine
+--- 0.4835624694824219 seconds ---
+finished builder.
+initializing analysis...
+/home/amirouyed@catnet.arizona.edu/Documents/metcv/src/first_stage/viz/amv_analysis.py:194: FutureWarning: Passing a negative integer is deprecated in version 1.0 and will not be supported in future version. Instead, use None to not limit the column width.
+  pd.set_option('display.max_colwidth', -1)
+/home/amirouyed@catnet.arizona.edu/Documents/metcv/src/first_stage/viz/amv_analysis.py:43: FutureWarning: Treating datetime data as categorical rather than numeric in `.describe` is deprecated and will be removed in a future version of pandas. Specify `datetime_is_numeric=True` to silence this warning and adopt the future behavior now.
+  df_d = df[column].describe()
+Done!
+finished analysis.
+                 corr_speed    corr_u    corr_v  ratio_count        mean         std
+lat              0.823145    0.927779  0.905138  0.89029      5.986499    48.238618 
+lon              0.823145    0.927779  0.905138  0.89029     -3.212679    105.183856
+time             0.823145    0.927779  0.905138  0.89029     NaN         NaN        
+pressure         0.823145    0.927779  0.905138  0.89029      949.650269  92.943909 
+u                0.823145    0.927779  0.905138  0.89029      2.180156    8.224828  
+v                0.823145    0.927779  0.905138  0.89029      0.386332    6.031004  
+qv               0.823145    0.927779  0.905138  0.89029      0.005691    0.003793  
+umeanh           0.823145    0.927779  0.905138  0.89029      2.180156    8.224828  
+vmeanh           0.823145    0.927779  0.905138  0.89029      0.386332    6.031004  
+flow_u           0.823145    0.927779  0.905138  0.89029      3.718275    9.472679  
+flow_v           0.823145    0.927779  0.905138  0.89029      0.055705    2.629720  
+u_scaled_approx  0.823145    0.927779  0.905138  0.89029      2.028027    7.362696  
+v_scaled_approx  0.823145    0.927779  0.905138  0.89029      0.114082    5.160790  
+error_u          0.823145    0.927779  0.905138  0.89029      0.153135    3.135326  
+error_v          0.823145    0.927779  0.905138  0.89029      0.272144    2.643951  
+speed            0.823145    0.927779  0.905138  0.89029      8.954166    5.520773  
+speed_approx     0.823145    0.927779  0.905138  0.89029      7.521391    5.328942  
+speed_error      0.823145    0.927779  0.905138  0.89029      16.918260   65.840301 
+finished processor.
+All tasks completed.
+done first stage
+process data...
+era dataset
+<xarray.DataArray 'longitude' (longitude: 1440)>
+array([ 0.  ,  0.25,  0.5 , ..., -0.75, -0.5 , -0.25], dtype=float32)
+Coordinates:
+  * longitude  (longitude) float32 0.0 0.25 0.5 0.75 ... -1.0 -0.75 -0.5 -0.25
+cfs dataset
+<xarray.DataArray 'longitude' (longitude: 720)>
+array([ 0. ,  0.5,  1. , ..., -1.5, -1. , -0.5])
+Coordinates:
+  * longitude  (longitude) float64 0.0 0.5 1.0 1.5 2.0 ... -2.0 -1.5 -1.0 -0.5
+interpolating era data...
+interpolating cfs data...
+regridding...
+fitting with filter exp2
+/home/amirouyed@catnet.arizona.edu/Documents/metcv/src/second_stage/ml_functions.py:71: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  sigma_u, sigma_v, X_train0['umeanh'], X_train0['vmeanh'])
+/home/amirouyed@catnet.arizona.edu/Documents/metcv/src/second_stage/ml_functions.py:76: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  sigma_lon, sigma_lat, X_train0['lon'], X_train0['lat'])
+final shape
+738698
+fitting
+--- 83.12413144111633 seconds ---
+/home/amirouyed@catnet.arizona.edu/Documents/metcv/src/second_stage/ml_functions.py:99: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  X_test0['cos_weight'] = np.cos(X_test0['lat']/180*np.pi)
+/home/amirouyed@catnet.arizona.edu/Documents/metcv/src/second_stage/ml_functions.py:100: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  X_full0['cos_weight'] = np.cos(X_full0['lat']/180*np.pi)
+--- 240.79913663864136 seconds ---
+fitting with filter ground_t
+predicting..
+--- 9.486724853515625 seconds ---
+fitting with filter df
+--- 7.867438077926636 seconds ---
+       rmse exp_filter
+0  1.852992         rf
+1  3.348984   ground_t
+2  3.386907         df
+done!
+starting first stage
+resetting dictionaries and arrays...
+initializing  downloader...
+JPL loader running...
+pressure: 850.0
+Downloading data for variable qv for date: 2006-07-02 05:00:00
+Downloading data for variable qv for date: 2006-07-02 06:00:00
+Downloading data for variable qv for date: 2006-07-02 07:00:00
+done
+finished downloader.
+initializing processor...
+initializing optical flow...
+inpainted
+2006-07-02T06:00:00.000000000
+flow calculation for date: 2006-07-02T06:00:00.000000000
+inpainted
+--- 150.87507605552673 seconds ---
+done with deep flow
+2006-07-02T07:00:00.000000000
+flow calculation for date: 2006-07-02T07:00:00.000000000
+inpainted
+--- 151.9021553993225 seconds ---
+done with deep flow
+finished optical flow.
+initializing builder...
+building dataframe for the date: 2006-07-02T06:00:00.000000000
+start parallelization routine
+--- 0.4850189685821533 seconds ---
+building dataframe for the date: 2006-07-02T07:00:00.000000000
+start parallelization routine
+--- 0.4852015972137451 seconds ---
+finished builder.
+initializing analysis...
+/home/amirouyed@catnet.arizona.edu/Documents/metcv/src/first_stage/viz/amv_analysis.py:194: FutureWarning: Passing a negative integer is deprecated in version 1.0 and will not be supported in future version. Instead, use None to not limit the column width.
+  pd.set_option('display.max_colwidth', -1)
+/home/amirouyed@catnet.arizona.edu/Documents/metcv/src/first_stage/viz/amv_analysis.py:43: FutureWarning: Treating datetime data as categorical rather than numeric in `.describe` is deprecated and will be removed in a future version of pandas. Specify `datetime_is_numeric=True` to silence this warning and adopt the future behavior now.
+  df_d = df[column].describe()
+Done!
+finished analysis.
+                 corr_speed    corr_u    corr_v  ratio_count        mean         std
+lat              0.821824    0.922557  0.900275  0.890286     5.996067    48.229097 
+lon              0.821824    0.922557  0.900275  0.890286    -3.212642    105.172447
+time             0.821824    0.922557  0.900275  0.890286    NaN         NaN        
+pressure         0.821824    0.922557  0.900275  0.890286     949.649963  92.943916 
+u                0.821824    0.922557  0.900275  0.890286     2.052326    8.107245  
+v                0.821824    0.922557  0.900275  0.890286     0.397690    6.039093  
+qv               0.821824    0.922557  0.900275  0.890286     0.005720    0.003813  
+umeanh           0.821824    0.922557  0.900275  0.890286     2.052326    8.107245  
+vmeanh           0.821824    0.922557  0.900275  0.890286     0.397690    6.039093  
+flow_u           0.821824    0.922557  0.900275  0.890286     3.258211    8.073478  
+flow_v           0.821824    0.922557  0.900275  0.890286     0.078629    2.636081  
+u_scaled_approx  0.821824    0.922557  0.900275  0.890286     1.939586    7.233097  
+v_scaled_approx  0.821824    0.922557  0.900275  0.890286     0.166425    5.167642  
+error_u          0.821824    0.922557  0.900275  0.890286     0.112883    3.200225  
+error_v          0.821824    0.922557  0.900275  0.890286     0.231260    2.703481  
+speed            0.821824    0.922557  0.900275  0.890286     8.896681    5.421259  
+speed_approx     0.821824    0.922557  0.900275  0.890286     7.431189    5.252556  
+speed_error      0.821824    0.922557  0.900275  0.890286     17.616476   73.958497 
+finished processor.
+All tasks completed.
+done first stage
+process data...
+era dataset
+<xarray.DataArray 'longitude' (longitude: 1440)>
+array([ 0.  ,  0.25,  0.5 , ..., -0.75, -0.5 , -0.25], dtype=float32)
+Coordinates:
+  * longitude  (longitude) float32 0.0 0.25 0.5 0.75 ... -1.0 -0.75 -0.5 -0.25
+cfs dataset
+<xarray.DataArray 'longitude' (longitude: 720)>
+array([ 0. ,  0.5,  1. , ..., -1.5, -1. , -0.5])
+Coordinates:
+  * longitude  (longitude) float64 0.0 0.5 1.0 1.5 2.0 ... -2.0 -1.5 -1.0 -0.5
+interpolating era data...
+interpolating cfs data...
+regridding...
+fitting with filter exp2
+/home/amirouyed@catnet.arizona.edu/Documents/metcv/src/second_stage/ml_functions.py:71: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  sigma_u, sigma_v, X_train0['umeanh'], X_train0['vmeanh'])
+/home/amirouyed@catnet.arizona.edu/Documents/metcv/src/second_stage/ml_functions.py:76: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  sigma_lon, sigma_lat, X_train0['lon'], X_train0['lat'])
+final shape
+738695
+fitting
+--- 83.72506475448608 seconds ---
+/home/amirouyed@catnet.arizona.edu/Documents/metcv/src/second_stage/ml_functions.py:99: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  X_test0['cos_weight'] = np.cos(X_test0['lat']/180*np.pi)
+/home/amirouyed@catnet.arizona.edu/Documents/metcv/src/second_stage/ml_functions.py:100: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  X_full0['cos_weight'] = np.cos(X_full0['lat']/180*np.pi)
+--- 238.44913744926453 seconds ---
+fitting with filter ground_t
+predicting..
+--- 9.582768440246582 seconds ---
+fitting with filter df
+--- 8.203099966049194 seconds ---
+       rmse exp_filter
+0  1.937643         rf
+1  3.688760   ground_t
+2  3.410769         df
+done!
+starting first stage
+resetting dictionaries and arrays...
+initializing  downloader...
+JPL loader running...
+pressure: 850.0
+Downloading data for variable qv for date: 2006-07-02 11:00:00
+Downloading data for variable qv for date: 2006-07-02 12:00:00
+Downloading data for variable qv for date: 2006-07-02 13:00:00
+done
+finished downloader.
+initializing processor...
+initializing optical flow...
+inpainted
+2006-07-02T12:00:00.000000000
+flow calculation for date: 2006-07-02T12:00:00.000000000
+inpainted
+--- 150.87340235710144 seconds ---
+done with deep flow
+2006-07-02T13:00:00.000000000
+flow calculation for date: 2006-07-02T13:00:00.000000000
+inpainted
+--- 151.72046613693237 seconds ---
+done with deep flow
+finished optical flow.
+initializing builder...
+building dataframe for the date: 2006-07-02T12:00:00.000000000
+start parallelization routine
+--- 0.48453521728515625 seconds ---
+building dataframe for the date: 2006-07-02T13:00:00.000000000
+start parallelization routine
+--- 0.483980655670166 seconds ---
+finished builder.
+initializing analysis...
+/home/amirouyed@catnet.arizona.edu/Documents/metcv/src/first_stage/viz/amv_analysis.py:194: FutureWarning: Passing a negative integer is deprecated in version 1.0 and will not be supported in future version. Instead, use None to not limit the column width.
+  pd.set_option('display.max_colwidth', -1)
+/home/amirouyed@catnet.arizona.edu/Documents/metcv/src/first_stage/viz/amv_analysis.py:43: FutureWarning: Treating datetime data as categorical rather than numeric in `.describe` is deprecated and will be removed in a future version of pandas. Specify `datetime_is_numeric=True` to silence this warning and adopt the future behavior now.
+  df_d = df[column].describe()
+Done!
+finished analysis.
+                 corr_speed    corr_u    corr_v  ratio_count        mean         std
+lat              0.839828    0.929145  0.917007  0.890122     5.996619    48.233870 
+lon              0.839828    0.929145  0.917007  0.890122    -3.210615    105.176295
+time             0.839828    0.929145  0.917007  0.890122    NaN         NaN        
+pressure         0.839828    0.929145  0.917007  0.890122     949.636230  92.944290 
+u                0.839828    0.929145  0.917007  0.890122     2.058089    7.908969  
+v                0.839828    0.929145  0.917007  0.890122     0.406989    6.167506  
+qv               0.839828    0.929145  0.917007  0.890122     0.005747    0.003808  
+umeanh           0.839828    0.929145  0.917007  0.890122     2.058089    7.908969  
+vmeanh           0.839828    0.929145  0.917007  0.890122     0.406989    6.167506  
+flow_u           0.839828    0.929145  0.917007  0.890122     3.466846    8.183295  
+flow_v           0.839828    0.929145  0.917007  0.890122     0.103809    2.730305  
+u_scaled_approx  0.839828    0.929145  0.917007  0.890122     2.012931    7.131116  
+v_scaled_approx  0.839828    0.929145  0.917007  0.890122     0.208514    5.378920  
+error_u          0.839828    0.929145  0.917007  0.890122     0.044379    2.994616  
+error_v          0.839828    0.929145  0.917007  0.890122     0.198478    2.535849  
+speed            0.839828    0.929145  0.917007  0.890122     8.853747    5.384105  
+speed_approx     0.839828    0.929145  0.917007  0.890122     7.515662    5.234097  
+speed_error      0.839828    0.929145  0.917007  0.890122     15.439615   63.821225 
+finished processor.
+All tasks completed.
+done first stage
+process data...
+era dataset
+<xarray.DataArray 'longitude' (longitude: 1440)>
+array([ 0.  ,  0.25,  0.5 , ..., -0.75, -0.5 , -0.25], dtype=float32)
+Coordinates:
+  * longitude  (longitude) float32 0.0 0.25 0.5 0.75 ... -1.0 -0.75 -0.5 -0.25
+cfs dataset
+<xarray.DataArray 'longitude' (longitude: 720)>
+array([ 0. ,  0.5,  1. , ..., -1.5, -1. , -0.5])
+Coordinates:
+  * longitude  (longitude) float64 0.0 0.5 1.0 1.5 2.0 ... -2.0 -1.5 -1.0 -0.5
+interpolating era data...
+interpolating cfs data...
+regridding...
+fitting with filter exp2
+/home/amirouyed@catnet.arizona.edu/Documents/metcv/src/second_stage/ml_functions.py:71: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  sigma_u, sigma_v, X_train0['umeanh'], X_train0['vmeanh'])
+/home/amirouyed@catnet.arizona.edu/Documents/metcv/src/second_stage/ml_functions.py:76: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  sigma_lon, sigma_lat, X_train0['lon'], X_train0['lat'])
+final shape
+738559
+fitting
+--- 84.33481502532959 seconds ---
+/home/amirouyed@catnet.arizona.edu/Documents/metcv/src/second_stage/ml_functions.py:99: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  X_test0['cos_weight'] = np.cos(X_test0['lat']/180*np.pi)
+/home/amirouyed@catnet.arizona.edu/Documents/metcv/src/second_stage/ml_functions.py:100: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  X_full0['cos_weight'] = np.cos(X_full0['lat']/180*np.pi)
+--- 241.1184058189392 seconds ---
+fitting with filter ground_t
+predicting..
+--- 9.593985795974731 seconds ---
+fitting with filter df
+--- 7.949182033538818 seconds ---
+       rmse exp_filter
+0  1.853043         rf
+1  2.776116   ground_t
+2  3.208138         df
+done!
+starting first stage
+resetting dictionaries and arrays...
+initializing  downloader...
+JPL loader running...
+pressure: 850.0
+Downloading data for variable qv for date: 2006-07-02 17:00:00
+Downloading data for variable qv for date: 2006-07-02 18:00:00
+Downloading data for variable qv for date: 2006-07-02 19:00:00
+done
+finished downloader.
+initializing processor...
+initializing optical flow...
+inpainted
+2006-07-02T18:00:00.000000000
+flow calculation for date: 2006-07-02T18:00:00.000000000
+inpainted
+--- 151.10566115379333 seconds ---
+done with deep flow
+2006-07-02T19:00:00.000000000
+flow calculation for date: 2006-07-02T19:00:00.000000000
+inpainted
+--- 151.65497469902039 seconds ---
+done with deep flow
+finished optical flow.
+initializing builder...
+building dataframe for the date: 2006-07-02T18:00:00.000000000
+start parallelization routine
+--- 0.49404215812683105 seconds ---
+building dataframe for the date: 2006-07-02T19:00:00.000000000
+start parallelization routine
+--- 0.48358988761901855 seconds ---
+finished builder.
+initializing analysis...
+/home/amirouyed@catnet.arizona.edu/Documents/metcv/src/first_stage/viz/amv_analysis.py:194: FutureWarning: Passing a negative integer is deprecated in version 1.0 and will not be supported in future version. Instead, use None to not limit the column width.
+  pd.set_option('display.max_colwidth', -1)
+/home/amirouyed@catnet.arizona.edu/Documents/metcv/src/first_stage/viz/amv_analysis.py:43: FutureWarning: Treating datetime data as categorical rather than numeric in `.describe` is deprecated and will be removed in a future version of pandas. Specify `datetime_is_numeric=True` to silence this warning and adopt the future behavior now.
+  df_d = df[column].describe()
+Done!
+finished analysis.
+                 corr_speed    corr_u    corr_v  ratio_count        mean         std
+lat              0.843144    0.928023  0.912707  0.890333     6.001488    48.229094 
+lon              0.843144    0.928023  0.912707  0.890333    -3.183891    105.160686
+time             0.843144    0.928023  0.912707  0.890333    NaN         NaN        
+pressure         0.843144    0.928023  0.912707  0.890333     949.653870  92.943794 
+u                0.843144    0.928023  0.912707  0.890333     2.028063    7.862497  
+v                0.843144    0.928023  0.912707  0.890333     0.413885    6.216916  
+qv               0.843144    0.928023  0.912707  0.890333     0.005741    0.003784  
+umeanh           0.843144    0.928023  0.912707  0.890333     2.028063    7.862497  
+vmeanh           0.843144    0.928023  0.912707  0.890333     0.413885    6.216916  
+flow_u           0.843144    0.928023  0.912707  0.890333     3.280406    7.709442  
+flow_v           0.843144    0.928023  0.912707  0.890333     0.107389    2.786074  
+u_scaled_approx  0.843144    0.928023  0.912707  0.890333     2.039020    7.072787  
+v_scaled_approx  0.843144    0.928023  0.912707  0.890333     0.192387    5.433034  
+error_u          0.843144    0.928023  0.912707  0.890333    -0.011012    2.997932  
+error_v          0.843144    0.928023  0.912707  0.890333     0.221541    2.612370  
+speed            0.843144    0.928023  0.912707  0.890333     8.816256    5.400959  
+speed_approx     0.843144    0.928023  0.912707  0.890333     7.500740    5.241725  
+speed_error      0.843144    0.928023  0.912707  0.890333     15.861274   59.156018 
+finished processor.
+All tasks completed.
+done first stage
+process data...
+era dataset
+<xarray.DataArray 'longitude' (longitude: 1440)>
+array([ 0.  ,  0.25,  0.5 , ..., -0.75, -0.5 , -0.25], dtype=float32)
+Coordinates:
+  * longitude  (longitude) float32 0.0 0.25 0.5 0.75 ... -1.0 -0.75 -0.5 -0.25
+cfs dataset
+<xarray.DataArray 'longitude' (longitude: 720)>
+array([ 0. ,  0.5,  1. , ..., -1.5, -1. , -0.5])
+Coordinates:
+  * longitude  (longitude) float64 0.0 0.5 1.0 1.5 2.0 ... -2.0 -1.5 -1.0 -0.5
+interpolating era data...
+interpolating cfs data...
+regridding...
+fitting with filter exp2
+/home/amirouyed@catnet.arizona.edu/Documents/metcv/src/second_stage/ml_functions.py:71: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  sigma_u, sigma_v, X_train0['umeanh'], X_train0['vmeanh'])
+/home/amirouyed@catnet.arizona.edu/Documents/metcv/src/second_stage/ml_functions.py:76: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  sigma_lon, sigma_lat, X_train0['lon'], X_train0['lat'])
+final shape
+738734
+fitting
+--- 84.8254623413086 seconds ---
+/home/amirouyed@catnet.arizona.edu/Documents/metcv/src/second_stage/ml_functions.py:99: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  X_test0['cos_weight'] = np.cos(X_test0['lat']/180*np.pi)
+/home/amirouyed@catnet.arizona.edu/Documents/metcv/src/second_stage/ml_functions.py:100: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  X_full0['cos_weight'] = np.cos(X_full0['lat']/180*np.pi)
+--- 244.78867650032043 seconds ---
+fitting with filter ground_t
+predicting..
+--- 9.703561067581177 seconds ---
+fitting with filter df
+--- 8.026493310928345 seconds ---
+       rmse exp_filter
+0  2.023018         rf
+1  2.789913   ground_t
+2  3.307817         df
+done!
+starting first stage
+resetting dictionaries and arrays...
+initializing  downloader...
+JPL loader running...
+pressure: 850.0
+Downloading data for variable qv for date: 2006-07-02 23:00:00
+Downloading data for variable qv for date: 2006-07-03 00:00:00
+Downloading data for variable qv for date: 2006-07-03 01:00:00
+done
+finished downloader.
+initializing processor...
+initializing optical flow...
+inpainted
+2006-07-03T00:00:00.000000000
+flow calculation for date: 2006-07-03T00:00:00.000000000
+inpainted
+--- 150.786789894104 seconds ---
+done with deep flow
+2006-07-03T01:00:00.000000000
+flow calculation for date: 2006-07-03T01:00:00.000000000
+inpainted
+--- 151.86098456382751 seconds ---
+done with deep flow
+finished optical flow.
+initializing builder...
+building dataframe for the date: 2006-07-03T00:00:00.000000000
+start parallelization routine
+--- 0.49486351013183594 seconds ---
+building dataframe for the date: 2006-07-03T01:00:00.000000000
+start parallelization routine
+--- 0.4959285259246826 seconds ---
+finished builder.
+initializing analysis...
+/home/amirouyed@catnet.arizona.edu/Documents/metcv/src/first_stage/viz/amv_analysis.py:194: FutureWarning: Passing a negative integer is deprecated in version 1.0 and will not be supported in future version. Instead, use None to not limit the column width.
+  pd.set_option('display.max_colwidth', -1)
+/home/amirouyed@catnet.arizona.edu/Documents/metcv/src/first_stage/viz/amv_analysis.py:43: FutureWarning: Treating datetime data as categorical rather than numeric in `.describe` is deprecated and will be removed in a future version of pandas. Specify `datetime_is_numeric=True` to silence this warning and adopt the future behavior now.
+  df_d = df[column].describe()
+Done!
+finished analysis.
+                 corr_speed    corr_u   corr_v  ratio_count        mean         std
+lat              0.842076    0.927976  0.91594  0.890188     6.002783    48.227871 
+lon              0.842076    0.927976  0.91594  0.890188    -3.150998    105.151939
+time             0.842076    0.927976  0.91594  0.890188    NaN         NaN        
+pressure         0.842076    0.927976  0.91594  0.890188     949.641785  92.944176 
+u                0.842076    0.927976  0.91594  0.890188     1.980662    7.835222  
+v                0.842076    0.927976  0.91594  0.890188     0.372477    6.288336  
+qv               0.842076    0.927976  0.91594  0.890188     0.005714    0.003746  
+umeanh           0.842076    0.927976  0.91594  0.890188     1.980662    7.835222  
+vmeanh           0.842076    0.927976  0.91594  0.890188     0.372477    6.288336  
+flow_u           0.842076    0.927976  0.91594  0.890188     3.228043    7.854821  
+flow_v           0.842076    0.927976  0.91594  0.890188     0.075451    2.816978  
+u_scaled_approx  0.842076    0.927976  0.91594  0.890188     1.960086    7.046539  
+v_scaled_approx  0.842076    0.927976  0.91594  0.890188     0.152300    5.481036  
+error_u          0.842076    0.927976  0.91594  0.890188     0.021747    2.989109  
+error_v          0.842076    0.927976  0.91594  0.890188     0.220318    2.603816  
+speed            0.842076    0.927976  0.91594  0.890188     8.863750    5.350263  
+speed_approx     0.842076    0.927976  0.91594  0.890188     7.516501    5.202194  
+speed_error      0.842076    0.927976  0.91594  0.890188     15.763646   55.285408 
+finished processor.
+All tasks completed.
+done first stage
+process data...
+era dataset
+<xarray.DataArray 'longitude' (longitude: 1440)>
+array([ 0.  ,  0.25,  0.5 , ..., -0.75, -0.5 , -0.25], dtype=float32)
+Coordinates:
+  * longitude  (longitude) float32 0.0 0.25 0.5 0.75 ... -1.0 -0.75 -0.5 -0.25
+cfs dataset
+<xarray.DataArray 'longitude' (longitude: 720)>
+array([ 0. ,  0.5,  1. , ..., -1.5, -1. , -0.5])
+Coordinates:
+  * longitude  (longitude) float64 0.0 0.5 1.0 1.5 2.0 ... -2.0 -1.5 -1.0 -0.5
+interpolating era data...
+interpolating cfs data...
+regridding...
+fitting with filter exp2
+/home/amirouyed@catnet.arizona.edu/Documents/metcv/src/second_stage/ml_functions.py:71: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  sigma_u, sigma_v, X_train0['umeanh'], X_train0['vmeanh'])
+/home/amirouyed@catnet.arizona.edu/Documents/metcv/src/second_stage/ml_functions.py:76: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  sigma_lon, sigma_lat, X_train0['lon'], X_train0['lat'])
+final shape
+738614
+fitting
+--- 83.22484087944031 seconds ---
+/home/amirouyed@catnet.arizona.edu/Documents/metcv/src/second_stage/ml_functions.py:99: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  X_test0['cos_weight'] = np.cos(X_test0['lat']/180*np.pi)
+/home/amirouyed@catnet.arizona.edu/Documents/metcv/src/second_stage/ml_functions.py:100: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  X_full0['cos_weight'] = np.cos(X_full0['lat']/180*np.pi)
+--- 242.4059784412384 seconds ---
+fitting with filter ground_t
+predicting..
+--- 9.61913776397705 seconds ---
+fitting with filter df
+--- 8.239485502243042 seconds ---
+       rmse exp_filter
+0  1.973015         rf
+1  4.479102   ground_t
+2  3.381366         df
+done!
+starting first stage
+resetting dictionaries and arrays...
+initializing  downloader...
+JPL loader running...
+pressure: 850.0
+Downloading data for variable qv for date: 2006-07-03 05:00:00
+Downloading data for variable qv for date: 2006-07-03 06:00:00
+Downloading data for variable qv for date: 2006-07-03 07:00:00
+done
+finished downloader.
+initializing processor...
+initializing optical flow...
+inpainted
+2006-07-03T06:00:00.000000000
+flow calculation for date: 2006-07-03T06:00:00.000000000
+inpainted
+--- 150.8272545337677 seconds ---
+done with deep flow
+2006-07-03T07:00:00.000000000
+flow calculation for date: 2006-07-03T07:00:00.000000000
+inpainted
+--- 151.75651144981384 seconds ---
+done with deep flow
+finished optical flow.
+initializing builder...
+building dataframe for the date: 2006-07-03T06:00:00.000000000
+start parallelization routine
+--- 0.4857165813446045 seconds ---
+building dataframe for the date: 2006-07-03T07:00:00.000000000
+start parallelization routine
+--- 0.4844779968261719 seconds ---
+finished builder.
+initializing analysis...
+/home/amirouyed@catnet.arizona.edu/Documents/metcv/src/first_stage/viz/amv_analysis.py:194: FutureWarning: Passing a negative integer is deprecated in version 1.0 and will not be supported in future version. Instead, use None to not limit the column width.
+  pd.set_option('display.max_colwidth', -1)
+/home/amirouyed@catnet.arizona.edu/Documents/metcv/src/first_stage/viz/amv_analysis.py:43: FutureWarning: Treating datetime data as categorical rather than numeric in `.describe` is deprecated and will be removed in a future version of pandas. Specify `datetime_is_numeric=True` to silence this warning and adopt the future behavior now.
+  df_d = df[column].describe()
+Done!
+finished analysis.
+                 corr_speed    corr_u    corr_v  ratio_count        mean         std
+lat              0.843095    0.931777  0.916631  0.890424     6.012051    48.222382 
+lon              0.843095    0.931777  0.916631  0.890424    -3.155562    105.135974
+time             0.843095    0.931777  0.916631  0.890424    NaN         NaN        
+pressure         0.843095    0.931777  0.916631  0.890424     949.661438  92.943565 
+u                0.843095    0.931777  0.916631  0.890424     1.900917    7.794394  
+v                0.843095    0.931777  0.916631  0.890424     0.356073    6.319079  
+qv               0.843095    0.931777  0.916631  0.890424     0.005741    0.003770  
+umeanh           0.843095    0.931777  0.916631  0.890424     1.900917    7.794394  
+vmeanh           0.843095    0.931777  0.916631  0.890424     0.356073    6.319079  
+flow_u           0.843095    0.931777  0.916631  0.890424     2.988533    7.367278  
+flow_v           0.843095    0.931777  0.916631  0.890424     0.107693    2.813414  
+u_scaled_approx  0.843095    0.931777  0.916631  0.890424     1.878189    6.993275  
+v_scaled_approx  0.843095    0.931777  0.916631  0.890424     0.178714    5.469008  
+error_u          0.843095    0.931777  0.916631  0.890424     0.023655    2.904329  
+error_v          0.843095    0.931777  0.916631  0.890424     0.177246    2.611264  
+speed            0.843095    0.931777  0.916631  0.890424     8.812942    5.324980  
+speed_approx     0.843095    0.931777  0.916631  0.890424     7.445201    5.190805  
+speed_error      0.843095    0.931777  0.916631  0.890424     15.285800   50.533371 
+finished processor.
+All tasks completed.
+done first stage
+process data...
+era dataset
+<xarray.DataArray 'longitude' (longitude: 1440)>
+array([ 0.  ,  0.25,  0.5 , ..., -0.75, -0.5 , -0.25], dtype=float32)
+Coordinates:
+  * longitude  (longitude) float32 0.0 0.25 0.5 0.75 ... -1.0 -0.75 -0.5 -0.25
+cfs dataset
+<xarray.DataArray 'longitude' (longitude: 720)>
+array([ 0. ,  0.5,  1. , ..., -1.5, -1. , -0.5])
+Coordinates:
+  * longitude  (longitude) float64 0.0 0.5 1.0 1.5 2.0 ... -2.0 -1.5 -1.0 -0.5
+interpolating era data...
+interpolating cfs data...
+regridding...
+fitting with filter exp2
+/home/amirouyed@catnet.arizona.edu/Documents/metcv/src/second_stage/ml_functions.py:71: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  sigma_u, sigma_v, X_train0['umeanh'], X_train0['vmeanh'])
+/home/amirouyed@catnet.arizona.edu/Documents/metcv/src/second_stage/ml_functions.py:76: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  sigma_lon, sigma_lat, X_train0['lon'], X_train0['lat'])
+final shape
+738809
+fitting
+--- 83.22054839134216 seconds ---
+/home/amirouyed@catnet.arizona.edu/Documents/metcv/src/second_stage/ml_functions.py:99: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  X_test0['cos_weight'] = np.cos(X_test0['lat']/180*np.pi)
+/home/amirouyed@catnet.arizona.edu/Documents/metcv/src/second_stage/ml_functions.py:100: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  X_full0['cos_weight'] = np.cos(X_full0['lat']/180*np.pi)
+--- 241.79368257522583 seconds ---
+fitting with filter ground_t
+predicting..
+--- 9.453381776809692 seconds ---
+fitting with filter df
+--- 8.01888394355774 seconds ---
+       rmse exp_filter
+0  1.816599         rf
+1  4.281010   ground_t
+2  3.219142         df
+done!
+starting first stage
+resetting dictionaries and arrays...
+initializing  downloader...
+JPL loader running...
+pressure: 850.0
+Downloading data for variable qv for date: 2006-07-03 11:00:00
+Downloading data for variable qv for date: 2006-07-03 12:00:00
+Downloading data for variable qv for date: 2006-07-03 13:00:00
+done
+finished downloader.
+initializing processor...
+initializing optical flow...
+inpainted
+2006-07-03T12:00:00.000000000
+flow calculation for date: 2006-07-03T12:00:00.000000000
+inpainted
+--- 150.9494504928589 seconds ---
+done with deep flow
+2006-07-03T13:00:00.000000000
+flow calculation for date: 2006-07-03T13:00:00.000000000
+inpainted
+--- 151.60395908355713 seconds ---
+done with deep flow
+finished optical flow.
+initializing builder...
+building dataframe for the date: 2006-07-03T12:00:00.000000000
+start parallelization routine
+--- 0.4951808452606201 seconds ---
+building dataframe for the date: 2006-07-03T13:00:00.000000000
+start parallelization routine
+--- 0.48417162895202637 seconds ---
+finished builder.
+initializing analysis...
+/home/amirouyed@catnet.arizona.edu/Documents/metcv/src/first_stage/viz/amv_analysis.py:194: FutureWarning: Passing a negative integer is deprecated in version 1.0 and will not be supported in future version. Instead, use None to not limit the column width.
+  pd.set_option('display.max_colwidth', -1)
+/home/amirouyed@catnet.arizona.edu/Documents/metcv/src/first_stage/viz/amv_analysis.py:43: FutureWarning: Treating datetime data as categorical rather than numeric in `.describe` is deprecated and will be removed in a future version of pandas. Specify `datetime_is_numeric=True` to silence this warning and adopt the future behavior now.
+  df_d = df[column].describe()
+Done!
+finished analysis.
+                 corr_speed   corr_u    corr_v  ratio_count        mean         std
+lat              0.853084    0.93285  0.918144  0.890234     6.018085    48.226060 
+lon              0.853084    0.93285  0.918144  0.890234    -3.160761    105.136798
+time             0.853084    0.93285  0.918144  0.890234    NaN         NaN        
+pressure         0.853084    0.93285  0.918144  0.890234     949.645569  92.944054 
+u                0.853084    0.93285  0.918144  0.890234     1.893641    7.774597  
+v                0.853084    0.93285  0.918144  0.890234     0.279596    6.482339  
+qv               0.853084    0.93285  0.918144  0.890234     0.005734    0.003758  
+umeanh           0.853084    0.93285  0.918144  0.890234     1.893641    7.774597  
+vmeanh           0.853084    0.93285  0.918144  0.890234     0.279596    6.482339  
+flow_u           0.853084    0.93285  0.918144  0.890234     2.872245    7.298995  
+flow_v           0.853084    0.93285  0.918144  0.890234     0.045413    2.851698  
+u_scaled_approx  0.853084    0.93285  0.918144  0.890234     1.890924    7.007827  
+v_scaled_approx  0.853084    0.93285  0.918144  0.890234     0.096633    5.600474  
+error_u          0.853084    0.93285  0.918144  0.890234     0.001374    2.873287  
+error_v          0.853084    0.93285  0.918144  0.890234     0.182952    2.656269  
+speed            0.853084    0.93285  0.918144  0.890234     8.841716    5.453895  
+speed_approx     0.853084    0.93285  0.918144  0.890234     7.522664    5.241125  
+speed_error      0.853084    0.93285  0.918144  0.890234     15.345013   52.290232 
+finished processor.
+All tasks completed.
+done first stage
+process data...
+era dataset
+<xarray.DataArray 'longitude' (longitude: 1440)>
+array([ 0.  ,  0.25,  0.5 , ..., -0.75, -0.5 , -0.25], dtype=float32)
+Coordinates:
+  * longitude  (longitude) float32 0.0 0.25 0.5 0.75 ... -1.0 -0.75 -0.5 -0.25
+cfs dataset
+<xarray.DataArray 'longitude' (longitude: 720)>
+array([ 0. ,  0.5,  1. , ..., -1.5, -1. , -0.5])
+Coordinates:
+  * longitude  (longitude) float64 0.0 0.5 1.0 1.5 2.0 ... -2.0 -1.5 -1.0 -0.5
+interpolating era data...
+interpolating cfs data...
+regridding...
+fitting with filter exp2
+/home/amirouyed@catnet.arizona.edu/Documents/metcv/src/second_stage/ml_functions.py:71: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  sigma_u, sigma_v, X_train0['umeanh'], X_train0['vmeanh'])
+/home/amirouyed@catnet.arizona.edu/Documents/metcv/src/second_stage/ml_functions.py:76: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  sigma_lon, sigma_lat, X_train0['lon'], X_train0['lat'])
+final shape
+738651
+fitting
+--- 85.02431511878967 seconds ---
+/home/amirouyed@catnet.arizona.edu/Documents/metcv/src/second_stage/ml_functions.py:99: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  X_test0['cos_weight'] = np.cos(X_test0['lat']/180*np.pi)
+/home/amirouyed@catnet.arizona.edu/Documents/metcv/src/second_stage/ml_functions.py:100: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  X_full0['cos_weight'] = np.cos(X_full0['lat']/180*np.pi)
+--- 247.09242391586304 seconds ---
+fitting with filter ground_t
+predicting..
+--- 9.664213418960571 seconds ---
+fitting with filter df
+--- 7.896675109863281 seconds ---
+       rmse exp_filter
+0  1.836801         rf
+1  2.713585   ground_t
+2  3.199683         df
+done!
+starting first stage
+resetting dictionaries and arrays...
+initializing  downloader...
+JPL loader running...
+pressure: 850.0
+Downloading data for variable qv for date: 2006-07-03 17:00:00
+Downloading data for variable qv for date: 2006-07-03 18:00:00
+Downloading data for variable qv for date: 2006-07-03 19:00:00
+done
+finished downloader.
+initializing processor...
+initializing optical flow...
+inpainted
+2006-07-03T18:00:00.000000000
+flow calculation for date: 2006-07-03T18:00:00.000000000
+inpainted
+--- 151.033132314682 seconds ---
+done with deep flow
+2006-07-03T19:00:00.000000000
+flow calculation for date: 2006-07-03T19:00:00.000000000
+inpainted
+--- 151.80415534973145 seconds ---
+done with deep flow
+finished optical flow.
+initializing builder...
+building dataframe for the date: 2006-07-03T18:00:00.000000000
+start parallelization routine
+--- 0.4839162826538086 seconds ---
+building dataframe for the date: 2006-07-03T19:00:00.000000000
+start parallelization routine
+--- 0.4863467216491699 seconds ---
+finished builder.
+initializing analysis...
+/home/amirouyed@catnet.arizona.edu/Documents/metcv/src/first_stage/viz/amv_analysis.py:194: FutureWarning: Passing a negative integer is deprecated in version 1.0 and will not be supported in future version. Instead, use None to not limit the column width.
+  pd.set_option('display.max_colwidth', -1)
+/home/amirouyed@catnet.arizona.edu/Documents/metcv/src/first_stage/viz/amv_analysis.py:43: FutureWarning: Treating datetime data as categorical rather than numeric in `.describe` is deprecated and will be removed in a future version of pandas. Specify `datetime_is_numeric=True` to silence this warning and adopt the future behavior now.
+  df_d = df[column].describe()
+Done!
+finished analysis.
+                 corr_speed   corr_u    corr_v  ratio_count        mean         std
+lat              0.85144     0.92851  0.919982  0.890504     6.026897    48.223078 
+lon              0.85144     0.92851  0.919982  0.890504    -3.157189    105.121030
+time             0.85144     0.92851  0.919982  0.890504    NaN         NaN        
+pressure         0.85144     0.92851  0.919982  0.890504     949.668091  92.943352 
+u                0.85144     0.92851  0.919982  0.890504     1.812750    7.815127  
+v                0.85144     0.92851  0.919982  0.890504     0.300020    6.616552  
+qv               0.85144     0.92851  0.919982  0.890504     0.005707    0.003746  
+umeanh           0.85144     0.92851  0.919982  0.890504     1.812750    7.815127  
+vmeanh           0.85144     0.92851  0.919982  0.890504     0.300020    6.616552  
+flow_u           0.85144     0.92851  0.919982  0.890504     2.723396    6.975405  
+flow_v           0.85144     0.92851  0.919982  0.890504     0.051772    2.937461  
+u_scaled_approx  0.85144     0.92851  0.919982  0.890504     1.865639    6.975247  
+v_scaled_approx  0.85144     0.92851  0.919982  0.890504     0.104597    5.739956  
+error_u          0.85144     0.92851  0.919982  0.890504    -0.052162    2.980003  
+error_v          0.85144     0.92851  0.919982  0.890504     0.195414    2.684689  
+speed            0.85144     0.92851  0.919982  0.890504     8.894428    5.565403  
+speed_approx     0.85144     0.92851  0.919982  0.890504     7.554595    5.293469  
+speed_error      0.85144     0.92851  0.919982  0.890504     16.128878   54.347312 
+finished processor.
+All tasks completed.
+done first stage
+process data...
+era dataset
+<xarray.DataArray 'longitude' (longitude: 1440)>
+array([ 0.  ,  0.25,  0.5 , ..., -0.75, -0.5 , -0.25], dtype=float32)
+Coordinates:
+  * longitude  (longitude) float32 0.0 0.25 0.5 0.75 ... -1.0 -0.75 -0.5 -0.25
+cfs dataset
+<xarray.DataArray 'longitude' (longitude: 720)>
+array([ 0. ,  0.5,  1. , ..., -1.5, -1. , -0.5])
+Coordinates:
+  * longitude  (longitude) float64 0.0 0.5 1.0 1.5 2.0 ... -2.0 -1.5 -1.0 -0.5
+interpolating era data...
+interpolating cfs data...
+regridding...
+fitting with filter exp2
+/home/amirouyed@catnet.arizona.edu/Documents/metcv/src/second_stage/ml_functions.py:71: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  sigma_u, sigma_v, X_train0['umeanh'], X_train0['vmeanh'])
+/home/amirouyed@catnet.arizona.edu/Documents/metcv/src/second_stage/ml_functions.py:76: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  sigma_lon, sigma_lat, X_train0['lon'], X_train0['lat'])
+final shape
+738875
+fitting
+--- 87.93547320365906 seconds ---
+/home/amirouyed@catnet.arizona.edu/Documents/metcv/src/second_stage/ml_functions.py:99: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  X_test0['cos_weight'] = np.cos(X_test0['lat']/180*np.pi)
+/home/amirouyed@catnet.arizona.edu/Documents/metcv/src/second_stage/ml_functions.py:100: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame.
+Try using .loc[row_indexer,col_indexer] = value instead
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  X_full0['cos_weight'] = np.cos(X_full0['lat']/180*np.pi)
+--- 241.88475918769836 seconds ---
+fitting with filter ground_t
+predicting..
+--- 9.48669981956482 seconds ---
+fitting with filter df
+--- 8.090019226074219 seconds ---
+       rmse exp_filter
+0  2.335240         rf
+1  2.988326   ground_t
+2  3.336244         df
+done!
+['../data/processed/experiments/exp2_2006-07-01-00:00.nc', '../data/processed/experiments/exp2_2006-07-01-06:00.nc', '../data/processed/experiments/exp2_2006-07-01-12:00.nc', '../data/processed/experiments/exp2_2006-07-01-18:00.nc', '../data/processed/experiments/exp2_2006-07-02-00:00.nc', '../data/processed/experiments/exp2_2006-07-02-06:00.nc', '../data/processed/experiments/exp2_2006-07-02-12:00.nc', '../data/processed/experiments/exp2_2006-07-02-18:00.nc', '../data/processed/experiments/exp2_2006-07-03-00:00.nc', '../data/processed/experiments/exp2_2006-07-03-06:00.nc', '../data/processed/experiments/exp2_2006-07-03-12:00.nc', '../data/processed/experiments/exp2_2006-07-03-18:00.nc']
+var file:
+../data/processed/experiments/exp2_2006-07-01-00:00.nc
+var file:
+../data/processed/experiments/exp2_2006-07-01-06:00.nc
+var file:
+../data/processed/experiments/exp2_2006-07-01-12:00.nc
+var file:
+../data/processed/experiments/exp2_2006-07-01-18:00.nc
+var file:
+../data/processed/experiments/exp2_2006-07-02-00:00.nc
+var file:
+../data/processed/experiments/exp2_2006-07-02-06:00.nc
+var file:
+../data/processed/experiments/exp2_2006-07-02-12:00.nc
+var file:
+../data/processed/experiments/exp2_2006-07-02-18:00.nc
+var file:
+../data/processed/experiments/exp2_2006-07-03-00:00.nc
+var file:
+../data/processed/experiments/exp2_2006-07-03-06:00.nc
+var file:
+../data/processed/experiments/exp2_2006-07-03-12:00.nc
+var file:
+../data/processed/experiments/exp2_2006-07-03-18:00.nc
+['../data/processed/experiments/ground_t_2006-07-01-00:00.nc', '../data/processed/experiments/ground_t_2006-07-01-06:00.nc', '../data/processed/experiments/ground_t_2006-07-01-12:00.nc', '../data/processed/experiments/ground_t_2006-07-01-18:00.nc', '../data/processed/experiments/ground_t_2006-07-02-00:00.nc', '../data/processed/experiments/ground_t_2006-07-02-06:00.nc', '../data/processed/experiments/ground_t_2006-07-02-12:00.nc', '../data/processed/experiments/ground_t_2006-07-02-18:00.nc', '../data/processed/experiments/ground_t_2006-07-03-00:00.nc', '../data/processed/experiments/ground_t_2006-07-03-06:00.nc', '../data/processed/experiments/ground_t_2006-07-03-12:00.nc', '../data/processed/experiments/ground_t_2006-07-03-18:00.nc']
+var file:
+../data/processed/experiments/ground_t_2006-07-01-00:00.nc
+var file:
+../data/processed/experiments/ground_t_2006-07-01-06:00.nc
+var file:
+../data/processed/experiments/ground_t_2006-07-01-12:00.nc
+var file:
+../data/processed/experiments/ground_t_2006-07-01-18:00.nc
+var file:
+../data/processed/experiments/ground_t_2006-07-02-00:00.nc
+var file:
+../data/processed/experiments/ground_t_2006-07-02-06:00.nc
+var file:
+../data/processed/experiments/ground_t_2006-07-02-12:00.nc
+var file:
+../data/processed/experiments/ground_t_2006-07-02-18:00.nc
+var file:
+../data/processed/experiments/ground_t_2006-07-03-00:00.nc
+var file:
+../data/processed/experiments/ground_t_2006-07-03-06:00.nc
+var file:
+../data/processed/experiments/ground_t_2006-07-03-12:00.nc
+var file:
+../data/processed/experiments/ground_t_2006-07-03-18:00.nc
+['../data/processed/experiments/df_2006-07-01-00:00.nc', '../data/processed/experiments/df_2006-07-01-06:00.nc', '../data/processed/experiments/df_2006-07-01-12:00.nc', '../data/processed/experiments/df_2006-07-01-18:00.nc', '../data/processed/experiments/df_2006-07-02-00:00.nc', '../data/processed/experiments/df_2006-07-02-06:00.nc', '../data/processed/experiments/df_2006-07-02-12:00.nc', '../data/processed/experiments/df_2006-07-02-18:00.nc', '../data/processed/experiments/df_2006-07-03-00:00.nc', '../data/processed/experiments/df_2006-07-03-06:00.nc', '../data/processed/experiments/df_2006-07-03-12:00.nc', '../data/processed/experiments/df_2006-07-03-18:00.nc']
+var file:
+../data/processed/experiments/df_2006-07-01-00:00.nc
+var file:
+../data/processed/experiments/df_2006-07-01-06:00.nc
+var file:
+../data/processed/experiments/df_2006-07-01-12:00.nc
+var file:
+../data/processed/experiments/df_2006-07-01-18:00.nc
+var file:
+../data/processed/experiments/df_2006-07-02-00:00.nc
+var file:
+../data/processed/experiments/df_2006-07-02-06:00.nc
+var file:
+../data/processed/experiments/df_2006-07-02-12:00.nc
+var file:
+../data/processed/experiments/df_2006-07-02-18:00.nc
+var file:
+../data/processed/experiments/df_2006-07-03-00:00.nc
+var file:
+../data/processed/experiments/df_2006-07-03-06:00.nc
+var file:
+../data/processed/experiments/df_2006-07-03-12:00.nc
+var file:
+../data/processed/experiments/df_2006-07-03-18:00.nc
+['../data/processed/experiments/full_exp2_2006-07-01-00:00.nc', '../data/processed/experiments/full_exp2_2006-07-01-06:00.nc', '../data/processed/experiments/full_exp2_2006-07-01-12:00.nc', '../data/processed/experiments/full_exp2_2006-07-01-18:00.nc', '../data/processed/experiments/full_exp2_2006-07-02-00:00.nc', '../data/processed/experiments/full_exp2_2006-07-02-06:00.nc', '../data/processed/experiments/full_exp2_2006-07-02-12:00.nc', '../data/processed/experiments/full_exp2_2006-07-02-18:00.nc', '../data/processed/experiments/full_exp2_2006-07-03-00:00.nc', '../data/processed/experiments/full_exp2_2006-07-03-06:00.nc', '../data/processed/experiments/full_exp2_2006-07-03-12:00.nc', '../data/processed/experiments/full_exp2_2006-07-03-18:00.nc']
+var file:
+../data/processed/experiments/full_exp2_2006-07-01-00:00.nc
+var file:
+../data/processed/experiments/full_exp2_2006-07-01-06:00.nc
+var file:
+../data/processed/experiments/full_exp2_2006-07-01-12:00.nc
+var file:
+../data/processed/experiments/full_exp2_2006-07-01-18:00.nc
+var file:
+../data/processed/experiments/full_exp2_2006-07-02-00:00.nc
+var file:
+../data/processed/experiments/full_exp2_2006-07-02-06:00.nc
+var file:
+../data/processed/experiments/full_exp2_2006-07-02-12:00.nc
+var file:
+../data/processed/experiments/full_exp2_2006-07-02-18:00.nc
+var file:
+../data/processed/experiments/full_exp2_2006-07-03-00:00.nc
+var file:
+../data/processed/experiments/full_exp2_2006-07-03-06:00.nc
+var file:
+../data/processed/experiments/full_exp2_2006-07-03-12:00.nc
+var file:
+../data/processed/experiments/full_exp2_2006-07-03-18:00.nc
+preprocessing_data...
+preprocessing: 2006-07-01T00:00:00.000000000
+string date: 2006-07-01T00:00:00.000000000
+<xarray.Dataset>
+Dimensions:       (filter: 4, lat: 2818, lon: 5760)
+Coordinates:
+  * lat           (lat) float64 -86.12 -86.06 -86.0 -85.94 ... 89.81 89.88 89.94
+  * lon           (lon) float64 -180.0 -179.9 -179.9 ... 179.8 179.9 179.9
+  * filter        (filter) object 'df' 'exp2' 'ground_t' 'jpl'
+Data variables:
+    umean         (lat, lon, filter) float32 nan nan nan nan ... nan nan nan nan
+    vmean         (lat, lon, filter) float32 nan nan nan nan ... nan nan nan nan
+    utrack        (lat, lon, filter) float32 nan nan nan nan ... nan nan nan nan
+    vtrack        (lat, lon, filter) float32 nan nan nan nan ... nan nan nan nan
+    cos_weight    (lat, lon, filter) float64 nan nan nan ... 0.001091 0.001091
+    u_error_rean  (lat, lon, filter) float32 nan nan nan nan ... nan nan nan nan
+    v_error_rean  (lat, lon, filter) float32 nan nan nan nan ... nan nan nan nan
+    qv            (lat, lon, filter) float32 nan nan nan nan ... nan nan nan nan
+    grad_x_qv     (lat, lon, filter) float32 nan nan ... -2.1684043e-19
+    grad_y_qv     (lat, lon, filter) float32 nan nan ... -2.150198e-09
+    grad_mag_qv   (lat, lon, filter) float32 nan nan ... 2.150198e-09
+--- seconds ---128.12559461593628
+preprocessing: 2006-07-01T06:00:00.000000000
+string date: 2006-07-01T06:00:00.000000000
+<xarray.Dataset>
+Dimensions:       (filter: 4, lat: 2818, lon: 5760)
+Coordinates:
+  * lat           (lat) float64 -86.12 -86.06 -86.0 -85.94 ... 89.81 89.88 89.94
+  * lon           (lon) float64 -180.0 -179.9 -179.9 ... 179.8 179.9 179.9
+  * filter        (filter) object 'df' 'exp2' 'ground_t' 'jpl'
+Data variables:
+    umean         (lat, lon, filter) float32 nan nan nan nan ... nan nan nan nan
+    vmean         (lat, lon, filter) float32 nan nan nan nan ... nan nan nan nan
+    utrack        (lat, lon, filter) float32 nan nan nan nan ... nan nan nan nan
+    vtrack        (lat, lon, filter) float32 nan nan nan nan ... nan nan nan nan
+    cos_weight    (lat, lon, filter) float64 nan nan nan ... 0.001091 0.001091
+    u_error_rean  (lat, lon, filter) float32 nan nan nan nan ... nan nan nan nan
+    v_error_rean  (lat, lon, filter) float32 nan nan nan nan ... nan nan nan nan
+    qv            (lat, lon, filter) float32 nan nan nan nan ... nan nan nan nan
+    grad_x_qv     (lat, lon, filter) float32 nan nan ... -1.0842022e-19
+    grad_y_qv     (lat, lon, filter) float32 nan nan ... 1.0847393e-09
+    grad_mag_qv   (lat, lon, filter) float32 nan nan ... 1.0847393e-09
+--- seconds ---129.96613430976868
+preprocessing: 2006-07-01T12:00:00.000000000
+string date: 2006-07-01T12:00:00.000000000
+<xarray.Dataset>
+Dimensions:       (filter: 4, lat: 2818, lon: 5760)
+Coordinates:
+  * lat           (lat) float64 -86.12 -86.06 -86.0 -85.94 ... 89.81 89.88 89.94
+  * lon           (lon) float64 -180.0 -179.9 -179.9 ... 179.8 179.9 179.9
+  * filter        (filter) object 'df' 'exp2' 'ground_t' 'jpl'
+Data variables:
+    umean         (lat, lon, filter) float32 nan nan nan nan ... nan nan nan nan
+    vmean         (lat, lon, filter) float32 nan nan nan nan ... nan nan nan nan
+    utrack        (lat, lon, filter) float32 nan nan nan nan ... nan nan nan nan
+    vtrack        (lat, lon, filter) float32 nan nan nan nan ... nan nan nan nan
+    cos_weight    (lat, lon, filter) float64 nan nan nan ... 0.001091 0.001091
+    u_error_rean  (lat, lon, filter) float32 nan nan nan nan ... nan nan nan nan
+    v_error_rean  (lat, lon, filter) float32 nan nan nan nan ... nan nan nan nan
+    qv            (lat, lon, filter) float32 nan nan nan nan ... nan nan nan nan
+    grad_x_qv     (lat, lon, filter) float32 nan nan ... -1.0842022e-19
+    grad_y_qv     (lat, lon, filter) float32 nan nan ... -4.6037263e-09
+    grad_mag_qv   (lat, lon, filter) float32 nan nan ... 4.6037263e-09
+--- seconds ---134.27191472053528
+preprocessing: 2006-07-01T18:00:00.000000000
+string date: 2006-07-01T18:00:00.000000000
+<xarray.Dataset>
+Dimensions:       (filter: 4, lat: 2818, lon: 5760)
+Coordinates:
+  * lat           (lat) float64 -86.12 -86.06 -86.0 -85.94 ... 89.81 89.88 89.94
+  * lon           (lon) float64 -180.0 -179.9 -179.9 ... 179.8 179.9 179.9
+  * filter        (filter) object 'df' 'exp2' 'ground_t' 'jpl'
+Data variables:
+    umean         (lat, lon, filter) float32 nan nan nan nan ... nan nan nan nan
+    vmean         (lat, lon, filter) float32 nan nan nan nan ... nan nan nan nan
+    utrack        (lat, lon, filter) float32 nan nan nan nan ... nan nan nan nan
+    vtrack        (lat, lon, filter) float32 nan nan nan nan ... nan nan nan nan
+    cos_weight    (lat, lon, filter) float64 nan nan nan ... 0.001091 0.001091
+    u_error_rean  (lat, lon, filter) float32 nan nan nan nan ... nan nan nan nan
+    v_error_rean  (lat, lon, filter) float32 nan nan nan nan ... nan nan nan nan
+    qv            (lat, lon, filter) float32 nan nan nan nan ... nan nan nan nan
+    grad_x_qv     (lat, lon, filter) float32 nan nan ... -5.421011e-20
+    grad_y_qv     (lat, lon, filter) float32 nan nan ... -3.2550889e-09
+    grad_mag_qv   (lat, lon, filter) float32 nan nan ... 3.2550889e-09
+--- seconds ---131.10891127586365
+preprocessing: 2006-07-02T00:00:00.000000000
+string date: 2006-07-02T00:00:00.000000000
+<xarray.Dataset>
+Dimensions:       (filter: 4, lat: 2818, lon: 5760)
+Coordinates:
+  * lat           (lat) float64 -86.12 -86.06 -86.0 -85.94 ... 89.81 89.88 89.94
+  * lon           (lon) float64 -180.0 -179.9 -179.9 ... 179.8 179.9 179.9
+  * filter        (filter) object 'df' 'exp2' 'ground_t' 'jpl'
+Data variables:
+    umean         (lat, lon, filter) float32 nan nan nan nan ... nan nan nan nan
+    vmean         (lat, lon, filter) float32 nan nan nan nan ... nan nan nan nan
+    utrack        (lat, lon, filter) float32 nan nan nan nan ... nan nan nan nan
+    vtrack        (lat, lon, filter) float32 nan nan nan nan ... nan nan nan nan
+    cos_weight    (lat, lon, filter) float64 nan nan nan ... 0.001091 0.001091
+    u_error_rean  (lat, lon, filter) float32 nan nan nan nan ... nan nan nan nan
+    v_error_rean  (lat, lon, filter) float32 nan nan nan nan ... nan nan nan nan
+    qv            (lat, lon, filter) float32 nan nan nan nan ... nan nan nan nan
+    grad_x_qv     (lat, lon, filter) float32 nan nan nan nan ... nan nan 0.0 0.0
+    grad_y_qv     (lat, lon, filter) float32 nan nan ... -3.1599758e-09
+    grad_mag_qv   (lat, lon, filter) float32 nan nan ... 3.1599758e-09
+--- seconds ---134.60316348075867
+preprocessing: 2006-07-02T06:00:00.000000000
+string date: 2006-07-02T06:00:00.000000000
+<xarray.Dataset>
+Dimensions:       (filter: 4, lat: 2818, lon: 5760)
+Coordinates:
+  * lat           (lat) float64 -86.12 -86.06 -86.0 -85.94 ... 89.81 89.88 89.94
+  * lon           (lon) float64 -180.0 -179.9 -179.9 ... 179.8 179.9 179.9
+  * filter        (filter) object 'df' 'exp2' 'ground_t' 'jpl'
+Data variables:
+    umean         (lat, lon, filter) float32 nan nan nan nan ... nan nan nan nan
+    vmean         (lat, lon, filter) float32 nan nan nan nan ... nan nan nan nan
+    utrack        (lat, lon, filter) float32 nan nan nan nan ... nan nan nan nan
+    vtrack        (lat, lon, filter) float32 nan nan nan nan ... nan nan nan nan
+    cos_weight    (lat, lon, filter) float64 nan nan nan ... 0.001091 0.001091
+    u_error_rean  (lat, lon, filter) float32 nan nan nan nan ... nan nan nan nan
+    v_error_rean  (lat, lon, filter) float32 nan nan nan nan ... nan nan nan nan
+    qv            (lat, lon, filter) float32 nan nan nan nan ... nan nan nan nan
+    grad_x_qv     (lat, lon, filter) float32 nan nan nan nan ... nan nan 0.0 0.0
+    grad_y_qv     (lat, lon, filter) float32 nan nan ... -3.3855472e-09
+    grad_mag_qv   (lat, lon, filter) float32 nan nan ... 3.3855472e-09
+--- seconds ---156.30063199996948
+preprocessing: 2006-07-02T12:00:00.000000000
+string date: 2006-07-02T12:00:00.000000000
+<xarray.Dataset>
+Dimensions:       (filter: 4, lat: 2818, lon: 5760)
+Coordinates:
+  * lat           (lat) float64 -86.12 -86.06 -86.0 -85.94 ... 89.81 89.88 89.94
+  * lon           (lon) float64 -180.0 -179.9 -179.9 ... 179.8 179.9 179.9
+  * filter        (filter) object 'df' 'exp2' 'ground_t' 'jpl'
+Data variables:
+    umean         (lat, lon, filter) float32 nan nan nan nan ... nan nan nan nan
+    vmean         (lat, lon, filter) float32 nan nan nan nan ... nan nan nan nan
+    utrack        (lat, lon, filter) float32 nan nan nan nan ... nan nan nan nan
+    vtrack        (lat, lon, filter) float32 nan nan nan nan ... nan nan nan nan
+    cos_weight    (lat, lon, filter) float64 nan nan nan ... 0.001091 0.001091
+    u_error_rean  (lat, lon, filter) float32 nan nan nan nan ... nan nan nan nan
+    v_error_rean  (lat, lon, filter) float32 nan nan nan nan ... nan nan nan nan
+    qv            (lat, lon, filter) float32 nan nan nan nan ... nan nan nan nan
+    grad_x_qv     (lat, lon, filter) float32 nan nan ... -1.0842022e-19
+    grad_y_qv     (lat, lon, filter) float32 nan nan ... -1.9774598e-09
+    grad_mag_qv   (lat, lon, filter) float32 nan nan ... 1.9774598e-09
+--- seconds ---199.76154732704163
+preprocessing: 2006-07-02T18:00:00.000000000
+string date: 2006-07-02T18:00:00.000000000
+<xarray.Dataset>
+Dimensions:       (filter: 4, lat: 2818, lon: 5760)
+Coordinates:
+  * lat           (lat) float64 -86.12 -86.06 -86.0 -85.94 ... 89.81 89.88 89.94
+  * lon           (lon) float64 -180.0 -179.9 -179.9 ... 179.8 179.9 179.9
+  * filter        (filter) object 'df' 'exp2' 'ground_t' 'jpl'
+Data variables:
+    umean         (lat, lon, filter) float32 nan nan nan nan ... nan nan nan nan
+    vmean         (lat, lon, filter) float32 nan nan nan nan ... nan nan nan nan
+    utrack        (lat, lon, filter) float32 nan nan nan nan ... nan nan nan nan
+    vtrack        (lat, lon, filter) float32 nan nan nan nan ... nan nan nan nan
+    cos_weight    (lat, lon, filter) float64 nan nan nan ... 0.001091 0.001091
+    u_error_rean  (lat, lon, filter) float32 nan nan nan nan ... nan nan nan nan
+    v_error_rean  (lat, lon, filter) float32 nan nan nan nan ... nan nan nan nan
+    qv            (lat, lon, filter) float32 nan nan nan nan ... nan nan nan nan
+    grad_x_qv     (lat, lon, filter) float32 nan nan nan nan ... nan nan 0.0 0.0
+    grad_y_qv     (lat, lon, filter) float32 nan nan ... 9.85053e-10 9.85053e-10
+    grad_mag_qv   (lat, lon, filter) float32 nan nan ... 9.85053e-10 9.85053e-10
+--- seconds ---329.2106533050537
+preprocessing: 2006-07-03T00:00:00.000000000
+string date: 2006-07-03T00:00:00.000000000
+<xarray.Dataset>
+Dimensions:       (filter: 4, lat: 2817, lon: 5760)
+Coordinates:
+  * lat           (lat) float64 -86.06 -86.0 -85.94 -85.88 ... 89.81 89.88 89.94
+  * lon           (lon) float64 -180.0 -179.9 -179.9 ... 179.8 179.9 179.9
+  * filter        (filter) object 'df' 'exp2' 'ground_t' 'jpl'
+Data variables:
+    umean         (lat, lon, filter) float32 nan nan nan nan ... nan nan nan nan
+    vmean         (lat, lon, filter) float32 nan nan nan nan ... nan nan nan nan
+    utrack        (lat, lon, filter) float32 nan nan nan nan ... nan nan nan nan
+    vtrack        (lat, lon, filter) float32 nan nan nan nan ... nan nan nan nan
+    cos_weight    (lat, lon, filter) float64 nan nan nan ... 0.001091 0.001091
+    u_error_rean  (lat, lon, filter) float32 nan nan nan nan ... nan nan nan nan
+    v_error_rean  (lat, lon, filter) float32 nan nan nan nan ... nan nan nan nan
+    qv            (lat, lon, filter) float32 nan nan nan nan ... nan nan nan nan
+    grad_x_qv     (lat, lon, filter) float32 nan nan ... -1.0842022e-19
+    grad_y_qv     (lat, lon, filter) float32 nan nan ... -3.1846168e-09
+    grad_mag_qv   (lat, lon, filter) float32 nan nan ... 3.1846168e-09
+--- seconds ---358.43088698387146
+preprocessing: 2006-07-03T06:00:00.000000000
+string date: 2006-07-03T06:00:00.000000000
+<xarray.Dataset>
+Dimensions:       (filter: 4, lat: 2817, lon: 5760)
+Coordinates:
+  * lat           (lat) float64 -86.06 -86.0 -85.94 -85.88 ... 89.81 89.88 89.94
+  * lon           (lon) float64 -180.0 -179.9 -179.9 ... 179.8 179.9 179.9
+  * filter        (filter) object 'df' 'exp2' 'ground_t' 'jpl'
+Data variables:
+    umean         (lat, lon, filter) float32 nan nan nan nan ... nan nan nan nan
+    vmean         (lat, lon, filter) float32 nan nan nan nan ... nan nan nan nan
+    utrack        (lat, lon, filter) float32 nan nan nan nan ... nan nan nan nan
+    vtrack        (lat, lon, filter) float32 nan nan nan nan ... nan nan nan nan
+    cos_weight    (lat, lon, filter) float64 nan nan nan ... 0.001091 0.001091
+    u_error_rean  (lat, lon, filter) float32 nan nan nan nan ... nan nan nan nan
+    v_error_rean  (lat, lon, filter) float32 nan nan nan nan ... nan nan nan nan
+    qv            (lat, lon, filter) float32 nan nan nan nan ... nan nan nan nan
+    grad_x_qv     (lat, lon, filter) float32 nan nan nan nan ... nan nan 0.0 0.0
+    grad_y_qv     (lat, lon, filter) float32 nan nan ... 2.9492125e-10
+    grad_mag_qv   (lat, lon, filter) float32 nan nan ... 2.9492125e-10
+--- seconds ---407.62049865722656
+preprocessing: 2006-07-03T12:00:00.000000000
+string date: 2006-07-03T12:00:00.000000000
+<xarray.Dataset>
+Dimensions:       (filter: 4, lat: 2817, lon: 5760)
+Coordinates:
+  * lat           (lat) float64 -86.06 -86.0 -85.94 -85.88 ... 89.81 89.88 89.94
+  * lon           (lon) float64 -180.0 -179.9 -179.9 ... 179.8 179.9 179.9
+  * filter        (filter) object 'df' 'exp2' 'ground_t' 'jpl'
+Data variables:
+    umean         (lat, lon, filter) float32 nan nan nan nan ... nan nan nan nan
+    vmean         (lat, lon, filter) float32 nan nan nan nan ... nan nan nan nan
+    utrack        (lat, lon, filter) float32 nan nan nan nan ... nan nan nan nan
+    vtrack        (lat, lon, filter) float32 nan nan nan nan ... nan nan nan nan
+    cos_weight    (lat, lon, filter) float64 nan nan nan ... 0.001091 0.001091
+    u_error_rean  (lat, lon, filter) float32 nan nan nan nan ... nan nan nan nan
+    v_error_rean  (lat, lon, filter) float32 nan nan nan nan ... nan nan nan nan
+    qv            (lat, lon, filter) float32 nan nan nan nan ... nan nan nan nan
+    grad_x_qv     (lat, lon, filter) float32 nan nan nan nan ... nan nan 0.0 0.0
+    grad_y_qv     (lat, lon, filter) float32 nan nan ... 4.2821036e-10
+    grad_mag_qv   (lat, lon, filter) float32 nan nan ... 4.2821036e-10
+--- seconds ---479.70719146728516
+preprocessing: 2006-07-03T18:00:00.000000000
+string date: 2006-07-03T18:00:00.000000000
+<xarray.Dataset>
+Dimensions:       (filter: 4, lat: 2816, lon: 5760)
+Coordinates:
+  * lat           (lat) float64 -86.0 -85.94 -85.88 -85.81 ... 89.81 89.88 89.94
+  * lon           (lon) float64 -180.0 -179.9 -179.9 ... 179.8 179.9 179.9
+  * filter        (filter) object 'df' 'exp2' 'ground_t' 'jpl'
+Data variables:
+    umean         (lat, lon, filter) float32 nan nan nan nan ... nan nan nan nan
+    vmean         (lat, lon, filter) float32 nan nan nan nan ... nan nan nan nan
+    utrack        (lat, lon, filter) float32 nan nan nan nan ... nan nan nan nan
+    vtrack        (lat, lon, filter) float32 nan nan nan nan ... nan nan nan nan
+    cos_weight    (lat, lon, filter) float64 nan nan nan ... 0.001091 0.001091
+    u_error_rean  (lat, lon, filter) float32 nan nan nan nan ... nan nan nan nan
+    v_error_rean  (lat, lon, filter) float32 nan nan nan nan ... nan nan nan nan
+    qv            (lat, lon, filter) float32 nan nan nan nan ... nan nan nan nan
+    grad_x_qv     (lat, lon, filter) float32 nan nan ... -1.0842022e-19
+    grad_y_qv     (lat, lon, filter) float32 nan nan ... 1.2472424e-09
+    grad_mag_qv   (lat, lon, filter) float32 nan nan ... 1.2472424e-09
+--- seconds ---533.0492312908173
+  0%|          | 0/5 [00:00<?, ?it/s]df
+exp2
+ground_t
+jpl
+rean
+--- seconds ---213.8846480846405
+ 20%|██        | 1/5 [03:33<14:15, 213.89s/it]df
+exp2
+ground_t
+jpl
+rean
+--- seconds ---72.72046232223511
+ 40%|████      | 2/5 [04:46<08:34, 171.54s/it]df
+exp2
+ground_t
+jpl
+rean
+--- seconds ---60.51082444190979
+ 60%|██████    | 3/5 [05:47<04:36, 138.23s/it]df
+exp2
+ground_t
+jpl
+rean
+--- seconds ---78.03340196609497
+ 80%|████████  | 4/5 [07:05<02:00, 120.17s/it]df
+exp2
+ground_t
+jpl
+rean
+--- seconds ---82.1646420955658
+100%|██████████| 5/5 [08:27<00:00, 108.77s/it]100%|██████████| 5/5 [08:27<00:00, 101.47s/it]
+/home/amirouyed@catnet.arizona.edu/Documents/metcv/src/data/extra_data_plotter.py:101: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  df0.latlon[df0.latlon == '90°S,60°S'] = '(0) 90°S,60°S'
+/home/amirouyed@catnet.arizona.edu/Documents/metcv/src/data/extra_data_plotter.py:102: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  df0.latlon[df0.latlon == '60°S,30°S'] = '(1) 60°S,30°S'
+/home/amirouyed@catnet.arizona.edu/Documents/metcv/src/data/extra_data_plotter.py:103: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  df0.latlon[df0.latlon == '30°S,30°N'] = '(2) 30°S,30°N'
+/home/amirouyed@catnet.arizona.edu/Documents/metcv/src/data/extra_data_plotter.py:104: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  df0.latlon[df0.latlon == '30°N,60°N'] = '(3) 30°N,60°N'
+/home/amirouyed@catnet.arizona.edu/Documents/metcv/src/data/extra_data_plotter.py:105: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  df0.latlon[df0.latlon == '60°N,90°N'] = '(4) 60°N,90°N'
+           latlon exp_filter      rmse
+0   (2) 30°S,30°N         df  2.198251
+1   (2) 30°S,30°N       exp2  1.712407
+2   (2) 30°S,30°N   ground_t  3.263897
+3   (2) 30°S,30°N        jpl  2.676158
+4   (2) 30°S,30°N       rean  3.563482
+5   (1) 60°S,30°S         df  3.563200
+6   (1) 60°S,30°S       exp2  2.054398
+7   (1) 60°S,30°S   ground_t  3.781715
+8   (1) 60°S,30°S        jpl  4.154164
+9   (1) 60°S,30°S       rean  3.368989
+10  (0) 90°S,60°S         df  6.694596
+11  (0) 90°S,60°S       exp2  2.482239
+12  (0) 90°S,60°S   ground_t  4.095910
+13  (0) 90°S,60°S        jpl  6.908224
+14  (0) 90°S,60°S       rean  4.411180
+15  (3) 30°N,60°N         df  2.721935
+16  (3) 30°N,60°N       exp2  1.817897
+17  (3) 30°N,60°N   ground_t  3.319555
+18  (3) 30°N,60°N        jpl  3.365891
+19  (3) 30°N,60°N       rean  2.816669
+20  (4) 60°N,90°N         df  3.509589
+21  (4) 60°N,90°N       exp2  1.669827
+22  (4) 60°N,90°N   ground_t  2.766978
+23  (4) 60°N,90°N        jpl  3.825770
+24  (4) 60°N,90°N       rean  2.807266
+           latlon exp_filter      rmse
+12  (0) 90°S,60°S   ground_t  4.095910
+14  (0) 90°S,60°S       rean  4.411180
+13  (0) 90°S,60°S        jpl  6.908224
+11  (0) 90°S,60°S       exp2  2.482239
+10  (0) 90°S,60°S         df  6.694596
+5   (1) 60°S,30°S         df  3.563200
+6   (1) 60°S,30°S       exp2  2.054398
+7   (1) 60°S,30°S   ground_t  3.781715
+8   (1) 60°S,30°S        jpl  4.154164
+9   (1) 60°S,30°S       rean  3.368989
+0   (2) 30°S,30°N         df  2.198251
+3   (2) 30°S,30°N        jpl  2.676158
+2   (2) 30°S,30°N   ground_t  3.263897
+1   (2) 30°S,30°N       exp2  1.712407
+4   (2) 30°S,30°N       rean  3.563482
+15  (3) 30°N,60°N         df  2.721935
+16  (3) 30°N,60°N       exp2  1.817897
+17  (3) 30°N,60°N   ground_t  3.319555
+18  (3) 30°N,60°N        jpl  3.365891
+19  (3) 30°N,60°N       rean  2.816669
+23  (4) 60°N,90°N        jpl  3.825770
+20  (4) 60°N,90°N         df  3.509589
+21  (4) 60°N,90°N       exp2  1.669827
+22  (4) 60°N,90°N   ground_t  2.766978
+24  (4) 60°N,90°N       rean  2.807266
+/home/amirouyed@catnet.arizona.edu/anaconda3/lib/python3.7/site-packages/cartopy/mpl/geoaxes.py:1123: MatplotlibDeprecationWarning: Passing parameters norm and vmin/vmax simultaneously is deprecated since 3.3 and will become an error two minor releases later. Please pass vmin/vmax directly to the norm when creating it.
+  result = matplotlib.axes.Axes.imshow(self, img, *args, **kwargs)
+/home/amirouyed@catnet.arizona.edu/anaconda3/lib/python3.7/site-packages/cartopy/mpl/geoaxes.py:388: MatplotlibDeprecationWarning: 
+The 'inframe' parameter of draw() was deprecated in Matplotlib 3.3 and will be removed two minor releases later. Use Axes.redraw_in_frame() instead. If any parameter follows 'inframe', they should be passed as keyword, not positionally.
+  inframe=inframe)
+/home/amirouyed@catnet.arizona.edu/anaconda3/lib/python3.7/site-packages/cartopy/mpl/geoaxes.py:1123: MatplotlibDeprecationWarning: Passing parameters norm and vmin/vmax simultaneously is deprecated since 3.3 and will become an error two minor releases later. Please pass vmin/vmax directly to the norm when creating it.
+  result = matplotlib.axes.Axes.imshow(self, img, *args, **kwargs)
+/home/amirouyed@catnet.arizona.edu/anaconda3/lib/python3.7/site-packages/cartopy/mpl/geoaxes.py:388: MatplotlibDeprecationWarning: 
+The 'inframe' parameter of draw() was deprecated in Matplotlib 3.3 and will be removed two minor releases later. Use Axes.redraw_in_frame() instead. If any parameter follows 'inframe', they should be passed as keyword, not positionally.
+  inframe=inframe)
+/home/amirouyed@catnet.arizona.edu/anaconda3/lib/python3.7/site-packages/cartopy/mpl/geoaxes.py:1123: MatplotlibDeprecationWarning: Passing parameters norm and vmin/vmax simultaneously is deprecated since 3.3 and will become an error two minor releases later. Please pass vmin/vmax directly to the norm when creating it.
+  result = matplotlib.axes.Axes.imshow(self, img, *args, **kwargs)
+/home/amirouyed@catnet.arizona.edu/anaconda3/lib/python3.7/site-packages/cartopy/mpl/geoaxes.py:388: MatplotlibDeprecationWarning: 
+The 'inframe' parameter of draw() was deprecated in Matplotlib 3.3 and will be removed two minor releases later. Use Axes.redraw_in_frame() instead. If any parameter follows 'inframe', they should be passed as keyword, not positionally.
+  inframe=inframe)
+/home/amirouyed@catnet.arizona.edu/anaconda3/lib/python3.7/site-packages/cartopy/mpl/geoaxes.py:1123: MatplotlibDeprecationWarning: Passing parameters norm and vmin/vmax simultaneously is deprecated since 3.3 and will become an error two minor releases later. Please pass vmin/vmax directly to the norm when creating it.
+  result = matplotlib.axes.Axes.imshow(self, img, *args, **kwargs)
+/home/amirouyed@catnet.arizona.edu/anaconda3/lib/python3.7/site-packages/cartopy/mpl/geoaxes.py:388: MatplotlibDeprecationWarning: 
+The 'inframe' parameter of draw() was deprecated in Matplotlib 3.3 and will be removed two minor releases later. Use Axes.redraw_in_frame() instead. If any parameter follows 'inframe', they should be passed as keyword, not positionally.
+  inframe=inframe)
+calculating histogram...
+speed
+Traceback (most recent call last):
+  File "batch.py", line 62, in <module>
+    hist.main(final_triplet, pressure=pressure, dt=dt)
+  File "/home/amirouyed@catnet.arizona.edu/Documents/metcv/src/data/histograms.py", line 155, in main
+    str(pressure) + '_jpl', ds, hist_dict)
+  File "/home/amirouyed@catnet.arizona.edu/Documents/metcv/src/data/histograms.py", line 133, in histogram_sequence
+    'speed_diff', filter, 'Wind speed [m/s]', hist_dict)
+  File "/home/amirouyed@catnet.arizona.edu/Documents/metcv/src/data/histograms.py", line 55, in histogram_plot
+    ds, var,  filter, column_a, column_b)
+TypeError: big_histogram() missing 1 required positional argument: 's'

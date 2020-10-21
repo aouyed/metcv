@@ -48,14 +48,14 @@ def map_plotter(var, title, units, vmin, vmax):
     fig, ax = plt.subplots()
     ax = plt.axes(projection=ccrs.PlateCarree())
     ax.coastlines()
-    # pmap = plt.cm.gnuplot
-    pmap = cmocean.cm.thermal_r
-    # pmap = plt.cm.coolwarm
+    #pmap = plt.cm.gnuplot
+    pmap = cmocean.cm.haline
+    #pmap = plt.cm.winter
     # pmap.set_bad(color='grey')
     if abs(vmax) > 0:
         divnorm = mcolors.TwoSlopeNorm(vmin=vmin, vcenter=vmax/4, vmax=vmax)
         im = ax.imshow(var, cmap=pmap,
-                       extent=[-180, 180, -90, 90], origin='lower', vmin=vmin, vmax=vmax, norm=divnorm)
+                       extent=[-180, 180, -90, 90], origin='lower', vmin=vmin, vmax=vmax)
     else:
         im = ax.imshow(
             var, cmap=pmap, extent=[-180, 180, -90, 90], origin='lower')
@@ -71,29 +71,108 @@ def map_plotter(var, title, units, vmin, vmax):
     plt.close()
 
 
-def filter_plotter(df0, values, title):
-    fig, ax = plt.subplots()
+def map_plotter_multiple(ds, ds_full, ds_jpl, title, units, vmin, vmax):
+    fig, axes = plt.subplots(nrows=2, ncols=2, subplot_kw={
+                             'projection': ccrs.PlateCarree()})
+
+    pmap = cmocean.cm.haline
+    axlist = axes.flat
+    axlist[0].coastlines()
+
+    var = ds['error_mag'].loc[dict(filter='df')].values
+    var = np.squeeze(var)
+    im = axlist[0].imshow(var, cmap=pmap,
+                          extent=[-180, 180, -90, 90], origin='lower', vmin=vmin, vmax=vmax)
+    axlist[0].set_title('fsUA')
+
+    axlist[1].coastlines()
+    var = ds_jpl['error_mag'].values
+    var = np.squeeze(var)
+    im = axlist[1].imshow(var, cmap=pmap,
+                          extent=[-180, 180, -90, 90], origin='lower', vmin=vmin, vmax=vmax)
+    axlist[1].set_title('JPL')
+
+    axlist[2].coastlines()
+    var = ds_full['error_mag'].loc[dict(filter='full_exp2')].values
+    var = np.squeeze(var)
+    im = axlist[2].imshow(var, cmap=pmap,
+                          extent=[-180, 180, -90, 90], origin='lower', vmin=vmin, vmax=vmax)
+    axlist[2].set_title('UA')
+
+    axlist[3].coastlines()
+    var = ds_full['error_mag_rean'].loc[dict(filter='full_exp2')].values
+    var = np.squeeze(var)
+    im = axlist[3].imshow(var, cmap=pmap,
+                          extent=[-180, 180, -90, 90], origin='lower', vmin=vmin, vmax=vmax)
+    axlist[3].set_title('Reanalysis')
+
+    cbar_ax = fig.add_axes([0.12, 0.125, 0.78, 0.05])
+    fig.colorbar(im, cax=cbar_ax, orientation='horizontal', label='[m/s]')
+    fig.subplots_adjust(hspace=-0.3, wspace=0.05)
+    plt.savefig('../data/processed/plots/'+title +
+                '.png', bbox_inches='tight', dpi=300)
+    plt.close()
+
+
+def results_plotter(ax, df0):
+
+    df0.latlon[df0.latlon == '(0) 90°S,60°S'] = '90°S,60°S'
+    df0.latlon[df0.latlon == '(1) 60°S,30°S'] = '60°S,30°S'
+    df0.latlon[df0.latlon == '(2) 30°S,30°N'] = '30°S,30°N'
+    df0.latlon[df0.latlon == '(3) 30°N,60°N'] = '30°N,60°N'
+    df0.latlon[df0.latlon == '(4) 60°N,90°N'] = '60°N,90°N'
 
     df = df0[df0.exp_filter == 'exp2']
+
     ax.plot(df['latlon'], df['rmse'], '-o', label='UA')
 
     df = df0[df0.exp_filter == 'rean']
     ax.plot(df['latlon'], df['rmse'], '-o',
-            label='error from reanalysis')
+            label='reanalysis error')
 
     df = df0[df0.exp_filter == 'df']
-    ax.plot(df['latlon'], df['rmse'], '-o', label='UA First Stage')
+    ax.plot(df['latlon'], df['rmse'], '-o', label='fsUA')
 
     df = df0[df0.exp_filter == 'jpl']
     ax.plot(df['latlon'], df['rmse'], '-o', label='JPL')
+    ax.set_ylim(1, ERROR_MAX)
+    ax.tick_params(axis='x', which='major', labelsize=6.5)
 
-    ax.legend(frameon=None)
-    ax.set_ylim(0, ERROR_MAX)
-    ax.set_xlabel("Region")
-    ax.set_ylabel("RMSVD [m/s]")
-    ax.set_title(title)
-    directory = '../data/processed/density_plots'
-    plt.savefig(values+'.png', bbox_inches='tight', dpi=300)
+
+def multiple_filter_plotter(df_dict, values, month):
+
+    fig, ax = plt.subplots()
+
+    fig, axes = plt.subplots(nrows=2, ncols=2)
+
+    axlist = axes.flat
+
+    df = df_dict[(3600, month, 850)]
+    results_plotter(axlist[0], df)
+    axlist[0].set_ylabel("RMSVD [m/s]")
+
+    df = df_dict[(3600, month, 500)]
+    results_plotter(axlist[1], df)
+    df = df_dict[(1800, month, 850)]
+    results_plotter(axlist[2], df)
+    axlist[2].set_ylabel("RMSVD [m/s]")
+    df = df_dict[(1800, month, 500)]
+    results_plotter(axlist[3], df)
+
+    axlist[0].text(0.1, 0.8, 'dt = 60 min\nP = 850 hPa',
+                   transform=axlist[0].transAxes)
+    axlist[1].text(0.1, 0.8, 'dt = 60 min\nP = 500 hPa',
+                   transform=axlist[1].transAxes)
+    axlist[2].text(0.1, 0.8, 'dt = 30 min\nP = 850 hPa',
+                   transform=axlist[2].transAxes)
+    axlist[3].text(0.1, 0.8, 'dt = 30 min\nP = 500 hPa',
+                   transform=axlist[3].transAxes)
+
+    handles, labels = axlist[3].get_legend_handles_labels()
+    fig.legend(handles, labels, bbox_to_anchor=(
+        0.715, 1), ncol=2, frameon=False)
+    #fig.legend(handles, labels, loc=(0.5, 1), ncol=2)
+    plt.savefig(values+'.png', bbox_inches='tight',  dpi=300)
     plt.close()
 
 

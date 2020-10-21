@@ -34,12 +34,13 @@ def summary_stats(df_stats, skew_dict, filter, column_y, var):
 def stat_calculator(filter, column_y, column_x, ds, skew_dict):
     start_time = time.time()
     print('initializing dataframe')
+    print('filter')
     df = hist.initialize_dataframe(filter, column_x, ds)
     print("--- seconds ---" + str(time.time() - start_time))
     if column_x == 'angle':
         print('size of complete df: ' + str(df.shape))
         df_unit = df[(abs(df.angle) <= 91) & (abs(df.angle) >= 89)]
-        df_unit2 = df[(abs(df.angle) <= 181) & (abs(df.angle) >= 179)]
+        df_unit2 = df[(abs(df.angle) <= 271) & (abs(df.angle) >= 269)]
         df = pd.concat([df_unit, df_unit2])
         print('size for angle=90: ' + str(df.shape))
 
