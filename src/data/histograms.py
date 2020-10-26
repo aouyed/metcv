@@ -7,6 +7,7 @@ import pdb
 import glob
 import cmocean
 import matplotlib.colors as mcolors
+from data import summary_statistics as ss
 import xarray as xr
 from joblib import Parallel, delayed
 import pickle
@@ -108,7 +109,6 @@ def initialize_dataframe(filter_u, var,  ds):
         df['speed_diff'] = np.sqrt(df.u_error_rean**2+df.v_error_rean**2)
     df['cos_weight'] = np.cos(df['lat']/180*np.pi)
     df = df[['speed_diff', var, 'cos_weight']].dropna()
-
     return df
 
 

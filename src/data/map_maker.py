@@ -75,21 +75,21 @@ def main(triplet, pressure=850, dt=3600):
     edp.multiple_filter_plotter(df_dict, bp.PATH_PLOT+'july' +
                                 '_results_test', 'july')
 
-    ds = xr.open_dataset(PATH+str(dt)+'_'+str(pressure)+'_'+month+'.nc')
-    ds = ds.sel(time=str(ds.time.values[0]))
-    ds = ds_error(ds)
+   # ds = xr.open_dataset(PATH+str(dt)+'_'+str(pressure)+'_'+month+'.nc')
+    #ds = ds.sel(time=str(ds.time.values[0]))
+   # ds = ds_error(ds)
 
-    ds_full = xr.open_dataset(
-        PATH+str(dt)+'_'+str(pressure)+'_full_'+month+'.nc')
-    ds_full = ds_full.sel(time=str(ds_full.time.values[0]))
-    ds_full = ds_error(ds_full)
+    # ds_full = xr.open_dataset(
+    #   PATH+str(dt)+'_'+str(pressure)+'_full_'+month+'.nc')
+    #ds_full = ds_full.sel(time=str(ds_full.time.values[0]))
+    #ds_full = ds_error(ds_full)
 
-    ds_jpl = xr.open_dataset(path_jpl+str(pressure) + '_'+month+'.nc')
-    ds_jpl = ds_jpl.sel(time=str(ds_jpl.time.values[0]))
-    ds_jpl = ds_error(ds_jpl, rean=False)
+    #ds_jpl = xr.open_dataset(path_jpl+str(pressure) + '_'+month+'.nc')
+    #ds_jpl = ds_jpl.sel(time=str(ds_jpl.time.values[0]))
+    #ds_jpl = ds_error(ds_jpl, rean=False)
 
-    plotter(ds, ds_full, ds_jpl,  'error_mag',
-            month+'_'+str(dt), pressure)
+    # plotter(ds, ds_full, ds_jpl,  'error_mag',
+    #       month+'_'+str(dt), pressure)
 
 
 if __name__ == "__main__":

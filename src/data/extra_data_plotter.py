@@ -159,13 +159,13 @@ def multiple_filter_plotter(df_dict, values, month):
     df = df_dict[(1800, month, 500)]
     results_plotter(axlist[3], df)
 
-    axlist[0].text(0.1, 0.8, 'dt = 60 min\nP = 850 hPa',
+    axlist[0].text(0.1, 0.8, 'Δt = 60 min\nP = 850 hPa',
                    transform=axlist[0].transAxes)
-    axlist[1].text(0.1, 0.8, 'dt = 60 min\nP = 500 hPa',
+    axlist[1].text(0.1, 0.8, 'Δt = 60 min\nP = 500 hPa',
                    transform=axlist[1].transAxes)
-    axlist[2].text(0.1, 0.8, 'dt = 30 min\nP = 850 hPa',
+    axlist[2].text(0.1, 0.8, 'Δt = 30 min\nP = 850 hPa',
                    transform=axlist[2].transAxes)
-    axlist[3].text(0.1, 0.8, 'dt = 30 min\nP = 500 hPa',
+    axlist[3].text(0.1, 0.8, 'Δt = 30 min\nP = 500 hPa',
                    transform=axlist[3].transAxes)
 
     handles, labels = axlist[3].get_legend_handles_labels()

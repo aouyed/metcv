@@ -6,7 +6,7 @@
 *.txt
 *.npy
 *.gif
-*.nc
+*.nc*
 *.nc4
 *.nc4*
 *.mp4

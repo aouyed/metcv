@@ -34,14 +34,14 @@ def summary_stats(df_stats, skew_dict, filter, column_y, var):
 def stat_calculator(filter, column_y, column_x, ds, skew_dict):
     start_time = time.time()
     print('initializing dataframe')
-    print('filter')
+    print(filter)
     df = hist.initialize_dataframe(filter, column_x, ds)
     print("--- seconds ---" + str(time.time() - start_time))
     if column_x == 'angle':
         print('size of complete df: ' + str(df.shape))
-        df_unit = df[(abs(df.angle) <= 91) & (abs(df.angle) >= 89)]
-        df_unit2 = df[(abs(df.angle) <= 271) & (abs(df.angle) >= 269)]
-        df = pd.concat([df_unit, df_unit2])
+        df = df[(abs(df.angle) <= 91) & (abs(df.angle) >= 89)]
+        #df_unit2 = df[(abs(df.angle) <= 271) & (abs(df.angle) >= 269)]
+        #df = pd.concat([df_unit, df_unit2])
         print('size for angle=90: ' + str(df.shape))
 
     df_stats = df[['cos_weight', column_y]]
@@ -63,6 +63,7 @@ def main(triplet, pressure=500, dt=3600):
     filename = PATH + ds_name+'.nc'
     ds = xr.open_dataset(filename)
 
+    df_name = PATH_DF+str(dt)+'_'+month+'_'+str(pressure)+'_df_stats.pkl'
     skew_dict = stat_calculator(
         'jpl', 'speed_diff', 'angle', ds, skew_dict)
     skew_dict = stat_calculator(

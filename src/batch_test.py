@@ -30,6 +30,6 @@ print('triplet: '+str(triplet))
 
 #mm.main(triplet, pressure=pressure, dt=dt)
 #hist.main(triplet, pressure=pressure, dt=dt)
-#ss.main(triplet, pressure=pressure, dt=dt)
+ss.main(triplet, pressure=pressure, dt=dt)
 #os.system("rsync   --progress  ../data/processed/experiments/*  /run/media/amirouyed/reserarchDi/10_02_20/experiments/")
-pr.main()
+# pr.main()
