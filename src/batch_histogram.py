@@ -35,5 +35,8 @@ for month in months:
                       ds_name + ".nc  ../data/processed/experiments/" + ds_name + ".nc")
             print("copying finished")
             ss.main(final_triplet, pressure=pressure, dt=dt)
+            os.system(
+                "rsync   -progress ../data/processed/dataframes/*.pkl /run/media/amirouyed/reserarchDi/10_03_20/dataframes/")
             os.system('rm ../data/processed/experiments/*')
+            os.system('rm ../data/processed/dataframes/*')
             print("--- seconds ---" + str(time.time() - start_time))

@@ -27,10 +27,10 @@ def table_skewness(df, myfile):
 
 def table_quantile(df, myfile):
     df = df[df['var'] == 'angle']
-    df = df[['filter', 'q50', 'q68', 'q95']]
+    df = df[['filter', 'q50', 'q68', 'q96']]
 
     df = df.rename(columns={"filter": "Algorithm", "q50": "50 %", "q68": "68 %",
-                            "q95": "95 %"}, errors="raise")
+                            "q96": "96 %"}, errors="raise")
     myfile.write('\\'+'begin{subtable}{0.7\\textwidth}' + '\n')
     myfile.write(df.round(2).to_latex(index=False))
     myfile.write('\caption{'+file+'}' + '\n')

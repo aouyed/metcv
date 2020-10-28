@@ -12,6 +12,8 @@ import xarray as xr
 from joblib import Parallel, delayed
 import pickle
 
+PATH_DF = '../data/processed/dataframes/'
+
 KG_TO_GRAMS = 1000
 METERS_TO_KM = 1/1000
 GRADIENT_TO_KM = KG_TO_GRAMS/METERS_TO_KM
@@ -22,7 +24,7 @@ VMAX_F = 1.5
 PATH = '../data/processed/experiments/'
 
 
-def big_histogram(ds, var, filter, column_x, column_y,  bins=100):
+def big_histogram(ds, var, filter, column_x, column_y, prefix,  bins=100):
     """Creates a big histogram out of chunks in order to fit it in memory. """
     xedges = HIST_X_EDGES[column_x]
     yedges = [-7.5, 7.5]
@@ -31,7 +33,7 @@ def big_histogram(ds, var, filter, column_x, column_y,  bins=100):
     ybins = np.linspace(yedges[0], yedges[1], bins+1)
     heatmap = np.zeros((bins, bins), np.uint)
 
-    df = initialize_dataframe(filter, column_x, ds)
+    df = initialize_dataframe(filter, column_x, ds, prefix)
     subtotal, _, _ = np.histogram2d(
         df[column_x], df[column_y], bins=[xbins, ybins])
     heatmap += subtotal.astype(np.uint)
@@ -48,12 +50,12 @@ def histogram_dumper(img, extent, filename, hist_dict, column_a, filter):
     return hist_dict
 
 
-def histogram_plot(ds, var, filename, column_a, column_b, filter, xlabel, hist_dict):
+def histogram_plot(ds, var, filename, column_a, column_b, filter, xlabel, hist_dict, prefix):
     """Initializes  histogram, plots it and saves it."""
     print('calculating histogram...')
     print(var)
     img, extent = big_histogram(
-        ds, var,  filter, column_a, column_b)
+        ds, var,  filter, column_a, column_b, prefix)
     hist_dict = histogram_dumper(
         img, extent, filename, hist_dict, column_a, filter)
     print('plotting...')
@@ -85,7 +87,7 @@ def histogram_plot(ds, var, filename, column_a, column_b, filter, xlabel, hist_d
     return hist_dict
 
 
-def initialize_dataframe(filter_u, var,  ds):
+def initialize_dataframe(filter_u, var,  ds, prefix):
     """Reads pickled dataframe and calculates important quantities such as wind speed."""
 
     if filter_u == 'reanalysis':
@@ -109,6 +111,8 @@ def initialize_dataframe(filter_u, var,  ds):
         df['speed_diff'] = np.sqrt(df.u_error_rean**2+df.v_error_rean**2)
     df['cos_weight'] = np.cos(df['lat']/180*np.pi)
     df = df[['speed_diff', var, 'cos_weight']].dropna()
+    df.to_pickle(PATH_DF+prefix+'_'+var+'_initialized.pkl')
+
     return df
 
 
@@ -130,13 +134,13 @@ def angle(df):
 def histogram_sequence(filter, prefix, ds, hist_dict):
     """Calculates batch of histogram plots"""
     hist_dict = histogram_plot(ds, 'speed', prefix + '_speed', 'speed',
-                               'speed_diff', filter, 'Wind speed [m/s]', hist_dict)
+                               'speed_diff', filter, 'Wind speed [m/s]', hist_dict, prefix)
     hist_dict = histogram_plot(ds, 'qv', prefix+'_qv', 'qv',
-                               'speed_diff', filter, 'Moisture [g/kg]', hist_dict)
+                               'speed_diff', filter, 'Moisture [g/kg]', hist_dict, prefix)
     hist_dict = histogram_plot(ds, 'grad_mag_qv', prefix+'_grad_mag_qv',
-                               'grad_mag_qv', 'speed_diff', filter, 'Moisture gradient [g/(kg km)]', hist_dict)
+                               'grad_mag_qv', 'speed_diff', filter, 'Moisture gradient [g/(kg km)]', hist_dict, prefix)
     hist_dict = histogram_plot(ds, 'angle', prefix+'_angle', 'angle',
-                               'speed_diff', filter, 'Wind-moisture gradient angle [deg]', hist_dict)
+                               'speed_diff', filter, 'Wind-moisture gradient angle [deg]', hist_dict, prefix)
     return hist_dict
 
 

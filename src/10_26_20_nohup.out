@@ -1,0 +1,65 @@
+triplet: 2006-01-03 18:00:00
+initializing dataframe
+jpl
+/home/amirouyed@catnet.arizona.edu/anaconda3/lib/python3.7/site-packages/pandas/core/series.py:726: RuntimeWarning: invalid value encountered in arccos
+  result = getattr(ufunc, method)(*inputs, **kwargs)
+/home/amirouyed@catnet.arizona.edu/Documents/metcv/src/data/histograms.py:125: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  df['angle'][df.neg_function < 0] = -df['angle'][df.neg_function < 0]
+--- seconds ---752.7335257530212
+size of complete df: (158325858, 3)
+size for angle=90: (2194295, 3)
+starting summary statistics...
+{'filter': ['jpl'], 'var': ['angle'], 'mean': [-0.9247897698242034], 'skewness': [-2.3594022566989086], 'stdev': [3.52528371632135], 'q50': [1.1941156387329102], 'q68': [2.0107599258422857], 'q95': [9.010065460205068]}
+initializing dataframe
+jpl
+--- seconds ---441.59719371795654
+starting summary statistics...
+{'filter': ['jpl', 'jpl'], 'var': ['angle', 'speed'], 'mean': [-0.9247897698242034, -0.6190082926947459], 'skewness': [-2.3594022566989086, -2.602371770453331], 'stdev': [3.52528371632135, 3.149631354288305], 'q50': [1.1941156387329102, 1.0365047454833984], 'q68': [2.0107599258422857, 1.708693027496338], 'q95': [9.010065460205068, 7.449732494354237]}
+initializing dataframe
+exp2
+--- seconds ---424.5311176776886
+starting summary statistics...
+{'filter': ['jpl', 'jpl', 'exp2'], 'var': ['angle', 'speed', 'speed'], 'mean': [-0.9247897698242034, -0.6190082926947459, -0.0436601142617166], 'skewness': [-2.3594022566989086, -2.602371770453331, -1.0150711097097693], 'stdev': [3.52528371632135, 3.149631354288305, 1.4066924531565284], 'q50': [1.1941156387329102, 1.0365047454833984, 0.641911506652832], 'q68': [2.0107599258422857, 1.708693027496338, 1.0157032012939453], 'q95': [9.010065460205068, 7.449732494354237, 2.8917293548583984]}
+initializing dataframe
+df
+--- seconds ---421.17296719551086
+starting summary statistics...
+{'filter': ['jpl', 'jpl', 'exp2', 'df'], 'var': ['angle', 'speed', 'speed', 'speed'], 'mean': [-0.9247897698242034, -0.6190082926947459, -0.0436601142617166, -1.1178365789094262], 'skewness': [-2.3594022566989086, -2.602371770453331, -1.0150711097097693, -3.6434047585075704], 'stdev': [3.52528371632135, 3.149631354288305, 1.4066924531565284, 2.7699525548371517], 'q50': [1.1941156387329102, 1.0365047454833984, 0.641911506652832, 0.818202018737793], 'q68': [2.0107599258422857, 1.708693027496338, 1.0157032012939453, 1.4473172235488896], 'q95': [9.010065460205068, 7.449732494354237, 2.8917293548583984, 7.36783056259155]}
+initializing dataframe
+exp2
+/home/amirouyed@catnet.arizona.edu/anaconda3/lib/python3.7/site-packages/pandas/core/series.py:726: RuntimeWarning: invalid value encountered in arccos
+  result = getattr(ufunc, method)(*inputs, **kwargs)
+/home/amirouyed@catnet.arizona.edu/Documents/metcv/src/data/histograms.py:125: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  df['angle'][df.neg_function < 0] = -df['angle'][df.neg_function < 0]
+--- seconds ---767.232180595398
+size of complete df: (150410617, 3)
+size for angle=90: (2084271, 3)
+starting summary statistics...
+{'filter': ['jpl', 'jpl', 'exp2', 'df', 'exp2'], 'var': ['angle', 'speed', 'speed', 'speed', 'angle'], 'mean': [-0.9247897698242034, -0.6190082926947459, -0.0436601142617166, -1.1178365789094262, -0.1340454013875975], 'skewness': [-2.3594022566989086, -2.602371770453331, -1.0150711097097693, -3.6434047585075704, -1.3418403961570997], 'stdev': [3.52528371632135, 3.149631354288305, 1.4066924531565284, 2.7699525548371517, 1.5044704902663741], 'q50': [1.1941156387329102, 1.0365047454833984, 0.641911506652832, 0.818202018737793, 0.6775321960449219], 'q68': [2.0107599258422857, 1.708693027496338, 1.0157032012939453, 1.4473172235488896, 1.077941966056824], 'q95': [9.010065460205068, 7.449732494354237, 2.8917293548583984, 7.36783056259155, 3.132946014404297]}
+initializing dataframe
+df
+/home/amirouyed@catnet.arizona.edu/anaconda3/lib/python3.7/site-packages/pandas/core/series.py:726: RuntimeWarning: invalid value encountered in arccos
+  result = getattr(ufunc, method)(*inputs, **kwargs)
+/home/amirouyed@catnet.arizona.edu/Documents/metcv/src/data/histograms.py:125: SettingWithCopyWarning: 
+A value is trying to be set on a copy of a slice from a DataFrame
+
+See the caveats in the documentation: https://pandas.pydata.org/pandas-docs/stable/user_guide/indexing.html#returning-a-view-versus-a-copy
+  df['angle'][df.neg_function < 0] = -df['angle'][df.neg_function < 0]
+--- seconds ---760.3051836490631
+size of complete df: (158325910, 3)
+size for angle=90: (2193637, 3)
+starting summary statistics...
+{'filter': ['jpl', 'jpl', 'exp2', 'df', 'exp2', 'df'], 'var': ['angle', 'speed', 'speed', 'speed', 'angle', 'angle'], 'mean': [-0.9247897698242034, -0.6190082926947459, -0.0436601142617166, -1.1178365789094262, -0.1340454013875975, -1.4530662655085758], 'skewness': [-2.3594022566989086, -2.602371770453331, -1.0150711097097693, -3.6434047585075704, -1.3418403961570997, -3.2696962733475323], 'stdev': [3.52528371632135, 3.149631354288305, 1.4066924531565284, 2.7699525548371517, 1.5044704902663741, 3.1529153131479424], 'q50': [1.1941156387329102, 1.0365047454833984, 0.641911506652832, 0.818202018737793, 0.6775321960449219, 0.9927587509155273], 'q68': [2.0107599258422857, 1.708693027496338, 1.0157032012939453, 1.4473172235488896, 1.077941966056824, 1.8026669692993182], 'q95': [9.010065460205068, 7.449732494354237, 2.8917293548583984, 7.36783056259155, 3.132946014404297, 9.009159851074216]}
+  filter    var      mean  skewness     stdev       q50       q68       q95
+0    jpl  angle -0.924790 -2.359402  3.525284  1.194116  2.010760  9.010065
+1    jpl  speed -0.619008 -2.602372  3.149631  1.036505  1.708693  7.449732
+2   exp2  speed -0.043660 -1.015071  1.406692  0.641912  1.015703  2.891729
+3     df  speed -1.117837 -3.643405  2.769953  0.818202  1.447317  7.367831
+4   exp2  angle -0.134045 -1.341840  1.504470  0.677532  1.077942  3.132946
+5     df  angle -1.453066 -3.269696  3.152915  0.992759  1.802667  9.009160
