@@ -126,9 +126,9 @@ def results_plotter(ax, df0):
 
     ax.plot(df['latlon'], df['rmse'], '-o', label='UA')
 
-    df = df0[df0.exp_filter == 'rean']
+    df = df0[df0.exp_filter == 'ground_t']
     ax.plot(df['latlon'], df['rmse'], '-o',
-            label='reanalysis error')
+            label='forecast error')
 
     df = df0[df0.exp_filter == 'df']
     ax.plot(df['latlon'], df['rmse'], '-o', label='fsUA')
@@ -185,6 +185,32 @@ def sorting_latlon(df0):
     print(df0)
     df0.sort_values(by=['latlon'], inplace=True)
     return df0
+
+
+def filter_plotter(df0, values, title):
+    fig, ax = plt.subplots()
+
+    df = df0[df0.exp_filter == 'exp2']
+    ax.plot(df['latlon'], df['rmse'], '-o', label='UA')
+
+    df = df0[df0.exp_filter == 'ground_t']
+    ax.plot(df['latlon'], df['rmse'], '-o',
+            label='model error')
+
+    df = df0[df0.exp_filter == 'df']
+    ax.plot(df['latlon'], df['rmse'], '-o', label='UA First Stage')
+
+    df = df0[df0.exp_filter == 'jpl']
+    ax.plot(df['latlon'], df['rmse'], '-o', label='JPL')
+
+    ax.legend(frameon=None)
+    ax.set_ylim(0, ERROR_MAX)
+    ax.set_xlabel("Region")
+    ax.set_ylabel("RMSVD [m/s]")
+    ax.set_title(title)
+    directory = '../data/processed/density_plots'
+    plt.savefig(values+'.png', bbox_inches='tight', dpi=300)
+    plt.close()
 
 
 def main():

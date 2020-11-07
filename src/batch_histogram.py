@@ -11,9 +11,9 @@ from data import map_maker as mm
 from data import summary_statistics as ss
 from data import pickled_histograms as ph
 
-pressures = [850, 500]
-dts = [3600, 1800]
-months = [1, 7]
+pressures = [850]
+dts = [3600]
+months = [1]
 day_list = (1, 2, 3)
 hour_list = (0, 6, 12, 18)
 
@@ -34,9 +34,11 @@ for month in months:
             os.system("rsync   --progress /run/media/amirouyed/reserarchDi/10_03_20/experiments/" +
                       ds_name + ".nc  ../data/processed/experiments/" + ds_name + ".nc")
             print("copying finished")
-            ss.main(final_triplet, pressure=pressure, dt=dt)
-            os.system(
-                "rsync   -progress ../data/processed/dataframes/*.pkl /run/media/amirouyed/reserarchDi/10_03_20/dataframes/")
+            hist.main(final_triplet, pressure=pressure, dt=dt)
+            ph.main(final_triplet, pressure=pressure, dt=dt)
+            #ss.main(final_triplet, pressure=pressure, dt=dt)
+            # os.system(
+            #   "rsync   -progress ../data/processed/dataframes/*.pkl /run/media/amirouyed/reserarchDi/10_03_20/dataframes/")
             os.system('rm ../data/processed/experiments/*')
             os.system('rm ../data/processed/dataframes/*')
             print("--- seconds ---" + str(time.time() - start_time))

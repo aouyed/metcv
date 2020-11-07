@@ -69,5 +69,3 @@ def run(triplet_time, pressure, dt):
     d = {'rmse': rmse, 'exp_filter': category}
     df_results = pd.DataFrame(data=d)
     print(df_results)
-
-    print('done!')

@@ -9,11 +9,12 @@ from data import batch_plotter as bp
 from data import histograms as hist
 from data import map_maker as mm
 from data import summary_statistics as ss
+from data import pickled_histograms as ph
 
-pressures = [850]
-dts = [3600]
+pressures = [850, 500]
+dts = [3600, 1800]
 #dts = [3600]
-months = [7]
+months = [1, 7]
 day_list = (1, 2, 3)
 hour_list = (0, 6, 12, 18)
 # day_list = [1]
@@ -51,8 +52,8 @@ for month in months:
                 if files:
                     sh.rm(files)
                 print('starting first stage')
-                os.system("python3 -u first_stage/first_stage_run.py   -p " + str(pressure) + " -dt " + str(dt) + " -tri " +
-                          triplet_time.strftime("%Y-%m-%d-%H:%M"))
+                os.system("python3 -u first_stage/first_stage_run.py   -p " + str(pressure) +
+                          " -dt " + str(dt) + " -tri " + triplet_time.strftime("%Y-%m-%d-%H:%M"))
                 print('done first stage')
                 ssr.run(triplet_time, pressure, dt)
                 final_triplet = triplet_time
@@ -60,8 +61,12 @@ for month in months:
             bp.run(final_triplet, pressure=pressure, dt=dt)
             mm.main(final_triplet, pressure=pressure, dt=dt)
             hist.main(final_triplet, pressure=pressure, dt=dt)
+            ph.main(final_triplet, pressure=pressure, dt=dt)
             ss.main(final_triplet, pressure=pressure, dt=dt)
             os.system(
-                "rsync   --progress  ../data/processed/experiments/*  /run/media/amirouyed/reserarchDi/10_03_20/experiments/")
-            #os.system('rm ../data/processed/experiments/*')
+                "rsync   --progress  ../data/processed/experiments/*  /run/media/amirouyed/reserarchDi/11_05_20/experiments/")
+            os.system('rm ../data/processed/experiments/*')
+            os.system(
+                "rsync   --progress  ../data/processed/dataframes/*  /run/media/amirouyed/reserarchDi/11_05_20/dataframes/")
+            os.system('rm ../data/processed/dataframes/*')
             print("--- seconds ---" + str(time.time() - start_time))

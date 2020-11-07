@@ -18,7 +18,7 @@ import metpy.calc as mpcalc
 import metpy
 from metpy.units import units
 from scipy.interpolate import LinearNDInterpolator as lNDI
-
+from scipy.interpolate import NearestNDInterpolator as NNDI
 SIGMA_LON = 1.5
 SIGMA_LAT = 0.15
 
@@ -122,12 +122,12 @@ def ml_predictor(category, name, rmse,  regressor, X_test0, y_test0, X_full0):
     return X_test0, X_full0
 
 
-def error_interpolator(dfm, category, rmse):
+def error_interpolator(dfm, category, name, rmse):
     """Interpolates error into appropriate coordinates, since error is calculated by adding noise to coordinates."""
 
     dfm_gt = dfm.copy()
-    dfm_gt = resample(dfm_gt, replace=False,
-                      n_samples=int(1e5), random_state=1)
+   # dfm_gt = resample(dfm_gt, replace=False,
+    #                  n_samples=int(1e5), random_state=1)
     dfm_gt = dfm_gt[['lat', 'lon', 'u_scaled_approx',
                      'v_scaled_approx', 'umeanh', 'vmeanh', 'cos_weight', 'u_error_rean', 'v_error_rean']]
     dfm_gtf = dfm_gt.copy()
@@ -143,24 +143,19 @@ def error_interpolator(dfm, category, rmse):
     dfm_gt['lon'], dfm_gt['lat'] = random_error_add(
         sigma_lon, sigma_lat, dfm_gt['lon'], dfm_gt['lat'])
 
-    func_interp = lNDI(
-        points=dfm_gt[['lat', 'lon']].values, values=dfm_gt.u_scaled_approx.values)
+    func_interp = NNDI(
+        x=dfm_gt[['lat', 'lon']].values, y=dfm_gt.u_scaled_approx.values)
     dfm_gtf['u_scaled_approx'] = func_interp(
         dfm_gtf[['lat', 'lon']].values)
 
-    func_interp = lNDI(
-        points=dfm_gt[['lat', 'lon']].values, values=dfm_gt.v_scaled_approx.values)
+    func_interp = NNDI(
+        x=dfm_gt[['lat', 'lon']].values, y=dfm_gt.v_scaled_approx.values)
     dfm_gtf['v_scaled_approx'] = func_interp(
         dfm_gtf[['lat', 'lon']].values)
 
-    errors_nw, errors, dfm_gtf = error_calc(
-        dfm_gtf, "ground_t", category, rmse)
-    func_interp = lNDI(
-        points=dfm_gtf[['lat', 'lon']].values, values=errors.values)
-    func_interp_nw = lNDI(
-        points=dfm_gtf[['lat', 'lon']].values, values=errors_nw.values)
+    _, _, dfm_gtf = error_calc(dfm_gtf, name, category, rmse)
 
-    return dfm_gtf, func_interp_nw, func_interp
+    return dfm_gtf
 
 
 def error_rean(dfm, category, rmse):
@@ -201,7 +196,7 @@ def random_forest_calculator(df,  category, rmse,   exp_filter, exp_list, regres
         ds_to_netcdf(X_full, triplet_time, 'full_' + exp_filter)
 
     elif exp_filter is 'ground_t':
-        X_test0, _, _ = error_interpolator(df, category, rmse)
+        X_test0 = error_interpolator(df, category, exp_filter, rmse)
         ds_to_netcdf(X_test0, triplet_time, exp_filter)
 
     else:

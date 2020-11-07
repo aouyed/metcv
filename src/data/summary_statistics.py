@@ -35,18 +35,19 @@ def summary_stats(df_stats, skew_dict, filter, column_y, var):
     skew_dict['q50'].append(calc.quantile(df_stats, 'abs_' + column_y, 0.50))
     skew_dict['q68'].append(calc.quantile(df_stats, 'abs_' + column_y, 0.68))
     skew_dict['q95'].append(calc.quantile(df_stats, 'abs_' + column_y, 0.95))
+    skew_dict['q99'].append(calc.quantile(df_stats, 'abs_' + column_y, 0.99))
 
     print(skew_dict)
 
     return skew_dict
 
 
-def stat_calculator(filter, column_y, column_x, ds, skew_dict, prefix):
+def stat_calculator(filter, column_y, column_x,  skew_dict, ds,  prefix):
     start_time = time.time()
     print('initializing dataframe')
     print(filter)
-   # df = hist.initialize_dataframe(filter, column_x, ds, prefix)
-    df = read_pickle(PATH_DF+prefix+'_'+var+'_initialized.pkl')
+    df = hist.initialize_dataframe(filter, column_x, ds, prefix)
+   # df = pd.read_pickle(PATH_DF+prefix+'_'+column_x+'_initialized.pkl')
 
     print("--- seconds ---" + str(time.time() - start_time))
     if column_x == 'angle':
@@ -65,7 +66,7 @@ def stat_calculator(filter, column_y, column_x, ds, skew_dict, prefix):
 def main(triplet, pressure=500, dt=3600):
 
     skew_dict = {'filter': [], 'var': [],  'mean': [],
-                 'skewness': [], 'stdev': [], 'q50': [], 'q68': [], 'q95': []}
+                 'skewness': [], 'stdev': [], 'q50': [], 'q68': [], 'q95': [], 'q99': []}
 
     month = triplet.strftime("%B").lower()
 
@@ -77,17 +78,17 @@ def main(triplet, pressure=500, dt=3600):
 
     prefix = str(dt)+'_'+month+'_'+str(pressure)
     skew_dict = stat_calculator(
-        'jpl', 'speed_diff', 'angle', ds, skew_dict, prefix)
+        'jpl', 'speed_diff', 'angle', skew_dict, ds, prefix)
     skew_dict = stat_calculator(
-        'jpl', 'speed_diff', 'speed', ds, skew_dict, prefix)
+        'jpl', 'speed_diff', 'speed', skew_dict, ds, prefix)
     skew_dict = stat_calculator(
-        'exp2', 'speed_diff', 'speed', ds, skew_dict, prefix)
+        'exp2', 'speed_diff', 'speed', skew_dict, ds,  prefix)
     skew_dict = stat_calculator(
-        'df', 'speed_diff', 'speed', ds, skew_dict, prefix)
+        'df', 'speed_diff', 'speed',  skew_dict, ds, prefix)
     skew_dict = stat_calculator(
-        'exp2', 'speed_diff', 'angle', ds, skew_dict, prefix)
+        'exp2', 'speed_diff', 'angle', skew_dict, ds,  prefix)
     skew_dict = stat_calculator(
-        'df', 'speed_diff', 'angle', ds, skew_dict, prefix)
+        'df', 'speed_diff', 'angle', skew_dict, ds, prefix)
 
     df = pd.DataFrame(skew_dict)
     print(df)

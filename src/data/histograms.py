@@ -35,7 +35,7 @@ def big_histogram(ds, var, filter, column_x, column_y, prefix,  bins=100):
 
     df = initialize_dataframe(filter, column_x, ds, prefix)
     subtotal, _, _ = np.histogram2d(
-        df[column_x], df[column_y], bins=[xbins, ybins])
+        df[column_x], df[column_y], bins=[xbins, ybins], weights=df['cos_weight'])
     heatmap += subtotal.astype(np.uint)
     heatmap = heatmap/np.sum(heatmap)
     extent = [xedges[0], xedges[-1], yedges[0], yedges[-1]]
