@@ -42,12 +42,13 @@ def summary_stats(df_stats, skew_dict, filter, column_y, var):
     return skew_dict
 
 
-def stat_calculator(filter, column_y, column_x,  skew_dict, ds,  prefix):
+def stat_calculator(alg, column_y, column_x,  skew_dict, ds,  prefix):
     start_time = time.time()
+    prefix = prefix+'_'+alg
     print('initializing dataframe')
-    print(filter)
-    df = hist.initialize_dataframe(filter, column_x, ds, prefix)
-   # df = pd.read_pickle(PATH_DF+prefix+'_'+column_x+'_initialized.pkl')
+    print(alg)
+   # df = hist.initialize_dataframe(filter, column_x, ds, prefix)
+    df = pd.read_pickle(PATH_DF+prefix+'_'+column_x+'_initialized.pkl')
 
     print("--- seconds ---" + str(time.time() - start_time))
     if column_x == 'angle':
@@ -59,7 +60,7 @@ def stat_calculator(filter, column_y, column_x,  skew_dict, ds,  prefix):
 
     df_stats = df[['cos_weight', column_y]]
     df_stats['weighed'] = df_stats[column_y]*df_stats['cos_weight']
-    skew_dict = summary_stats(df_stats, skew_dict, filter, column_y, column_x)
+    skew_dict = summary_stats(df_stats, skew_dict, alg, column_y, column_x)
     return skew_dict
 
 
@@ -76,17 +77,17 @@ def main(triplet, pressure=500, dt=3600):
     filename = PATH + ds_name+'.nc'
     ds = xr.open_dataset(filename)
 
-    prefix = str(dt)+'_'+month+'_'+str(pressure)
+    prefix = month+'_'+str(dt)+'_' + str(pressure)
     skew_dict = stat_calculator(
         'jpl', 'speed_diff', 'angle', skew_dict, ds, prefix)
     skew_dict = stat_calculator(
         'jpl', 'speed_diff', 'speed', skew_dict, ds, prefix)
     skew_dict = stat_calculator(
-        'exp2', 'speed_diff', 'speed', skew_dict, ds,  prefix)
+        'ua', 'speed_diff', 'speed', skew_dict, ds,  prefix)
     skew_dict = stat_calculator(
         'df', 'speed_diff', 'speed',  skew_dict, ds, prefix)
     skew_dict = stat_calculator(
-        'exp2', 'speed_diff', 'angle', skew_dict, ds,  prefix)
+        'ua', 'speed_diff', 'angle', skew_dict, ds,  prefix)
     skew_dict = stat_calculator(
         'df', 'speed_diff', 'angle', skew_dict, ds, prefix)
 

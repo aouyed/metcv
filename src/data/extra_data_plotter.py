@@ -128,7 +128,7 @@ def results_plotter(ax, df0):
 
     df = df0[df0.exp_filter == 'ground_t']
     ax.plot(df['latlon'], df['rmse'], '-o',
-            label='forecast error')
+            label='Model Error')
 
     df = df0[df0.exp_filter == 'df']
     ax.plot(df['latlon'], df['rmse'], '-o', label='fsUA')
