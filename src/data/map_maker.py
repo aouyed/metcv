@@ -32,6 +32,7 @@ def ds_averager(ds, rean=True):
 def ds_error(ds, rean=True):
     ds['v_error'] = ds['vtrack']-ds['vmean']
     ds['u_error'] = ds['utrack']-ds['umean']
+
     ds['error_mag'] = np.sqrt(
         ds['v_error']**2+ds['u_error']**2)
     if rean:

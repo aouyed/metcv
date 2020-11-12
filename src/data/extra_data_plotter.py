@@ -128,7 +128,11 @@ def results_plotter(ax, df0):
 
     df = df0[df0.exp_filter == 'ground_t']
     ax.plot(df['latlon'], df['rmse'], '-o',
-            label='Model Error')
+            label='Forecast  Error')
+
+    df = df0[df0.exp_filter == 'rean']
+    ax.plot(df['latlon'], df['rmse'], '-o',
+            label='Reanalysis Difference')
 
     df = df0[df0.exp_filter == 'df']
     ax.plot(df['latlon'], df['rmse'], '-o', label='fsUA')
@@ -170,7 +174,7 @@ def multiple_filter_plotter(df_dict, values, month):
 
     handles, labels = axlist[3].get_legend_handles_labels()
     fig.legend(handles, labels, bbox_to_anchor=(
-        0.715, 1), ncol=2, frameon=False)
+        0.845, 1), ncol=3, frameon=False)
     #fig.legend(handles, labels, loc=(0.5, 1), ncol=2)
     plt.savefig(values+'.png', bbox_inches='tight',  dpi=300)
     plt.close()
