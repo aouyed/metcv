@@ -83,28 +83,28 @@ def map_plotter_multiple(ds, ds_full, ds_jpl, title, units, vmin, vmax):
     var = np.squeeze(var)
     im = axlist[0].imshow(var, cmap=pmap,
                           extent=[-180, 180, -90, 90], origin='lower', vmin=vmin, vmax=vmax)
-    axlist[0].set_title('fsUA')
+    axlist[0].set_title('(a) fsUA')
 
     axlist[1].coastlines()
     var = ds_jpl['error_mag'].values
     var = np.squeeze(var)
     im = axlist[1].imshow(var, cmap=pmap,
                           extent=[-180, 180, -90, 90], origin='lower', vmin=vmin, vmax=vmax)
-    axlist[1].set_title('JPL')
+    axlist[1].set_title('(b) JPL')
 
     axlist[2].coastlines()
     var = ds_full['error_mag'].loc[dict(filter='full_exp2')].values
     var = np.squeeze(var)
     im = axlist[2].imshow(var, cmap=pmap,
                           extent=[-180, 180, -90, 90], origin='lower', vmin=vmin, vmax=vmax)
-    axlist[2].set_title('UA')
+    axlist[2].set_title('(c) UA')
 
     axlist[3].coastlines()
-    var = ds_full['error_mag_rean'].loc[dict(filter='full_exp2')].values
+    var = ds['error_mag'].loc[dict(filter='ground_t')].values
     var = np.squeeze(var)
     im = axlist[3].imshow(var, cmap=pmap,
                           extent=[-180, 180, -90, 90], origin='lower', vmin=vmin, vmax=vmax)
-    axlist[3].set_title('Reanalysis')
+    axlist[3].set_title('(d) Model Error')
 
     cbar_ax = fig.add_axes([0.12, 0.125, 0.78, 0.05])
     fig.colorbar(im, cax=cbar_ax, orientation='horizontal', label='[m/s]')
@@ -128,11 +128,11 @@ def results_plotter(ax, df0):
 
     df = df0[df0.exp_filter == 'ground_t']
     ax.plot(df['latlon'], df['rmse'], '-o',
-            label='Forecast  Error')
+            label='Model Error')
 
-    df = df0[df0.exp_filter == 'rean']
-    ax.plot(df['latlon'], df['rmse'], '-o',
-            label='Reanalysis Difference')
+  #  df = df0[df0.exp_filter == 'rean']
+   # ax.plot(df['latlon'], df['rmse'], '-o',
+    #        label='Reanalysis Error')
 
     df = df0[df0.exp_filter == 'df']
     ax.plot(df['latlon'], df['rmse'], '-o', label='fsUA')
@@ -163,18 +163,18 @@ def multiple_filter_plotter(df_dict, values, month):
     df = df_dict[(1800, month, 500)]
     results_plotter(axlist[3], df)
 
-    axlist[0].text(0.1, 0.8, 'Δt = 60 min\nP = 850 hPa',
+    axlist[0].text(0.25, 0.7, '(a)\nΔt = 60 min\nP = 850 hPa',
                    transform=axlist[0].transAxes)
-    axlist[1].text(0.1, 0.8, 'Δt = 60 min\nP = 500 hPa',
+    axlist[1].text(0.25, 0.7, '(b)\nΔt = 60 min\nP = 500 hPa',
                    transform=axlist[1].transAxes)
-    axlist[2].text(0.1, 0.8, 'Δt = 30 min\nP = 850 hPa',
+    axlist[2].text(0.25, 0.7, '(c)\nΔt = 30 min\nP = 850 hPa',
                    transform=axlist[2].transAxes)
-    axlist[3].text(0.1, 0.8, 'Δt = 30 min\nP = 500 hPa',
+    axlist[3].text(0.25, 0.7, '(d)\nΔt = 30 min\nP = 500 hPa',
                    transform=axlist[3].transAxes)
 
     handles, labels = axlist[3].get_legend_handles_labels()
     fig.legend(handles, labels, bbox_to_anchor=(
-        0.845, 1), ncol=3, frameon=False)
+        0.715, 1), ncol=2, frameon=False)
     #fig.legend(handles, labels, loc=(0.5, 1), ncol=2)
     plt.savefig(values+'.png', bbox_inches='tight',  dpi=300)
     plt.close()

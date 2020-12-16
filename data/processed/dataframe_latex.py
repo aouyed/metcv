@@ -1,12 +1,14 @@
+
 import pandas as pd
 import glob
 
 # files = glob.glob('*jan*stats.pkl')
 files = glob.glob('dataframes/*df_stats.pkl')
 end_file = files[-1]
+letters = ['(a)', '(b)', '(c)', '(d)']
 
 
-def table_skewness(df, myfile, dt, pressure):
+def table_skewness(df, myfile, dt, pressure, i):
     dt = int(int(dt)/60)
     dt = str(dt)
     df = df[df['var'] == 'speed']
@@ -16,35 +18,37 @@ def table_skewness(df, myfile, dt, pressure):
                             "stdev": "Standard Deviation [m/s]", "skewness": "Skewness", "mean": "Mean [m/s]"}, errors="raise")
     # df = df.rename(columns={"q50": "50 %", "q68": "68 %",
     #                        "q95": "95 %"}, errors="raise")
-    myfile.write('\\'+'begin{subtable}{0.7\\textwidth}' + '\n')
-    myfile.write('\\centering'+'\n')
+    myfile.write('\\begin{tabular}{c} \n')
+    myfile.write(letters[i] + ' $\\Delta t='+dt +
+                 '$ min, $P =' + pressure + '$ hPa \\\\ \n')
+
+    myfile.write('\\centering\n')
     myfile.write(df.round(2).to_latex(index=False))
-    myfile.write('\\caption{$\\Delta t='+dt +
-                 '$ min, $P =' + pressure + '$ hPa}' + '\n')
-    myfile.write('\end{subtable}' + '\n')
+    myfile.write('\end{tabular} \\\\ \n')
 
 
-def table_quantile(df, myfile, dt, pressure):
+def table_quantile(df, myfile, dt, pressure, i):
     dt = int(int(dt)/60)
     dt = str(dt)
     df = df[df['var'] == 'angle']
-    df = df[['filter', 'q50', 'q68', 'q95', 'q99']]
+    df = df[['filter', 'q50', 'q68', 'q95']]
 
     df = df.rename(columns={"filter": "Algorithm", "q50": "50 %", "q68": "68 %",
-                            "q95": "95 %", "q99": "99 %"}, errors="raise")
-    myfile.write('\\'+'begin{subtable}{0.7\\textwidth}' + '\n')
-    myfile.write('\\centering'+'\n')
+                            "q95": "95 %"}, errors="raise")
+    myfile.write('\\begin{tabular}{c}\n')
+    myfile.write(letters[i] + ' $\\Delta t='+dt +
+                 '$ min, $P =' + pressure + '$ hPa \\\\ \n')
+
+    myfile.write('\\centering\n')
     myfile.write(df.round(2).to_latex(index=False))
-    myfile.write('\\caption{$\\Delta t='+dt +
-                 '$ min, $P =' + pressure + '$ hPa}' + '\n')
-    myfile.write('\end{subtable}' + '\n')
+    myfile.write('\end{tabular} \\\\ \n')
 
 
 def loop(myfile, table_func):
     myfile.write('\\begin{table}'+'\n')
     myfile.write('\\centering'+'\n')
-
     for month in ['january', 'july']:
+        i = 0
         if month == 'july':
             myfile.write('\end{table}'+'\n')
             myfile.write(
@@ -57,13 +61,12 @@ def loop(myfile, table_func):
                 df = pd.read_pickle(filename)
                 print(df)
                 df = df[df['filter'] != 'reanalysis']
-                df['filter'][df['filter'] == 'exp2'] = 'UA'
+                df['filter'][df['filter'] == 'ua'] = 'UA'
                 df['filter'][df['filter'] == 'df'] = 'fsUA'
                 df['filter'][df['filter'] == 'jpl'] = 'JPL'
-                # df['var'][df['var'] == 'speed'] = 'All'
-                # df['var'][df['var'] == 'angle'] = 'angle = 90 degrees'
                 myfile.write('%'+filename + '\n')
-                table_func(df.copy(), myfile, dt, pressure)
+                table_func(df.copy(), myfile, dt, pressure, i)
+                i = i+1
     myfile.write('\end{table}'+'\n')
 
 

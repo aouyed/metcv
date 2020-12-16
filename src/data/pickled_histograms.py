@@ -19,13 +19,13 @@ HIST_X_EDGES = {'grad_mag_qv': [0, 0.05], 'qv': [
 CMAP = cm.CMRmap_r
 VMAX_F = 1.5
 PATH = '../data/processed/experiments/'
+VMAX = 0.2
 
 
-def histogram_plot(column_a,  hist_dict, axlist, axpos):
+def histogram_plot(column_a,  hist_dict, axlist, axpos, vmax):
     """Initializes  histogram, plots it and saves it."""
     print('calculating histogram...')
     print(column_a)
-    vmax = 0.003*100
     for filter in ('exp2', 'df', 'jpl'):
         ax = axlist[axpos]
         img = hist_dict[(filter, column_a, 'img')]
@@ -40,9 +40,11 @@ def histogram_plot(column_a,  hist_dict, axlist, axpos):
 def histogram_sequence(hist_dict, axlist):
     """Calculates batch of histogram plots"""
     axpos = 0
-    _, axpos, axlist = histogram_plot('speed', hist_dict, axlist, axpos)
-    _, axpos, axlist = histogram_plot('grad_mag_qv',  hist_dict, axlist, axpos)
-    im, axpos, axlist = histogram_plot('angle', hist_dict, axlist, axpos)
+    im, axpos, axlist = histogram_plot('speed', hist_dict, axlist, axpos, VMAX)
+    _, axpos, axlist = histogram_plot(
+        'grad_mag_qv',  hist_dict, axlist, axpos, VMAX)
+    i_, axpos, axlist = histogram_plot(
+        'angle', hist_dict, axlist, axpos, 0.5*VMAX)
     return im
 
 
@@ -68,9 +70,11 @@ def main(triplet, pressure=500, dt=3600):
     axlist[1].set(xlabel='Wind speed [m/s]')
     axlist[4].set(xlabel='Moisture gradient [g/(kg km)]')
     axlist[7].set(xlabel='Wind-moisture gradient angle [deg]')
-
+    axlist[0].set_title('(a)')
+    axlist[3].set_title('(b)')
+    axlist[6].set_title('(c)')
     # fig.tight_layout()
-    fig.subplots_adjust(hspace=0.7)
+    fig.subplots_adjust(hspace=1.0)
     plt.savefig('../data/processed/plots/panel_histogram_' +
                 ds_name+'.png', bbox_inches='tight', dpi=300)
 

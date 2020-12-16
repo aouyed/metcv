@@ -28,9 +28,11 @@ print('triplet: '+str(triplet))
 # print('plotting maps...')
 
 
-#mm.main(triplet, pressure=pressure, dt=dt)
+mm.main(triplet, pressure=pressure, dt=dt)
 #hist.main(triplet, pressure=pressure, dt=dt)
 #ss.main(triplet, pressure=pressure, dt=dt)
 ##os.system("rsync   --progress  ../data/processed/experiments/*  /run/media/amirouyed/reserarchDi/10_02_20/experiments/")
-# pr.main()
-sds.main()
+
+
+pr.main()
+# sds.main()
