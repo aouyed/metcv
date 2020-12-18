@@ -155,13 +155,12 @@ def main(triplet, pressure=500, dt=3600):
     filename = PATH + ds_name+'.nc'
     ds = xr.open_dataset(filename)
 
-    hist_dict = histogram_sequence('jpl', month+'_'+str(dt)+'_' +
-                                   str(pressure) + '_jpl', ds, hist_dict)
-
     hist_dict = histogram_sequence('exp2', month+'_' + str(dt)+'_' +
                                    str(pressure)+'_ua', ds, hist_dict)
     hist_dict = histogram_sequence('df',  month+'_'+str(dt)+'_' +
                                    str(pressure)+'_df', ds, hist_dict)
+    hist_dict = histogram_sequence('jpl', month+'_'+str(dt)+'_' +
+                                   str(pressure) + '_jpl', ds, hist_dict)
 
     directory = '../data/processed/histograms/' + ds_name + '.pkl'
     f = open(directory, 'wb')

@@ -11,14 +11,15 @@ def error_calc(df_0, pressure, triplet_time):
     """Calculates forecasting error from reanalysis."""
     pressure = str(pressure)
     month_s = str(triplet_time.strftime("%B")).lower()
+    year = str(triplet_time.year)
     month = triplet_time.strftime('%m')
     hour = triplet_time.strftime("%H")
     day = triplet_time.strftime('%d')
     print('era dataset')
     ds0 = xr.open_dataset(
-        "../data/raw/experiments/reanalysis/era5/u_" + pressure + "_2006_"+month+"_"+day+"_"+hour+":00:00_era5.nc")
+        "../data/raw/experiments/reanalysis/era5/u_" + pressure + "_"+year+"_"+month+"_"+day+"_"+hour+":00:00_era5.nc")
     ds1 = xr.open_dataset(
-        "../data/raw/experiments/reanalysis/era5/v_" + pressure + "_2006_"+month+"_"+day+"_"+hour+":00:00_era5.nc")
+        "../data/raw/experiments/reanalysis/era5/v_" + pressure + "_" + year + "_" + month+"_"+day+"_"+hour+":00:00_era5.nc")
     ds = xr.merge([ds0, ds1])
 
     ds = ds.assign_coords(longitude=(((ds.longitude + 180) % 360) - 180))
@@ -29,7 +30,7 @@ def error_calc(df_0, pressure, triplet_time):
 
     print('cfs dataset')
     ds = xr.open_dataset(
-        "../data/raw/experiments/reanalysis/cfs/pgbhnl.gdas.2006"+month+day+hour+".nc")
+        "../data/raw/experiments/reanalysis/cfs/pgbhnl.gdas."+year+month+day+hour+".nc")
     ds = ds.assign_coords(longitude=(((ds.longitude + 180) % 360) - 180))
     print(ds['longitude'])
     df = ds.to_dataframe()

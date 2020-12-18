@@ -114,6 +114,55 @@ def map_plotter_multiple(ds, ds_full, ds_jpl, title, units, vmin, vmax):
     plt.close()
 
 
+def map_plotter_multiple_better(ds, ds_full, ds_jpl, title, units, vmin, vmax):
+    fig, axes = plt.subplots(nrows=2, ncols=2)
+
+    pmap = cmocean.cm.haline
+    axlist = axes.flat
+
+    var = ds['error_mag'].loc[dict(filter='df')].values
+    var = np.squeeze(var)
+
+    extent_values = [ds_full['lon'].min().item(), ds_full['lon'].max(
+    ).item(), ds_full['lat'].min().item(), ds_full['lat'].max().item()]
+
+    im = axlist[0].imshow(var, cmap=pmap,
+                          extent=extent_values, origin='lower', vmin=vmin, vmax=vmax)
+    axlist[0].set_title('(a) fsUA')
+    axlist[0].xaxis.set_tick_params(labelsize='small')
+    axlist[0].yaxis.set_tick_params(labelsize='small')
+    var = ds_jpl['error_mag'].values
+    var = np.squeeze(var)
+    im = axlist[1].imshow(var, cmap=pmap,
+                          extent=extent_values, origin='lower', vmin=vmin, vmax=vmax)
+    axlist[1].set_title('(b) JPL')
+    axlist[1].xaxis.set_tick_params(labelsize='small')
+    axlist[1].yaxis.set_tick_params(labelsize='small')
+
+    var = ds_full['error_mag'].loc[dict(filter='full_exp2')].values
+    var = np.squeeze(var)
+    im = axlist[2].imshow(var, cmap=pmap,
+                          extent=extent_values, origin='lower', vmin=vmin, vmax=vmax)
+    axlist[2].set_title('(c) UA')
+    axlist[2].xaxis.set_tick_params(labelsize='small')
+    axlist[2].yaxis.set_tick_params(labelsize='small')
+
+    var = ds['error_mag'].loc[dict(filter='ground_t')].values
+    var = np.squeeze(var)
+    im = axlist[3].imshow(var, cmap=pmap,
+                          extent=extent_values, origin='lower', vmin=vmin, vmax=vmax)
+    axlist[3].set_title('(d) Model Error')
+    axlist[3].xaxis.set_tick_params(labelsize='small')
+    axlist[3].yaxis.set_tick_params(labelsize='small')
+
+    cbar_ax = fig.add_axes([0.12, 0.125, 0.78, 0.05])
+    fig.colorbar(im, cax=cbar_ax, orientation='horizontal', label='[m/s]')
+    fig.subplots_adjust(hspace=-0.3, wspace=0.16)
+    plt.savefig('../data/processed/plots/'+title +
+                '.png', bbox_inches='tight', dpi=300)
+    plt.close()
+
+
 def results_plotter(ax, df0):
 
     df0.latlon[df0.latlon == '(0) 90°S,60°S'] = '90°S,60°S'

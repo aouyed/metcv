@@ -17,7 +17,8 @@ class Parameters:
     def __init__(self, **kwargs):
         prop_defaults = {
             "var": "qv",
-            "grid": 0.0625,
+            # "grid": 0.0625,
+            "grid": 0.0267,
             "dt": 1800,
             "pressure": 850,
             "cores": 5,
