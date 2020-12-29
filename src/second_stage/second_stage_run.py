@@ -54,7 +54,7 @@ def run(triplet_time, pressure, dt):
         print('fitting with filter ' + str(exp_filter))
         if exp_filter in ('exp2', 'error'):
             regressor, X_test0, y_test0, X_full = mlf.ml_fitter(
-                df, test_size)
+                df.copy(), test_size)
         elif exp_filter is 'df':
             X_test0 = df
             regressor, y_test0 = None, None

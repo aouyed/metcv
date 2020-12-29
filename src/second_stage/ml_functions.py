@@ -42,7 +42,7 @@ def error_calc(df, name, category, rmse):
 
 def random_error_add(sigma_u, sigma_v, column_u, column_v):
     """Adds random noise to dataframe.."""
-
+    np.random.seed(1)
     e_u = np.random.normal(scale=sigma_u)
     e_v = np.random.normal(scale=sigma_v)
     e_u = np.sign(e_u)*np.minimum(2*sigma_u, abs(e_u))
@@ -80,7 +80,7 @@ def ml_fitter(df, tsize):
     y_train = X_train0[['umeanh', 'vmeanh']]
     X_train = X_train0[['lat', 'lon',
                         'u_scaled_approx', 'v_scaled_approx', 'land']]
-  #  X_train = X_train0[['lat', 'lon', 'land']]
+    #X_train = X_train0[['lat', 'lon', 'land']]
 
     regressor = RandomForestRegressor(
         n_estimators=100, random_state=0, n_jobs=-1)
@@ -106,8 +106,8 @@ def ml_predictor(category, name, rmse,  regressor, X_test0, y_test0, X_full0):
                       'u_scaled_approx', 'v_scaled_approx', 'land']]
     X_full = X_full0[['lat', 'lon',
                       'u_scaled_approx', 'v_scaled_approx', 'land']]
-   # X_full = X_full[['lat', 'lon', 'land']]
-   # X_test = X_test0[['lat', 'lon', 'land']]
+    #X_full = X_full[['lat', 'lon', 'land']]
+    #X_test = X_test0[['lat', 'lon', 'land']]
     y_pred = regressor.predict(X_test)
     y_pred_full = regressor.predict(X_full)
 
