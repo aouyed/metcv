@@ -97,30 +97,33 @@ def build_datarray(data, lat, lon, date):
 
 
 def div_calc(u, v, dx, dy, kernel, is_track):
-    if (kernel > 0 and is_track == True):
-        u = np.nan_to_num(u)
-        u = cv2.blur(u, (kernel, kernel))
-        v = np.nan_to_num(v)
-        v = cv2.blur(v, (kernel, kernel))
+    # if (kernel > 0 and is_track == True):
+    u = np.nan_to_num(u)
+    u = mpcalc.smooth_n_point(u, 9, 100)
+    v = np.nan_to_num(v)
+    v = mpcalc.smooth_n_point(v, 9, 100)
 
     div = mpcalc.divergence(
         u * units['m/s'], v * units['m/s'], dx, dy, dim_order='yx')
     div = div.magnitude
     div = SCALE*div
+    #div = cv2.blur(np.nan_to_num(div), (kernel, kernel))
     return div
 
 
 def vort_calc(u, v, dx, dy, kernel, is_track):
-    if (kernel > 0 and is_track == True):
-        u = np.nan_to_num(u)
-        u = cv2.blur(u, (kernel, kernel))
-        v = np.nan_to_num(v)
-        v = cv2.blur(v, (kernel, kernel))
+    # if (kernel > 0 and is_track == True):
+    u = np.nan_to_num(u)
+    u = mpcalc.smooth_n_point(u, 9, 100)
+    v = np.nan_to_num(v)
+    v = mpcalc.smooth_n_point(v, 9, 100)
 
     vort = mpcalc.vorticity(
         u * units['m/s'], v * units['m/s'], dx, dy, dim_order='yx')
     vort = vort.magnitude
     vort = SCALE*vort
+    #vort = cv2.blur(np.nan_to_num(vort), (kernel, kernel))
+
     return vort
 
 

@@ -29,7 +29,7 @@ if plots:
     sh.rm(plots)
 
 
-os.system('cp ../data/raw/qv_clr.nc ../data/interim/experiments/november/4.nc')
+os.system('cp ../data/raw/qv_cld.nc ../data/interim/experiments/november/4.nc')
 os.system("python3 first_stage/first_stage_run.py  -p " + str(pressure) +
           " -dt " + str(dt) + "  -tri " + triplet.strftime("%Y-%m-%d-%H:%M"))
 ssr.run(triplet, pressure, dt=dt)
