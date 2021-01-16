@@ -24,6 +24,7 @@ COORDS = [(-30, 30), (-60, -30), (-90, -60), (30, 60), (60, 90)]
 KERNEL = 5
 # KERNEL=20
 SCALE = 1e4
+PASSES = 200
 
 
 def map_plotter(var, title, units, vmin, vmax):
@@ -97,34 +98,69 @@ def build_datarray(data, lat, lon, date):
 
 
 def div_calc(u, v, dx, dy, kernel, is_track):
-    # if (kernel > 0 and is_track == True):
-    u = np.nan_to_num(u)
-    u = mpcalc.smooth_n_point(u, 9, 100)
-    v = np.nan_to_num(v)
-    v = mpcalc.smooth_n_point(v, 9, 100)
-
     div = mpcalc.divergence(
         u * units['m/s'], v * units['m/s'], dx, dy, dim_order='yx')
     div = div.magnitude
     div = SCALE*div
-    #div = cv2.blur(np.nan_to_num(div), (kernel, kernel))
-    return div
+    return u, v, div
 
 
 def vort_calc(u, v, dx, dy, kernel, is_track):
-    # if (kernel > 0 and is_track == True):
-    u = np.nan_to_num(u)
-    u = mpcalc.smooth_n_point(u, 9, 100)
-    v = np.nan_to_num(v)
-    v = mpcalc.smooth_n_point(v, 9, 100)
-
     vort = mpcalc.vorticity(
         u * units['m/s'], v * units['m/s'], dx, dy, dim_order='yx')
     vort = vort.magnitude
     vort = SCALE*vort
     #vort = cv2.blur(np.nan_to_num(vort), (kernel, kernel))
 
-    return vort
+    return u, v, vort
+
+
+def vel_filter(u, v):
+    start_time = time.time()
+
+    u = np.float32(u)
+    v = np.float32(v)
+    mask_u = np.isnan(u)
+    mask_v = np.isnan(v)
+
+    u = np.nan_to_num(u)
+    v = np.nan_to_num(v)
+
+    v = cv2.medianBlur(v, 5)
+    u = cv2.medianBlur(u, 5)
+
+    u = mpcalc.smooth_n_point(u, 9, PASSES)
+    v = mpcalc.smooth_n_point(v, 9, PASSES)
+
+    u[mask_u] = np.nan
+    v[mask_v] = np.nan
+    print("--- seconds ---" + str(time.time() - start_time))
+
+    return u, v
+
+
+def vort_filter(u, v):
+    start_time = time.time()
+
+    u = np.float32(u)
+    v = np.float32(v)
+    mask_u = np.isnan(u)
+    mask_v = np.isnan(v)
+
+    u = np.nan_to_num(u)
+    v = np.nan_to_num(v)
+
+    #v = cv2.medianBlur(v, 5)
+    #u = cv2.medianBlur(u, 5)
+
+    u = mpcalc.smooth_n_point(u, 9, PASSES)
+    v = mpcalc.smooth_n_point(v, 9, PASSES)
+
+    u[mask_u] = np.nan
+    v[mask_v] = np.nan
+    print("--- seconds ---" + str(time.time() - start_time))
+
+    return u, v
 
 
 def coord_to_string(coord):
