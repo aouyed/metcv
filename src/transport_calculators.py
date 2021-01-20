@@ -24,7 +24,7 @@ COORDS = [(-30, 30), (-60, -30), (-90, -60), (30, 60), (60, 90)]
 KERNEL = 5
 # KERNEL=20
 SCALE = 1e4
-PASSES = 200
+PASSES = 150
 
 
 def map_plotter(var, title, units, vmin, vmax):
@@ -102,6 +102,7 @@ def div_calc(u, v, dx, dy, kernel, is_track):
         u * units['m/s'], v * units['m/s'], dx, dy, dim_order='yx')
     div = div.magnitude
     div = SCALE*div
+    #div[abs(div) < 0.1] = np.nan
     return u, v, div
 
 
@@ -111,26 +112,28 @@ def vort_calc(u, v, dx, dy, kernel, is_track):
     vort = vort.magnitude
     vort = SCALE*vort
     #vort = cv2.blur(np.nan_to_num(vort), (kernel, kernel))
-
+    #vort[abs(vort) < 0.1] = np.nan
     return u, v, vort
 
 
-def vel_filter(u, v):
+def vel_filter(u, v, passes):
     start_time = time.time()
 
     u = np.float32(u)
     v = np.float32(v)
-    mask_u = np.isnan(u)
-    mask_v = np.isnan(v)
+    mask_u = np.isnan(u).astype(np.uint8)
+    mask_v = np.isnan(v).astype(np.uint8)
 
     u = np.nan_to_num(u)
     v = np.nan_to_num(v)
 
+    #u = cv2.inpaint(u, mask_u, 10, flags=cv2.INPAINT_TELEA)
+    #v = cv2.inpaint(v, mask_v, 10, flags=cv2.INPAINT_TELEA)
     v = cv2.medianBlur(v, 5)
     u = cv2.medianBlur(u, 5)
 
-    u = mpcalc.smooth_n_point(u, 9, PASSES)
-    v = mpcalc.smooth_n_point(v, 9, PASSES)
+    u = mpcalc.smooth_n_point(u, 9, passes)
+    v = mpcalc.smooth_n_point(v, 9, passes)
 
     u[mask_u] = np.nan
     v[mask_v] = np.nan
