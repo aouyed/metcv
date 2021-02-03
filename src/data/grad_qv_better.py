@@ -4,21 +4,25 @@ import metpy.calc as mpcalc
 from metpy.units import units
 from datetime import datetime
 import numpy as np
+PATH = '../data/processed/experiments/'
 
 
-def main():
-    months = [7, 1]
-    pressures = [850, 500]
-    dts = ['30min', '60min']
+def main(triplet, alg,  pressure=500, dt=3600):
 
-    file = '../data/processed/experiments/900_700_november.nc'
+    hist_dict = {}
+    month = triplet.strftime("%B").lower()
+
+    ds_name = str(dt)+'_' + str(pressure) + '_' + \
+        triplet.strftime("%B").lower()
+
+    file = PATH + ds_name+'.nc'
     print(file)
     ds = xr.open_dataset(file)
     ds_raw = xr.open_dataset('../data/interim/experiments/november/4.nc')
     print(ds)
     print(ds_raw)
     date = ds.time.values[0]
-    ds_raw = ds_raw.loc[{'pressure': ds_raw['pressure'].values[0]}].loc[{
+    ds_raw = ds_raw.loc[{'pressure': pressure}].loc[{
         'time': str(date)}].drop('time').drop('pressure')
     ds = xr.merge([ds, ds_raw])
     print(ds)
@@ -42,4 +46,4 @@ def main():
     ds = xr.concat([ds, xr.zeros_like(ds.loc[{'filter': 'exp2'}]).assign_coords(
         {'filter': 'jpl'})], 'filter')
     ds = ds.astype(np.float32)
-    ds.to_netcdf('../data/processed/experiments/900_700_november_merged.nc')
+    ds.to_netcdf(PATH+ds_name+'_merged.nc')

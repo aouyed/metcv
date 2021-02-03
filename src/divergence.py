@@ -40,7 +40,7 @@ def grad_quants(ds, ulabel, vlabel, dx, dy, passes, threshold):
     u, v, vort = tc.vort_calc(
         u.copy(), v.copy(), dx.copy(), dy.copy(), passes, True)
 
-    if threshold > 0:
+    if threshold > 0 and ulabel == 'utrack_s':
         print('threshold passed')
         div[abs(div) < threshold] = np.nan
         vort[abs(vort) < threshold] = np.nan
@@ -117,6 +117,16 @@ def grad_calculator(ds,  passes, threshold):
     return ds
 
 
+def warp_flow(img, flow):
+    h, w = flow.shape[:2]
+    flow = -flow
+    flow[:, :, 0] += np.arange(w)
+    flow[:, :, 1] += np.arange(h)[:, np.newaxis]
+    flow = flow.astype(np.float32)
+    res = cv2.remap(img, flow, None, cv2.INTER_CUBIC)
+    return res
+
+
 def ds_plotter(ds, flag):
     print(flag)
     print(ds)
@@ -138,15 +148,47 @@ def ds_plotter(ds, flag):
     map_plotter(ds, flag + 'error_div', 'error_div', '1e4 m/s', -1, 1)
 
 
+def flow_calculator(ds):
+
+    frame0 = np.squeeze(ds['vorticity_track'].values)
+    frame0[abs(frame0) < 0.2] = np.nan
+    mask0 = np.isnan(frame0)
+    frame0 = np.nan_to_num(frame0)
+    nframe0 = cv2.normalize(src=frame0, dst=None,
+                            alpha=0, beta=255, norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_8UC1)
+
+    frame = np.squeeze(ds['vorticity'].values)
+    frame[abs(frame) < 0.2] = np.nan
+    mask = np.isnan(frame)
+    frame = np.nan_to_num(frame)
+    nframe = cv2.normalize(src=frame, dst=None,
+                           alpha=0, beta=255, norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_8UC1)
+
+    optical_flow = cv2.optflow.createOptFlow_DeepFlow()
+    flowd = optical_flow.calc(nframe0, nframe, None)
+    frame0d = warp_flow(frame0, flowd.copy())
+    frame0d[mask] = np.nan
+    #frame0d[abs(frame0d) < 0.2] = np.nan
+    ds['vorticity_track'] = (['lat', 'lon'], frame0d)
+    ds['error_vort_sqr'] = (
+        ds.vorticity-ds.vorticity_track)**2
+    ds['rmsvd_vort_flow'] = np.sqrt(ds['error_vort_sqr'].mean())
+    return ds
+
+
 def main():
 
     file = '../data/processed/experiments/900_700_full_november.nc'
     kernel = 3
     ds = xr.open_dataset(file)
 
-    ds_thresh = grad_calculator(ds.copy(), 200, 0.2)
+    #ds_thresh = grad_calculator(ds.copy(), 200, 0.2)
     ds_all = grad_calculator(ds.copy(), 200, -1)
-    ds_plotter(ds_thresh, 'thresh')
+
+    # ds_plotter(ds_thresh, 'thresh')
+#    ds_flow = flow_calculator(ds_all.copy())
+    print('flow')
+    print(ds_all)
     ds_plotter(ds_all, 'all')
 
 

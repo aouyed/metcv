@@ -7,7 +7,7 @@ year = '2009'
 month = '11'
 #day = '04'
 #time = '17:00:00'
-pressures = ['700']
+pressures = ['800', '300']
 #timen = '12_00_00'
 
 days = ['04']

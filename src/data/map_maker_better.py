@@ -29,7 +29,7 @@ def plotter(ds, ds_full, ds_jpl,  varname, dt, pressure):
                                     varname, 'm/s', 0, vmax)
 
 
-def main(triplet, pressure=850, dt=3600):
+def main(triplet, alg, pressure=850, dt=3600):
 
     month = triplet.strftime("%B").lower()
 
@@ -38,7 +38,7 @@ def main(triplet, pressure=850, dt=3600):
     ds = ds_error(ds)
 
     ds_full = xr.open_dataset(
-        PATH+str(dt)+'_'+str(pressure)+'_full_'+month+'.nc')
+        PATH+str(dt)+'_'+str(pressure)+'_full_'+month+'_'+alg+'.nc')
     ds_full = ds_full.sel(time=str(ds_full.time.values[0]))
     ds_full = ds_error(ds_full)
 

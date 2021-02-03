@@ -14,32 +14,33 @@ from data import pickled_histograms as ph
 from data import grad_qv_better as gqb
 month = 11
 triplet = datetime(2009, month, 4, 17, 0, 0, 0)
-pressure = 700
+pressure = 300
 # dt = 3600/4
 dt = 900
 plots = glob.glob('../data/processed/plots/*')
 files = glob.glob('../data/interim/experiments/first_stage_amvs/*')
-
-if plots:
-    sh.rm(plots)
+alg = 'cld'
+# if plots:
+#   sh.rm(plots)
 
 plots = glob.glob('../data/processed/plots.zip*')
 
-if plots:
-    sh.rm(plots)
+# if plots:
+#   sh.rm(plots)
 
 
-os.system('cp ../data/raw/qv_cld.nc ../data/interim/experiments/november/4.nc')
+os.system('cp ../data/raw/qv_'+alg +
+          '.nc ../data/interim/experiments/november/4.nc')
 os.system("python3 first_stage/first_stage_run.py  -p " + str(pressure) +
           " -dt " + str(dt) + "  -tri " + triplet.strftime("%Y-%m-%d-%H:%M"))
 ssr.run(triplet, pressure, dt=dt)
-tp.run(triplet, pressure=pressure, dt=dt)
+tp.run(triplet, alg,  pressure=pressure, dt=dt)
 print('triplet: '+str(triplet))
 # bp.run(triplet, pressure=pressure, dt=dt)
 
 # print('plotting maps...')
-gqb.main()
-mm.main(triplet, pressure=pressure, dt=dt)
+gqb.main(triplet, alg, pressure=pressure, dt=dt)
+mm.main(triplet, alg, pressure=pressure, dt=dt)
 hist.main(triplet, pressure=pressure, dt=dt)
 ph.main(triplet, pressure=pressure, dt=dt)
 os.system("zip -r ../data/processed/plots.zip  ../data/processed/plots")

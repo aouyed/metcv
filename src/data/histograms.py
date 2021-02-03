@@ -144,7 +144,7 @@ def histogram_sequence(filter, prefix, ds, hist_dict):
     return hist_dict
 
 
-def main(triplet, pressure=500, dt=3600):
+def main(triplet,  pressure=500, dt=3600):
 
     hist_dict = {}
     month = triplet.strftime("%B").lower()
