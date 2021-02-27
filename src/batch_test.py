@@ -14,7 +14,7 @@ from data import pickled_histograms as ph
 from data import grad_qv_better as gqb
 month = 11
 triplet = datetime(2009, month, 4, 17, 0, 0, 0)
-pressure = 300
+pressure = 800
 # dt = 3600/4
 dt = 900
 plots = glob.glob('../data/processed/plots/*')

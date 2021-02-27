@@ -3,15 +3,15 @@ import cdsapi
 c = cdsapi.Client()
 
 #var = 'v'
-year = '2006'
-month = '07'
-#day = '01'
-#time = '12:00:00'
-pressures = ('500', '850')
+year = '2009'
+month = '11'
+#day = '04'
+#time = '17:00:00'
+pressures = ['800', '300']
 #timen = '12_00_00'
 
-days = ['01', '02', '03']
-times = ['00:00:00', '06:00:00', '12:00:00', '18:00:00']
+days = ['04']
+times = ['17:00:00']
 vars = ['u', 'v']
 
 for pressure in pressures:
