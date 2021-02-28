@@ -22,7 +22,7 @@ def main():
     df = df.astype(np.float32)
     df_results = pd.DataFrame()
     with_fsua = False
-    for factor in [0, 1, 5]:
+    for factor in [0, 1, 5, 10]:
         for with_fsua in [True, False]:
             sigmas = factor*SIGMAS_0
             print(sigmas)
@@ -33,8 +33,8 @@ def main():
             if df_results.empty:
                 df_results = df_results_unit
             else:
-                df_results = pd.concat(
-                    [df_results, df_results_unit]).reset_index()
+                df_results = pd.concat([df_results, df_results_unit])
+                df_results = df_results.reset_index(drop=True)
     print(df_results)
     df_results.to_pickle('sensitivity.pkl')
 

@@ -173,7 +173,7 @@ def error_rean(dfm, category, rmse):
     dfm['utrack'], dfm['vtrack'] = random_error_add(
         sigma_u, sigma_v, dfm['umean'], dfm['vmean'])
 
-    _, _ = error_calc(dfm, "ground_t", category, rmse)
+    _, _, _ = error_calc(dfm, 'rean', category, rmse)
     return dfm
 
 
