@@ -8,7 +8,7 @@ delta = 30
 
 def main():
     ds = xr.open_dataset(
-        '../data/processed/experiments/3600_850_january_merged.nc')
+        '../data/processed/experiments/3600_300_july_merged.nc')
 
     metric = {'region': [], 'variable': [],
               'UA (rmse)': [], 'truth (std)': []}

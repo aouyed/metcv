@@ -62,7 +62,7 @@ def ml_fitter(df, tsize):
     y_full = df[['umeanh', 'vmeanh', 'land', 'lat']]
 
     X_train0, X_test0, y_train0, y_test0 = train_test_split(
-        X_full, y_full, test_size=tsize, random_state=1)
+        X_full, y_full, test_size=tsize)
 
     sigma_u = abs(X_train0['u_error_rean'])
     sigma_v = abs(X_train0['v_error_rean'])
@@ -88,27 +88,32 @@ def ml_fitter(df, tsize):
     start_time = time.time()
     regressor.fit(X_train, y_train)
     print("--- %s seconds ---" % (time.time() - start_time))
-    return regressor, X_test0, y_test0, X_full
+    return regressor, X_test0, y_test0, X_full, X_train0, y_train0
 
 
-def ml_predictor(category, name, rmse,  regressor, X_test0, y_test0, X_full0):
+def ml_predictor(category, name, rmse,  regressor, X_test0, y_test0, X_full0, X_train0, y_train0):
     """Corrects optical flow velocities with random forest model."""
 
     X_test0['cos_weight'] = np.cos(X_test0['lat']/180*np.pi)
     X_full0['cos_weight'] = np.cos(X_full0['lat']/180*np.pi)
+    X_train0['cos_weight'] = np.cos(X_train0['lat']/180*np.pi)
 
     X_test0 = X_test0.dropna()
     y_test0 = y_test0.dropna()
     X_full0 = X_full0.dropna()
+    X_train0 = X_train0.dropna()
 
     X_test = X_test0[['lat', 'lon',
                       'u_scaled_approx', 'v_scaled_approx', 'land']]
     X_full = X_full0[['lat', 'lon',
                       'u_scaled_approx', 'v_scaled_approx', 'land']]
+    X_train = X_train0[['lat', 'lon',
+                        'u_scaled_approx', 'v_scaled_approx', 'land']]
     #X_full = X_full[['lat', 'lon', 'land']]
    # X_test = X_test0[['lat', 'lon', 'land']]
     y_pred = regressor.predict(X_test)
     y_pred_full = regressor.predict(X_full)
+    y_pred_train = regressor.predict(X_train)
 
     X_test0['u_scaled_approx'] = y_pred[:, 0]
     X_test0['v_scaled_approx'] = y_pred[:, 1]
@@ -116,10 +121,13 @@ def ml_predictor(category, name, rmse,  regressor, X_test0, y_test0, X_full0):
     X_full0['u_scaled_approx'] = y_pred_full[:, 0]
     X_full0['v_scaled_approx'] = y_pred_full[:, 1]
 
+    X_train0['u_scaled_approx'] = y_pred_train[:, 0]
+    X_train0['v_scaled_approx'] = y_pred_train[:, 1]
+
     _, _, X_test0 = error_calc(X_test0, name, category, rmse)
     _, _, X_full0 = error_calc(X_full0, name, [], [])
 
-    return X_test0, X_full0
+    return X_test0, X_full0, X_train0
 
 
 def error_interpolator(dfm, category, name, rmse):
@@ -185,15 +193,16 @@ def ds_to_netcdf(df, triplet_time, exp_filter):
                  '_'+triplet_time.strftime("%Y-%m-%d-%H:%M")+'.nc')
 
 
-def random_forest_calculator(df,  category, rmse,   exp_filter, exp_list, regressor, X_test0, y_test0, triplet_time, X_full):
+def random_forest_calculator(df,  category, rmse,   exp_filter, exp_list, regressor, X_test0, y_test0, triplet_time, X_full, X_train0, y_train0):
     """Calculates second stage of UA algorithm."""
     exp_list.append(exp_filter)
 
     if exp_filter is 'exp2':
-        X_test0, X_full = ml_predictor(category, 'rf',
-                                       rmse,  regressor, X_test0, y_test0, X_full)
+        X_test0, X_full, X_train0 = ml_predictor(category, 'rf',
+                                                 rmse,  regressor, X_test0, y_test0, X_full, X_train0, y_train0)
         ds_to_netcdf(X_test0, triplet_time, exp_filter)
         ds_to_netcdf(X_full, triplet_time, 'full_' + exp_filter)
+        ds_to_netcdf(X_train0, triplet_time, 'train_' + exp_filter)
 
     elif exp_filter is 'ground_t':
         X_test0 = error_interpolator(df, category, exp_filter, rmse)

@@ -44,6 +44,8 @@ def run(triplet, pressure=500, dt=3600):
 
     ds_name = str(dt)+'_' + str(pressure) + '_' + \
         triplet.strftime("%B").lower() + '_merged'
+    ds_name_train = str(dt)+'_' + str(pressure) + '_' + \
+        triplet.strftime("%B").lower() + '_train'
 
     file = '../data/processed/experiments/' + \
         str(dt)+'_'+str(pressure)+'_'+month+'.nc'
@@ -57,3 +59,4 @@ def run(triplet, pressure=500, dt=3600):
     print(df)
     df.to_pickle(PATH_DF + str(dt) + '_' + month+'_' +
                  str(pressure)+'_df_results.pkl')
+    _, _ = plot_preprocessor(ds, ds_track, ds_qv_grad, ds_name)

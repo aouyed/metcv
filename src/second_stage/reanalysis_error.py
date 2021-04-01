@@ -42,8 +42,8 @@ def error_calc(df_0, pressure, triplet_time):
     df_era = df_era.dropna()
     df_cfs = df_cfs.dropna()
 
-    dict_path = '../data/interim/dictionaries/dataframes.pkl'
-    dataframes_dict = pickle.load(open(dict_path, 'rb'))
+    # dict_path = '../data/interim/dictionaries/dataframes.pkl'
+    # dataframes_dict = pickle.load(open(dict_path, 'rb'))
 
     df = df_0
     df = df.dropna()

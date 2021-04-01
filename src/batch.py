@@ -11,10 +11,10 @@ from data import map_maker as mm
 from data import summary_statistics as ss
 from data import pickled_histograms as ph
 
-pressures = [850, 500]
-dts = [3600, 1800]
+pressures = [300]
+dts = [3600]
 #dts = [3600]
-months = [1, 7]
+months = [7]
 day_list = (1, 2, 3)
 hour_list = (0, 6, 12, 18)
 # day_list = [1]

@@ -1,5 +1,5 @@
-import xarray as xr\
-    from metpy.interpolate import interpolate_1d
+import xarray as xr
+from metpy.interpolate import interpolate_1d
 import numpy as np
 import glob
 from pathlib import Path
@@ -27,8 +27,8 @@ def date_test(file, date):
     print('succesful test!')
 
 
-months = [1, 7]
-dts = ['30min', '60min']
+months = [1]
+dts = ['60min']
 days = [1, 2, 3]
 for month in months:
     if month == 1:
@@ -47,7 +47,7 @@ for month in months:
             date_list = date_list + daterange(start_date, end_dates[i], 0.5)
         day = str(day)
         files = natsorted(
-            glob.glob('../../data/raw/experiments/jpl/'+month_str+'/0'+day+'/*.nc'))
+            glob.glob('../../data/raw/experiments/experiments_12_16_20/jpl/'+month_str+'/0'+day+'/*.nc'))
         ds_total = xr.Dataset()
         for i, file in enumerate(files):
             print('var file:')
@@ -67,5 +67,6 @@ for month in months:
             else:
                 ds_total = xr.concat([ds_total, ds], 'time')
         print('saving..')
-        ds_total.to_netcdf('../../data/interim/experiments/july/'+day+'.nc')
+        ds_total.to_netcdf(
+            '../../data/interim/experiments/'+month_str+'/'+day+'.nc')
         print(ds_total)

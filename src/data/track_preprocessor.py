@@ -39,3 +39,5 @@ def run(triplet, pressure=500, dt=3600):
                        str(pressure) + '_'+triplet.strftime("%B").lower())
     preprocessing_loop(['full_exp2'], str(dt) + '_' +
                        str(pressure) + '_full_'+triplet.strftime("%B").lower())
+    preprocessing_loop(['train_exp2'], str(dt) + '_' +
+                       str(pressure) + '_train_'+triplet.strftime("%B").lower())

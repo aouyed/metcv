@@ -11,7 +11,7 @@ def daterange(start_date, end_date, dhour):
     return date_list
 
 
-month = 1
+month = 7
 day = 1
 datelists = {}
 for day in [1, 2, 3]:
@@ -25,12 +25,13 @@ for day in [1, 2, 3]:
 
     date_list = []
     for i, start_date in enumerate(start_dates):
+        #date_list = date_list + daterange(start_date, end_dates[i], 0.5)
         date_list = date_list + daterange(start_date, end_dates[i], 0.5)
 
     datelists[day] = date_list
 
 
-for day in [2, 3, 4]:
+for day in [1, 2, 3]:
     dates = datelists[day]
 
     for date in dates:
@@ -38,4 +39,8 @@ for day in [2, 3, 4]:
         filename = 'NRData_300hPa_'+string_date+'.nc'
         print(string_date)
         os.system('mv NR300/'+filename +
-                  ' ../raw/experiments/jpl/january/0'+str(day)+'/'+filename)
+                  ' ../raw/experiments/jpl/july/0'+str(day)+'/'+filename)
+        #filename = 'NRData_300hPa_'+string_date+'.nc'
+        # print(string_date)
+        # os.system('mv NR300/'+filename +
+        #         ' ../raw/experiments/jpl/july/0'+str(day)+' /'+filename)

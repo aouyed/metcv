@@ -10,7 +10,7 @@ import seaborn as sns
 import pandas as pd
 import cmocean
 
-ERROR_MAX = 10.5
+ERROR_MAX = 15
 
 
 def quiver_plotter(df, title, uname, vname):
@@ -128,11 +128,11 @@ def results_plotter(ax, df0):
 
     df = df0[df0.exp_filter == 'ground_t']
     ax.plot(df['latlon'], df['rmse'], '-o',
-            label='Forecast  Error')
+            label='Model Error')
 
-    df = df0[df0.exp_filter == 'rean']
-    ax.plot(df['latlon'], df['rmse'], '-o',
-            label='Reanalysis Difference')
+    #df = df0[df0.exp_filter == 'rean']
+    # ax.plot(df['latlon'], df['rmse'], '-o',
+    #       label='Reanalysis Difference')
 
     df = df0[df0.exp_filter == 'df']
     ax.plot(df['latlon'], df['rmse'], '-o', label='fsUA')
@@ -147,7 +147,7 @@ def multiple_filter_plotter(df_dict, values, month):
 
     fig, ax = plt.subplots()
 
-    fig, axes = plt.subplots(nrows=2, ncols=2)
+    fig, axes = plt.subplots(nrow)
 
     axlist = axes.flat
 
@@ -176,6 +176,26 @@ def multiple_filter_plotter(df_dict, values, month):
     fig.legend(handles, labels, bbox_to_anchor=(
         0.845, 1), ncol=3, frameon=False)
     #fig.legend(handles, labels, loc=(0.5, 1), ncol=2)
+    plt.savefig(values+'.png', bbox_inches='tight',  dpi=300)
+    plt.close()
+
+
+def single_filter_plotter(df_dict, values, month):
+
+    fig, ax = plt.subplots()
+    df = df_dict[(3600, month, 300)]
+    results_plotter(ax, df)
+
+    ax.text(0.1, 0.8, 'Δt = 60 min\nP = 300 hPa',
+            transform=ax.transAxes)
+
+   # handles, labels = ax.get_legend_handles_labels()
+    # fig.legend(handles, labels, bbox_to_anchor=(
+    #   0.845, 1), ncol=3, frameon=False)
+    ax.legend()
+    plt.xlabel("Region")
+    plt.ylabel("RMSVD [m/s]")
+
     plt.savefig(values+'.png', bbox_inches='tight',  dpi=300)
     plt.close()
 
@@ -212,7 +232,7 @@ def filter_plotter(df0, values, title):
     ax.set_xlabel("Region")
     ax.set_ylabel("RMSVD [m/s]")
     ax.set_title(title)
-    directory = '../data/processed/density_plots'
+#    directory = '../data/processed/density_plots'
     plt.savefig(values+'.png', bbox_inches='tight', dpi=300)
     plt.close()
 

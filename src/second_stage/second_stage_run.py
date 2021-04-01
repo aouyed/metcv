@@ -53,7 +53,7 @@ def run(triplet_time, pressure, dt):
     for exp_filter in exp_filters:
         print('fitting with filter ' + str(exp_filter))
         if exp_filter in ('exp2', 'error'):
-            regressor, X_test0, y_test0, X_full = mlf.ml_fitter(
+            regressor, X_test0, y_test0, X_full, X_train, y_train = mlf.ml_fitter(
                 df, test_size)
         elif exp_filter is 'df':
             X_test0 = df
@@ -63,9 +63,10 @@ def run(triplet_time, pressure, dt):
             print('predicting..')
         start_time = time.time()
         mlf.random_forest_calculator(df, category,  rmse,
-                                     exp_filter, exp_list, regressor, X_test0, y_test0, triplet_time, X_full)
+                                     exp_filter, exp_list, regressor, X_test0, y_test0, triplet_time, X_full, X_train, y_train)
         print("--- %s seconds ---" % (time.time() - start_time))
 
     d = {'rmse': rmse, 'exp_filter': category}
     df_results = pd.DataFrame(data=d)
     print(df_results)
+    df_results.to_csv('sampler_test.csv')

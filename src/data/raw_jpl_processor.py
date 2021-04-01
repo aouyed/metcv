@@ -8,7 +8,7 @@ from datetime import datetime
 import sh
 from dateutil.parser import parse
 
-PRESSURES = (500, 850)
+PRESSURES = [850]
 
 
 def daterange(start_date, end_date, dhour):
@@ -39,8 +39,8 @@ def date_test(file, date, dt, pressure):
 
 
 print('hello')
-months = [1, 7]
-dts = ['30min', '60min']
+months = [1]
+dts = ['60min']
 for dt in dts:
     for month in months:
         for pressure in PRESSURES:
@@ -49,7 +49,7 @@ for dt in dts:
             else:
                 month_str = 'july'
             path_files = '../../data/interim/experiments/'+month_str+'/tracked/'+dt+'/*.nc'
-            rm_files = natsorted(glob.glob(path_files))
+            #rm_files = natsorted(glob.glob(path_files))
 
             for day in (1, 2, 3):
 
@@ -57,7 +57,7 @@ for dt in dts:
                              datetime(2006, month, day, 12, 0, 0, 0), datetime(2006, month, day, 18, 0, 0, 0))
 
                 files = natsorted(
-                    glob.glob('../../data/raw/experiments/jpl/tracked/'+month_str+'/'+str(day)+'/'+str(pressure)+'/'+dt+'/*.nc'))
+                    glob.glob('../../data/raw/experiments/experiments_12_16_20/jpl/tracked/'+month_str+'/'+str(day)+'/'+str(pressure)+'/'+dt+'/*.nc'))
                 print(files)
                 ds_total = xr.Dataset()
                 for i, file in enumerate(files):
@@ -96,6 +96,6 @@ for dt in dts:
                 file_path = '../../data/interim/experiments/'+month_str + \
                     '/tracked/'+dt+'/combined/' + \
                     str(pressure)+'_'+month_str+'.nc'
-                sh.rm(file_path)
+                # sh.rm(file_path)
                 ds_total.to_netcdf(file_path)
                 print(ds_total)
