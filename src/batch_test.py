@@ -11,6 +11,7 @@ from data import map_maker as mm
 from data import summary_statistics as ss
 from data import pickled_results as pr
 from data import stdev_stats as sds
+from data import revision_plots as rp
 month = 1
 triplet = datetime(2006, month, 1, 0, 0, 0, 0)
 pressure = 850
@@ -21,11 +22,11 @@ files = glob.glob('../data/interim/experiments/first_stage_amvs/*')
 #print('test: ' + str(test))
 # os.system("python3 first_stage/first_stage_run.py  -p " + str(pressure) + " -dt 3600   -tri " +
 #         triplet.strftime("%Y-%m-%d-%H:%M"))
-ssr.run(triplet, pressure, dt=dt)
+#ssr.run(triplet, pressure, dt=dt)
 #os.system('mv sampler_test.csv sampler_test_' + str(test) + '.csv')
-tp.run(triplet, pressure=pressure, dt=dt)
+#tp.run(triplet, pressure=pressure, dt=dt)
 #print('triplet: '+str(triplet))
-bp.run(triplet, pressure=pressure, dt=dt)
+#bp.run(triplet, pressure=pressure, dt=dt)
 
 #print('plotting maps...')
 
@@ -33,7 +34,7 @@ bp.run(triplet, pressure=pressure, dt=dt)
 #mm.main(triplet, pressure=pressure, dt=dt)
 #hist.main(triplet, pressure=pressure, dt=dt)
 #ph.main(triplet, pressure=pressure, dt=dt)
-
+rp.main(triplet, pressure=pressure, dt=dt)
 
 #ss.main(triplet, pressure=pressure, dt=dt)
 ##os.system("rsync   --progress  ../data/processed/experiments/*  /run/media/amirouyed/reserarchDi/10_02_20/experiments/")

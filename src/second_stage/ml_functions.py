@@ -67,6 +67,8 @@ def ml_fitter(df, tsize):
     sigma_u = abs(X_train0['u_error_rean'])
     sigma_v = abs(X_train0['v_error_rean'])
 
+    X_train0.loc[:, 'umeanh0'] = X_train0['umeanh'].copy()
+    X_train0.loc[:, 'vmeanh0'] = X_train0['vmeanh'].copy()
     X_train0['umeanh'], X_train0['vmeanh'] = random_error_add(
         sigma_u, sigma_v, X_train0['umeanh'], X_train0['vmeanh'])
 
@@ -179,13 +181,17 @@ def error_rean(dfm, category, rmse):
     return dfm
 
 
-def ds_to_netcdf(df, triplet_time, exp_filter):
+def ds_to_netcdf(df, triplet_time, exp_filter, train=False):
     """Saves dataset to netCDF file."""
 
     df = df.set_index(['lat', 'lon'])
     ds = df.to_xarray()
-    ds = ds[['umeanh', 'vmeanh', 'u_scaled_approx',
-             'v_scaled_approx', 'cos_weight', 'u_error_rean', 'v_error_rean']]
+    columns = ['umeanh', 'vmeanh', 'u_scaled_approx',
+               'v_scaled_approx', 'cos_weight', 'u_error_rean', 'v_error_rean']
+    if train:
+        columns.append('umeanh0')
+        columns.append('vmeanh0')
+    ds = ds[columns]
     ds = ds.rename({'u_scaled_approx': 'utrack', 'v_scaled_approx': 'vtrack'})
     ds = ds.expand_dims('time')
     ds = ds.assign_coords(time=[triplet_time])
@@ -202,7 +208,7 @@ def random_forest_calculator(df,  category, rmse,   exp_filter, exp_list, regres
                                                  rmse,  regressor, X_test0, y_test0, X_full, X_train0, y_train0)
         ds_to_netcdf(X_test0, triplet_time, exp_filter)
         ds_to_netcdf(X_full, triplet_time, 'full_' + exp_filter)
-        ds_to_netcdf(X_train0, triplet_time, 'train_' + exp_filter)
+        ds_to_netcdf(X_train0, triplet_time, 'train_' + exp_filter, train=True)
 
     elif exp_filter is 'ground_t':
         X_test0 = error_interpolator(df, category, exp_filter, rmse)

@@ -59,4 +59,4 @@ def run(triplet, pressure=500, dt=3600):
     print(df)
     df.to_pickle(PATH_DF + str(dt) + '_' + month+'_' +
                  str(pressure)+'_df_results.pkl')
-    _, _ = plot_preprocessor(ds, ds_track, ds_qv_grad, ds_name)
+#    _, _ = plot_preprocessor(ds, ds_track, ds_qv_grad, ds_name_train)

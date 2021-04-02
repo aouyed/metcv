@@ -50,7 +50,7 @@ def main(triplet, pressure=500, dt=3600):
 
     month = triplet.strftime("%B").lower()
     ds_name = str(dt)+'_' + str(pressure) + '_' + \
-        triplet.strftime("%B").lower() + '_merged'
+        triplet.strftime("%B").lower() + '_train'
     directory = '../data/processed/histograms/' + ds_name + '.pkl'
     f = open(directory, 'rb')
     hist_dict = pickle.load(f)

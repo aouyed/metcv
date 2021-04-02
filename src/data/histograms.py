@@ -149,8 +149,10 @@ def main(triplet, pressure=500, dt=3600):
     hist_dict = {}
     month = triplet.strftime("%B").lower()
 
+    #   ds_name = str(dt)+'_' + str(pressure) + '_' + \
+    #      triplet.strftime("%B").lower() + '_merged'
     ds_name = str(dt)+'_' + str(pressure) + '_' + \
-        triplet.strftime("%B").lower() + '_merged'
+        triplet.strftime("%B").lower() + '_train'
 
     filename = PATH + ds_name+'.nc'
     ds = xr.open_dataset(filename)
