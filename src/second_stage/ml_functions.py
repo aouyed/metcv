@@ -128,7 +128,7 @@ def ml_predictor(category, name, rmse,  regressor, X_test0, y_test0, X_full0, X_
 
     _, _, X_test0 = error_calc(X_test0, name, category, rmse)
     _, _, X_full0 = error_calc(X_full0, name, [], [])
-
+    _, _, X_train0 = error_calc(X_train0, name+'_train', category, rmse)
     return X_test0, X_full0, X_train0
 
 

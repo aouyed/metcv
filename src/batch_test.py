@@ -19,11 +19,13 @@ dt = 3600
 plots = glob.glob('../data/processed/plots/*')
 files = glob.glob('../data/interim/experiments/first_stage_amvs/*')
 
-#print('test: ' + str(test))
+
 # os.system("python3 first_stage/first_stage_run.py  -p " + str(pressure) + " -dt 3600   -tri " +
 #         triplet.strftime("%Y-%m-%d-%H:%M"))
-#ssr.run(triplet, pressure, dt=dt)
-#os.system('mv sampler_test.csv sampler_test_' + str(test) + '.csv')
+for test in range(11):
+    print('test: ' + str(test))
+    ssr.run(triplet, pressure, dt=dt)
+    os.system('mv sampler_test.csv sampler_test_' + str(test) + '.csv')
 #tp.run(triplet, pressure=pressure, dt=dt)
 #print('triplet: '+str(triplet))
 #bp.run(triplet, pressure=pressure, dt=dt)
@@ -34,7 +36,7 @@ files = glob.glob('../data/interim/experiments/first_stage_amvs/*')
 #mm.main(triplet, pressure=pressure, dt=dt)
 #hist.main(triplet, pressure=pressure, dt=dt)
 #ph.main(triplet, pressure=pressure, dt=dt)
-rp.main(triplet, pressure=pressure, dt=dt)
+#rp.main(triplet, pressure=pressure, dt=dt)
 
 #ss.main(triplet, pressure=pressure, dt=dt)
 ##os.system("rsync   --progress  ../data/processed/experiments/*  /run/media/amirouyed/reserarchDi/10_02_20/experiments/")
